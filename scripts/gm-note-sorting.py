@@ -1,0 +1,150 @@
+import json
+import os
+
+# Define the order of keys for top-level structure
+key_order = [
+    "id",
+    "alternate_ids",
+    "type",
+    "slot",
+    "class",
+    "cost",
+    "level",
+    "traits",
+    "startsInHand",
+    "startsInPlay",
+    "permanent",
+    "weakness",
+    "basicWeaknessCount",
+    "classRestriction",
+    "modeRestriction",
+    "hidden",
+    "willpowerIcons",
+    "intellectIcons",
+    "combatIcons",
+    "agilityIcons",
+    "wildIcons",
+    "dynamicIcons",
+    "negativeIcons",
+    "bonded",
+    "uses",
+    "victory",
+    "doomThreshold",
+    "customizations",
+    "cycle",
+    "extraToken",
+    "signatures",
+    "locationFront",
+    "locationBack",
+    "TtsZoopGuid",
+]
+
+# Define the order of keys specifically for subtables (nested dictionaries)
+subTableKeyOrder = [
+    "victory",
+    "vengeance",
+    "icons",
+    "connections",
+    "uses",
+    "count",
+    "countPerInvestigator",
+    "maxCount",
+    "id",
+    "replenish",
+    "type",
+    "token",
+    "name",
+    "xp",
+    "text",
+    "front",
+    "back",
+    "Skull",
+    "Cultist",
+    "Tablet",
+    "Elder Thing",
+]
+
+def sortJSONKeys(data, is_top_level=True):
+    try:
+        if isinstance(data, dict):
+            sorted_dict = {}
+
+            if is_top_level:
+                # For the top-level dictionary, apply the specified key order
+                for key in key_order:
+                    if key in data:
+                        sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
+                # Add any remaining keys in alphabetical order
+                for key in sorted(data.keys()):
+                    if key not in sorted_dict:
+                        sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
+            else:
+                # For subtables, apply subTableKeyOrder first, then alphabetically sort the remaining keys
+                for key in subTableKeyOrder:
+                    if key in data:
+                        sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
+                for key in sorted(data.keys()):
+                    if key not in sorted_dict:
+                        sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
+
+            return sorted_dict
+
+        elif isinstance(data, list):
+            # Recursively sort any dictionaries in the list
+            return [sortJSONKeys(item, is_top_level=False) for item in data]
+
+        else:
+            # Return non-dict and non-list items as is
+            return data
+
+    except Exception as e:
+        print(f"Error sorting JSON keys: {e}")
+        return data  # Return the original data if there's an error
+
+
+def process_file(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        print(f"Error: File '{file_path}' contains invalid JSON.")
+        return
+    except UnicodeDecodeError as e:
+        print(f"Error: Could not decode file '{file_path}'. {e}")
+        return
+    except IOError as e:
+        print(f"Error: Could not read file '{file_path}'. {e}")
+        return
+
+    try:
+        modified_data = sortJSONKeys(data)
+
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(modified_data, f, indent=2)
+            f.write("\n")  # Add an empty line at the end of the file
+    except IOError as e:
+        print(f"Error: Could not write to file '{file_path}'. {e}")
+    except Exception as e:
+        print(f"Unexpected error processing file '{file_path}': {e}")
+
+
+def main():
+    base_dir = r"C:\git\SCED-downloads"
+
+    if not os.path.exists(base_dir):
+        print(f"Error: Directory '{base_dir}' does not exist.")
+        return
+
+    for path, subdirs, files in os.walk(base_dir):
+        for file in files:
+            file_path = os.path.join(path, file)
+            file_root, file_ext = os.path.splitext(file)
+            if file_ext == ".gmnotes":
+                process_file(file_path)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
