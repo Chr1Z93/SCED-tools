@@ -1,0 +1,44 @@
+local sealedToken
+
+function onSave()
+  if sealedToken then
+    return JSON.encode(sealedToken.getGUID())
+  end
+  return nil
+end
+
+function onLoad(savedData)
+  if savedData and savedData ~= "" then
+    sealedToken = getObjectFromGUID(tostring(JSON.decode(savedData)))
+  end
+  updateMenu()
+end
+
+function updateMenu()
+  self.clearContextMenu()
+  if sealedToken then
+    self.addContextMenuItem("Release token", function() releaseToken() end)
+  else
+    self.addContextMenuItem("Seal random token", function() sealRandomToken() end)
+  end
+end
+
+function sealRandomToken()
+  local chaosbag = Global.call("findChaosBag")
+  chaosbag.shuffle()
+  sealedToken = chaosbag.takeObject({
+    position = self.getPosition() + Vector(0, 0.2, 0),
+    rotation = self.getRotation(),
+    smooth = true
+  })
+  Wait.time(function() updateMenu() end, 0.1)
+end
+
+function releaseToken()
+  local chaosbag = Global.call("findChaosBag")
+
+  if sealedToken == nil then return end
+  chaosbag.putObject(sealedToken)
+  sealedToken = nil
+  updateMenu()
+end
