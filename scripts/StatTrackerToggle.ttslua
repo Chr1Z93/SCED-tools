@@ -1,0 +1,50 @@
+local guidReferenceApi          = require("core/GUIDReferenceApi")
+local playermatApi              = require("playermat/PlayermatApi")
+
+local state                     = {
+  { 1, 1, 5, 5 },
+  { 5, 5, 1, 1 }
+}
+
+local buttonParameters          = {}
+buttonParameters.function_owner = self
+buttonParameters.scale          = { x = 0.5, y = 1, z = 0.5 }
+buttonParameters.position       = { x = 0, y = 0.1, z = 0.5 }
+buttonParameters.height         = 900
+buttonParameters.width          = 2700
+buttonParameters.font_size      = 425
+
+local zOffset                   = 1.1
+
+function onLoad()
+  for i, data in ipairs(state) do
+    local funcName = "setState" .. i
+    self.setVar(funcName, function() setState(i) end)
+    buttonParameters.click_function = funcName
+    buttonParameters.position.z = buttonParameters.position.z + zOffset
+    buttonParameters.label = concatTable(data)
+    self.createButton(buttonParameters)
+  end
+end
+
+function setState(num)
+  local tracker = getTracker()
+  local newStats = state[num]
+  tracker.call("updateStats", newStats)
+end
+
+function getTracker()
+  local matColor = playermatApi.getMatColorByPosition(self.getPosition())
+  local tracker = guidReferenceApi.getObjectByOwnerAndType(matColor, "InvestigatorSkillTracker")
+  return tracker
+end
+
+function concatTable(tbl)
+  local str = ""
+  for _, val in ipairs(tbl) do
+    str = str .. tostring(val) .. ", "
+  end
+
+  -- remove last two chars
+  return str:sub(1, -3)
+end
