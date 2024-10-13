@@ -1,0 +1,21 @@
+function moveAndRotatePlayermat(matColor, newPosition, newRotation)
+  local guidHandler = getObjectFromGUID("123456")
+  local mat = guidHandler.call("getObjectByOwnerAndType", { owner = matColor, type = "Playermat" })
+  local matObjects = guidHandler.call("getObjectsByOwner", matColor)
+
+  -- store relative positions
+  local storedPositions = {}
+  for _, obj in ipairs(matObjects) do
+    storedPositions[obj.getGUID()] = mat.positionToLocal(obj.getPosition())
+  end
+
+  -- move main mat
+  mat.setPosition(newPosition)
+  mat.setRotation(newRotation)
+
+  -- restore relative positions
+  for _, obj in ipairs(matObjects) do
+    obj.setPosition(mat.positionToWorld(storedPositions[obj.getGUID()]))
+    obj.setRotation(newRotation)
+  end
+end
