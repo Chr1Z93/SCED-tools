@@ -6,7 +6,9 @@ function moveAndRotatePlayermat(matColor, newPosition, newRotation)
   -- store relative positions
   local storedPositions = {}
   for _, obj in ipairs(matObjects) do
-    storedPositions[obj.getGUID()] = mat.positionToLocal(obj.getPosition())
+    if obj ~= mat then
+      storedPositions[obj.getGUID()] = mat.positionToLocal(obj.getPosition())
+    end
   end
 
   -- move main mat
@@ -15,7 +17,9 @@ function moveAndRotatePlayermat(matColor, newPosition, newRotation)
 
   -- restore relative positions
   for _, obj in ipairs(matObjects) do
-    obj.setPosition(mat.positionToWorld(storedPositions[obj.getGUID()]))
-    obj.setRotation(newRotation)
+    if obj ~= mat then
+      obj.setPosition(mat.positionToWorld(storedPositions[obj.getGUID()]))
+      obj.setRotation(newRotation)
+    end
   end
 end
