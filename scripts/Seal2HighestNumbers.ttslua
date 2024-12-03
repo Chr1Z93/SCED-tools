@@ -22,14 +22,14 @@ end
 function updateMenu()
   self.clearContextMenu()
   if #sealedTokens ~= 0 then
-    self.addContextMenuItem("Release tokens", function(playerColor) releaseTokens(playerColor) end)
+    self.addContextMenuItem("Release tokens", releaseTokens)
   else
-    self.addContextMenuItem("Seal tokens", function(playerColor) sealTokens(playerColor) end)
+    self.addContextMenuItem("Seal tokens", sealTokens)
   end
 end
 
-function sealTokens(name, playerColor)
-  local chaosbag = getChaosBag()
+function sealTokens(playerColor)
+  local chaosbag = Global.call("findChaosBag")
   local chaosbagObjects = chaosbag.getObjects()
   local ultraBreak = false
   sealedTokens = {}
@@ -53,8 +53,9 @@ function sealTokens(name, playerColor)
     if ultraBreak then break end
   end
 
-  local chaosbagObjects = chaosbag.getObjects()
-  local ultraBreak = false
+  -- seal 2nd token
+  chaosbagObjects = chaosbag.getObjects()
+  ultraBreak = false
   for j = 1, 10 do
     local name = tostring(2 - j)
     if j == 1 then name = "+1" end
@@ -80,25 +81,12 @@ function sealTokens(name, playerColor)
   end
 end
 
-function releaseTokens(playerColor)
-  local chaosbag = getChaosBag()
-  
+function releaseTokens()
+  local chaosbag = Global.call("findChaosBag")
+
   if sealedTokens == {} then return end
   chaosbag.putObject(sealedTokens[1])
   chaosbag.putObject(sealedTokens[2])
   sealedTokens = {}
   updateMenu()
-end
-
-function getChaosBag()
-  local items = getObjectFromGUID("83ef06").getObjects()
-  local chaosbag = nil
-  for i, v in ipairs(items) do
-    if v.getDescription() == "Chaos Bag" then
-      chaosbag = getObjectFromGUID(v.getGUID())
-      break
-    end
-  end
-  if chaosbag == nil then printToAll("No chaos bag found") end
-  return chaosbag
 end

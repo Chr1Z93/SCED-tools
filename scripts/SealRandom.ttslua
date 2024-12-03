@@ -17,9 +17,9 @@ end
 function updateMenu()
   self.clearContextMenu()
   if sealedToken then
-    self.addContextMenuItem("Release token", function() releaseToken() end)
+    self.addContextMenuItem("Release token", releaseToken)
   else
-    self.addContextMenuItem("Seal random token", function() sealRandomToken() end)
+    self.addContextMenuItem("Seal random token", sealRandomToken)
   end
 end
 

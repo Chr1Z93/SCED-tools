@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 
 folder = r"C:\git\SCED-downloads\decomposed"
 
