@@ -65,6 +65,9 @@ def process_folder(folder_path):
 
 def process_input(path):
     """Process a file or folder based on the given path."""
+    # Remove leading and trailing quotes if present
+    path = path.strip('"').strip("'")
+
     if os.path.isdir(path):
         process_folder(path)
     elif os.path.isfile(path):
