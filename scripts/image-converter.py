@@ -55,10 +55,12 @@ def resize_and_compress(image_path, output_size=(750, 1050), max_file_size_kb=45
 def process_folder(folder_path):
     """Process all image files in a folder (and its subfolders)."""
     print(f"[INFO] Processing folder: {folder_path}")
-        
+
     for root, _, files in os.walk(folder_path):
         for file_name in files:
-            if file_name.lower().endswith(".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"):
+            if file_name.lower().endswith(
+                ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff"
+            ):
                 file_path = os.path.join(root, file_name)
                 resize_and_compress(file_path)
 
