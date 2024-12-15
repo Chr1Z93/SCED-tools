@@ -56,11 +56,11 @@ def process_folder(folder_path):
     """Process all image files in a folder (and its subfolders)."""
     print(f"[INFO] Processing folder: {folder_path}")
 
+    supported_extensions = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff")
+
     for root, _, files in os.walk(folder_path):
         for file_name in files:
-            if file_name.lower().endswith(
-                ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff"
-            ):
+            if file_name.lower().endswith(supported_extensions):
                 file_path = os.path.join(root, file_name)
                 resize_and_compress(file_path)
 
