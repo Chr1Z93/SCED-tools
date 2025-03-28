@@ -1,10 +1,10 @@
 import os
 
 # Config
-search_folder = r"C:\git\SCED-downloads\decomposed\campaign\Return to The Circle Undone"
+search_folder = r"C:\git\SCED-downloads\decomposed\campaign\The Circle Undone"
 original_string = '"cycle": "The Circle Undone"'
-replacement_string = '"cycle": "Return to The Circle Undone"'
-filter_string = '"id": "54'  # must be part of file
+replacement_string = '"cycle": "Core"'
+filter_string = '"id": "01'  # must be part of file
 
 # Loop through files
 for root, _, files in os.walk(search_folder):
