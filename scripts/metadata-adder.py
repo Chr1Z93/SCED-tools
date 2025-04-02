@@ -35,11 +35,7 @@ def load_metadata(file):
             print(f"Invalid JSON at row {index + 2}: {e}")
             continue
 
-        if card_description:  # Only use description if it's not empty
-            metadata_dict[(card_name, card_description)] = metadata
-
-        # Always store with empty description as fallback
-        metadata_dict[(card_name, "")] = metadata
+        metadata_dict[(card_name, card_description)] = metadata
 
     return metadata_dict
 
@@ -48,7 +44,7 @@ def load_metadata(file):
 def clear_gmnotes(obj_list):
     for obj in obj_list:
         if "GMNotes" in obj:
-            obj["GMNotes"] = ""  # Clear GMNotes
+            obj["GMNotes"] = ""
         if "ContainedObjects" in obj:
             clear_gmnotes(obj["ContainedObjects"])
 
@@ -56,12 +52,12 @@ def clear_gmnotes(obj_list):
 # Recursively update GMNotes in the save file
 def update_gmnotes(obj_list, metadata, unused_metadata):
     for obj in obj_list:
-        if "Nickname" in obj:
+        if obj["Name"] == "Card" or obj["Name"] == "CardCustom":
             name = obj["Nickname"].strip()
-            description = obj.get("Description", "").strip()
+            description = obj["Description"].strip()
 
             # Try exact match (Name + Description)
-            md_value = metadata.get((name, description)) or metadata.get((name, ""))
+            md_value = metadata.get((name, description))
 
             # If no match, check if name follows "name (description)" format
             match = None  # Ensure match is always defined
@@ -70,12 +66,13 @@ def update_gmnotes(obj_list, metadata, unused_metadata):
                 match = re.match(r"^(.*) \((.*)\)$", name)
                 if match:
                     ex_name, ex_description = match.groups()
-                    md_value = metadata.get(
-                        (ex_name.strip(), ex_description.strip())
-                    ) or metadata.get((ex_name.strip(), ""))
+                    md_value = metadata.get((ex_name.strip(), ex_description.strip()))
 
             if md_value:
-                obj["GMNotes"] = md_value
+                set_metadata(obj, md_value)
+                print(f"Updated GMNotes in 1st pass for: {name}")
+
+                # Remove the data from the unused metadata list
                 unused_metadata.discard((name, description))
                 unused_metadata.discard((name, ""))
                 if match:
@@ -91,25 +88,59 @@ def update_gmnotes(obj_list, metadata, unused_metadata):
 def second_pass_update(obj_list, unused_metadata):
     for obj in obj_list:
         # Skip objects with existing GMNotes
-        if "Nickname" in obj and not obj.get("GMNotes", "").strip():
+        if (obj["Name"] == "Card" or obj["Name"] == "CardCustom") and not obj.get(
+            "GMNotes", ""
+        ).strip():
             name = obj["Nickname"].strip()
-            matched_keys = {(name, desc) for (n, desc) in unused_metadata if n == name}
 
-            if matched_keys:
-                md_value = next(
-                    (metadata[key] for key in matched_keys if key in metadata), None
-                )
+            # Get all metadata keys matching the name (regardless of description)
+            matching_keys = {(n, d) for (n, d) in unused_metadata if n == name}
+
+            if matching_keys:
+                # Find the metadata entry to apply (use first match or any available)
+                md_value = None
+                description_used = None
+                for key in matching_keys:
+                    if key in metadata:
+                        md_value = metadata[key]
+                        description_used = key[1]  # The description part of the key
+                        break
 
                 if md_value:
-                    obj["GMNotes"] = md_value
+                    set_metadata(obj, md_value)
                     print(f"Updated GMNotes in 2nd pass for: {name}")
 
-                    # Remove all variants of this name from unused_metadata
-                    unused_metadata.difference_update(matched_keys)
+                    # Remove the (name, description) pair from unused_metadata
+                    unused_metadata.discard((name, description_used))
 
         # Recursively process contained objects
         if "ContainedObjects" in obj:
             second_pass_update(obj["ContainedObjects"], unused_metadata)
+
+import json
+
+
+def set_metadata(obj, md_value):
+    obj["GMNotes"] = md_value  # Store the metadata as GMNotes
+
+    # Initialize Tags as an empty list
+    obj["Tags"] = []
+
+    # Parse metadata JSON string
+    metadata_dict = json.loads(md_value)
+
+    # Add tags based on metadata conditions
+    if metadata_dict.get("type") == "Asset":
+        obj["Tags"].append("Asset")
+    if metadata_dict.get("type") == "Location":
+        obj["Tags"].append("Location")
+    if (
+        metadata_dict.get("type") == "Location"
+        or metadata_dict.get("class") == "Mythos"
+    ):
+        obj["Tags"].append("ScenarioCard")
+    if metadata_dict.get("type") == "Asset" or metadata_dict.get("class") == "Neutral":
+        obj["Tags"].append("PlayerCard")
 
 
 # Load JSON save file
