@@ -15,23 +15,25 @@ def get_unique_filename(base_path, base_name, extension):
     return output_path
 
 
-def resize_and_compress(image_path, output_size=(750, 1050), max_file_size_kb=450):
+def resize_and_compress(image_path, max_file_size_kb=450):
     try:
         with Image.open(image_path) as img:
             # Convert RGBA to RGB if necessary
             if img.mode == "RGBA":
                 img = img.convert("RGB")
 
-            # Rotate horizontal images 90° clockwise
+            # Determine orientation and set target size accordingly
             if img.width > img.height:
-                img = img.rotate(-90, expand=True)
+                output_size = (1050, 750)  # Landscape
+            else:
+                output_size = (750, 1050)  # Portrait
 
             # Resize image to exact dimensions (without keeping aspect ratio)
             img = img.resize(output_size, Image.LANCZOS)
 
             # Define output path
             base_path = os.path.dirname(image_path)
-            base_name = f"{os.path.basename(image_path).split('.')[0]}"
+            base_name = os.path.splitext(os.path.basename(image_path))[0]
             output_path = get_unique_filename(base_path, base_name, ".jpg")
 
             # Save with compression to ensure file size is under max_file_size_kb
