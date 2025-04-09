@@ -4,7 +4,7 @@ import re
 import sys
 
 # Set the path to the TTS savegame JSON file
-SAVE_FILE = r"C:\git\SCED-downloads\downloadable\campaign\the_drowned_city.json"
+SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\TDC_WIP.json"
 METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-tdc.xlsx"
 
 
@@ -21,6 +21,7 @@ def load_metadata(file):
 
     for index, row in df.iterrows():
         card_name = row["Card Name"].strip()
+        card_type = row["Type"].strip()
         card_description = (
             str(row["Card Description"]).strip()
             if pd.notna(row["Card Description"])
@@ -39,6 +40,7 @@ def load_metadata(file):
             "Nickname": card_name,
             "Description": card_description,
             "GMNotes": metadata,
+            "Type": card_type,
         }
 
     return metadata_dict
@@ -78,6 +80,9 @@ def set_metadata(obj, md_value):
     # Force correct cycle data
     metadata_dict["cycle"] = "The Drowned City"
 
+    # Force correct type data
+    metadata_dict["type"] = md_value["Type"]
+
     obj["GMNotes"] = json.dumps(metadata_dict)
 
     # Add tags based on metadata conditions
@@ -111,16 +116,14 @@ if __name__ == "__main__":
     metadata = load_metadata(METADATA_FILE)
     unused_metadata = set(metadata.keys())
 
-    if True:
-        sys.exit()
-
     if not metadata:
         print("No valid metadata found. Please fix any JSON errors in the Excel file.")
     else:
         savegame = load_savegame(SAVE_FILE)
 
-        if "ContainedObjects" in savegame:
-            update_metadata(savegame["ContainedObjects"], metadata, unused_metadata)
+        # Change this to "ContainedObjects" for loadable objects
+        if "ObjectStates" in savegame:
+            update_metadata(savegame["ObjectStates"], metadata, unused_metadata)
 
         save_savegame(SAVE_FILE, savegame)
         print("\nSavegame updated successfully!")
