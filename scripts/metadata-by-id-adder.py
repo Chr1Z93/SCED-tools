@@ -48,9 +48,8 @@ def load_metadata(file):
 def update_metadata(obj_list, metadata, unused_metadata):
     for obj in obj_list:
         if obj["Name"] == "Card" or obj["Name"] == "CardCustom":
+            # Try exact match (assuming the name is the ID)
             name = obj["Nickname"].strip()
-
-            # Try exact match (using the name as key
             md_value = metadata.get(name)
 
             if md_value:
