@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import re
+import sys
 
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\git\SCED-downloads\downloadable\campaign\the_drowned_city.json"
@@ -65,15 +66,20 @@ def update_metadata(obj_list, metadata, unused_metadata):
 
 
 def set_metadata(obj, md_value):
+    # Set nickname and description
     obj["Nickname"] = md_value["Nickname"]
     obj["Description"] = md_value["Description"]
-    obj["GMNotes"] = md_value["GMNotes"]
 
     # Initialize Tags as an empty list
     obj["Tags"] = []
 
     # Parse metadata JSON string
     metadata_dict = json.loads(md_value["GMNotes"])
+
+    # Force correct cycle data
+    metadata_dict["cycle"] = "The Drowned City"
+
+    obj["GMNotes"] = json.dumps(metadata_dict)
 
     # Add tags based on metadata conditions
     if metadata_dict.get("type") == "Asset":
@@ -105,6 +111,9 @@ def save_savegame(file, data):
 if __name__ == "__main__":
     metadata = load_metadata(METADATA_FILE)
     unused_metadata = set(metadata.keys())
+
+    if True:
+        sys.exit()
 
     if not metadata:
         print("No valid metadata found. Please fix any JSON errors in the Excel file.")
