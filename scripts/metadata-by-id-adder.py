@@ -1,7 +1,6 @@
 import json
 import pandas as pd
 import re
-import sys
 
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\TDC_WIP.json"
