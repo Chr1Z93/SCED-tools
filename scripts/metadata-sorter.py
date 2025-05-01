@@ -1,6 +1,8 @@
 import json
 import os
 
+base_dir = r"C:\git\SCED-downloads"
+
 # Define the order of keys for top-level structure
 key_order = [
     "id",
@@ -129,17 +131,14 @@ def process_file(file_path):
 
 
 def main():
-    base_dir = r"C:\git\SCED-downloads"
-
     if not os.path.exists(base_dir):
         print(f"Error: Directory '{base_dir}' does not exist.")
         return
 
-    for path, subdirs, files in os.walk(base_dir):
+    for path, _, files in os.walk(base_dir):
         for file in files:
             file_path = os.path.join(path, file)
-            file_root, file_ext = os.path.splitext(file)
-            if file_ext == ".gmnotes":
+            if file.endswith(".gmnotes"):
                 process_file(file_path)
 
 
