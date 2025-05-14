@@ -66,6 +66,7 @@ subTableKeyOrder = [
     "Elder Thing",
 ]
 
+
 def sortJSONKeys(data, is_top_level=True):
     try:
         if isinstance(data, dict):
