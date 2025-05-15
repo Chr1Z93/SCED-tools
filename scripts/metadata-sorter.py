@@ -1,7 +1,7 @@
 import json
 import os
 
-base_dir = r"C:\git\SCED-downloads"
+base_dir = r"C:\git\SCED-downloads\decomposed"
 
 # Define the order of keys for top-level structure
 key_order = [
