@@ -1,0 +1,668 @@
+{
+  "Old Road": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Manor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Hamlet": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Cabinet Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Dining Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Entryway": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Trapped Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Study": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Laboratory": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Domed Chamber": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Chapel": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Basement Hallway": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Reading Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Parlor": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Abattoir": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Banquet Hall": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Freezer": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Guest Room": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Kennels": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Laundry Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Oven": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Portraits Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Servants' Quarters": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Service Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Stairwell": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Theatre": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Webbed Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Wine Cellar": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Writing Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Abbey": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Campsite": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "East Gate": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Guildhall": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "North Gate": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Sanitarium": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Smithy": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "South Gate": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Surgery": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Tavern": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Wagon": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "West Gate": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Mysterious Door (And a Mysterious Drawer)": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Canopy Sanctum West": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Canopy Sanctum East": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Psychology Section": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Philosophy Section": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Occult Section": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Necromancy Section": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Mycology Section": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Metallurgy Section": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Medical Sciences Section": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Mathematics Section": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Divination Section": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Anthropomancy Section": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Breeding Pool": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Shimmering Grotto": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Woodland Cemetery": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Graven Cairns": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Hermit's Hovel": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Foul Orchard": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Lotus Field": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Leechridden Swamp": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Flooded Grove": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Grim Backwoods": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Twilight Mire": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Scalding Tarn": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Fungal Reaches": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Salt Marsh": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Choked Estuary": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Witch's Cottage": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Reflecting Pool": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Forbidden Garden": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Cavern of Souls": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Isolated Chapel": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Murmuring Bosk": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Woodland Stream": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Cooling Spinney": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Sylvan Library": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Weald Clearing": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Abandoned Brigand Camp": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Torture Chamber": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Unfinished Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Storeroom": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Sewer Passage": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Echo Chamber": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Chandelier Room": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Rubble-Filled Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Haunted Corridor": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Foyer": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Altar": {
+    "type": "perPlayer",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Vortex to Nowhere": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Underground River": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Underground Lake": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Trickling Bluffs": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Thawing Floes": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Steep Incline": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Iridescent Sac": {
+    "type": "fixed",
+    "value": 5,
+    "clueSide": "front"
+  },
+  "Flooded Ruins": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Enchanted Tree": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Crystal Nursery": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Siren's Grotto": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Guardians of Mira": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Ghostly Reservoir": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Eldritch Obelisk": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Hidden Door": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Light at the End": {
+    "type": "perPlayer",
+    "value": 3,
+    "clueSide": "front"
+  },
+  " Narrow Steps": {
+    "type": "perPlayer",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Cerebral Forest": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Cerebral Forest ": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Floating Lungs": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Intestinal Exchangers": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Liver Outcrop": {
+    "type": "fixed",
+    "value": 1,
+    "clueSide": "front"
+  },
+  "Liver Outcrop ": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Alveolar Glade": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Bone Filaments": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Bubbling Plasma": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Canals of Hering": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Cholecystic Isle": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Cliffs of Dermis": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Uro Boulders": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Undulating Pseudopods": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Roost Oculorum": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Mucus Swamp": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Leukocyte Geysers": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Hemostreams": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "Epithelium Carpet": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Corroded Troche": {
+    "type": "fixed",
+    "value": 2,
+    "clueSide": "front"
+  },
+  "Corneum Plateaus": {
+    "type": "fixed",
+    "value": 5,
+    "clueSide": "front"
+  },
+  "Cochlic Monolith": {
+    "type": "fixed",
+    "value": 3,
+    "clueSide": "front"
+  },
+  "The Necronomicon (Alhazred Translation)": {
+    "tokenType": "resource",
+    "tokenCount": 2
+  },
+  "Athanasias": {
+    "tokenType": "resource",
+    "tokenCount": 2
+  },
+  "Delusions": {
+    "tokenType": "resource",
+    "tokenCount": 4
+  },
+  "Dance of Sarnath (1)": {
+    "tokenType": "resource",
+    "tokenCount": 4
+  }
+}
