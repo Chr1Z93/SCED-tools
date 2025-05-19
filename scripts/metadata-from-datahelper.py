@@ -15,18 +15,50 @@ def clean_json(json_str):
 
 
 # Load metadata from JSON
-def load_metadata(file):
+def load_metadata():
+    datahelper = load_JSON(DATAHELPER_FILE)
+
     metadata_dict = {}
 
-    card_name = "123"
-    metadata = "234"
+    for card_name, info in datahelper.items():
+        # handle location data
+        if "clueside" in info:
+            token_entry = {"type": "Clue", "token": "clue"}
 
-    metadata_dict[card_name] = metadata
+            if info["type"] == "perPlayer":
+                token_entry["countPerInvestigator"] = info["value"]
+            elif info["type"] == "fixed":
+                token_entry["count"] = info["value"]
+            else:
+                raise ValueError(
+                    f"Unknown type '{info['type']}' for card '{card_name}'"
+                )
+
+            location_side = (
+                "locationFront" if info["clueSide"] == "front" else "locationBack"
+            )
+
+            metadata = {
+                "type": "Location",
+                location_side: {"icons": "", "connections": "", "uses": [token_entry]},
+            }
+
+            metadata_dict[card_name] = metadata
+        else:
+            metadata = {
+                "type": "Asset",
+                "uses": {
+                    "type": info["tokenType"].capitalize(),
+                    "token": info["tokenType"],
+                    "count": info["tokenCount"],
+                },
+            }
+            metadata_dict[card_name] = metadata
 
     return metadata_dict
 
 
-# Step 0: Remove all existing GMNotes
+# Remove all existing GMNotes
 def clear_gmnotes(obj_list):
     for obj in obj_list:
         if "GMNotes" in obj:
@@ -35,19 +67,17 @@ def clear_gmnotes(obj_list):
             clear_gmnotes(obj["ContainedObjects"])
 
 
-# Second pass: Only match by name, skipping objects with non-empty GMNotes
+# Match by name
 def update_metadata(obj_list, unused_metadata):
     for obj in obj_list:
-        # Skip objects with existing GMNotes
-        if (obj["Name"] == "Card" or obj["Name"] == "CardCustom") and not obj.get(
-            "GMNotes", ""
-        ).strip():
+        # Skip non-card objects
+        if obj["Name"] == "Card" or obj["Name"] == "CardCustom":
             name = obj["Nickname"].strip()
 
             if name in unused_metadata:
                 set_metadata(obj, metadata[name])
 
-                # Remove the (name, description) pair from unused_metadata
+                # Remove the name from unused_metadata
                 unused_metadata.discard(name)
 
         # Recursively process contained objects
@@ -79,7 +109,7 @@ def set_metadata(obj, md_value):
 
 
 # Load JSON save file
-def load_savegame(file):
+def load_JSON(file):
     with open(file, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -92,28 +122,25 @@ def save_savegame(file, data):
 
 # Main execution
 if __name__ == "__main__":
-    metadata = load_metadata(DATAHELPER_FILE)
+    metadata = load_metadata()
     unused_metadata = set(metadata.keys())
+    savegame = load_JSON(SAVE_FILE)
 
-    if not metadata:
-        print("No valid metadata found. Please fix any JSON errors in the Excel file.")
-    else:
-        savegame = load_savegame(SAVE_FILE)
+    if "ContainedObjects" in savegame:
+        # Remove metadata
+        print("Clearing existing GMNotes ...")
+        clear_gmnotes(savegame["ContainedObjects"])
 
-        if "ContainedObjects" in savegame:
-            # Step 0: Remove metadata
-            print("Clearing existing GMNotes ...")
-            clear_gmnotes(savegame["ContainedObjects"])
+        # Apply metadata (if name matches)
+        print("Updating metadata ...")
+        update_metadata(savegame["ContainedObjects"], metadata, unused_metadata)
 
-            # Step 1: Apply metadata (if name matches)
-            print("Updating metadata ...")
-            update_metadata(savegame["ContainedObjects"], metadata, unused_metadata)
-
+        # Save the game
+        print("Savegame update completed.")
         save_savegame(SAVE_FILE, savegame)
-        print("\nSavegame update completed.")
 
         # Output unused metadata entries
         if unused_metadata:
-            print("\nThe following metadata entries were not used:")
+            print("The following metadata entries were not used:")
             for name in unused_metadata:
                 print(f"- {name}")
