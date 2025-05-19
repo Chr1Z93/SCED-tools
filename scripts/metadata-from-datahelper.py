@@ -1,11 +1,10 @@
 import json
-import pandas as pd
 import re
 
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\git\SCED-downloads\downloadable\campaign\darkham_horror.json"
 DATAHELPER_FILE = r"C:\git\SCED-tools\scripts\datahelper.json"
-
+CYCLE_NAME = "Darkham Horror"
 
 # Function to clean up trailing commas in JSON strings
 def clean_json(json_str):
@@ -22,7 +21,7 @@ def load_metadata():
 
     for card_name, info in datahelper.items():
         # handle location data
-        if "clueside" in info:
+        if "clueSide" in info:
             token_entry = {"type": "Clue", "token": "clue"}
 
             if info["type"] == "perPlayer":
@@ -39,19 +38,23 @@ def load_metadata():
             )
 
             metadata = {
+                "id": "",
                 "type": "Location",
                 location_side: {"icons": "", "connections": "", "uses": [token_entry]},
+                "cycle": CYCLE_NAME,
             }
 
             metadata_dict[card_name] = metadata
         else:
             metadata = {
+                "id": "",
                 "type": "Asset",
                 "uses": {
                     "type": info["tokenType"].capitalize(),
                     "token": info["tokenType"],
                     "count": info["tokenCount"],
                 },
+                "cycle": CYCLE_NAME,
             }
             metadata_dict[card_name] = metadata
 
@@ -68,11 +71,11 @@ def clear_gmnotes(obj_list):
 
 
 # Match by name
-def update_metadata(obj_list, unused_metadata):
+def update_metadata(obj_list, metadata, unused_metadata):
     for obj in obj_list:
         # Skip non-card objects
         if obj["Name"] == "Card" or obj["Name"] == "CardCustom":
-            name = obj["Nickname"].strip()
+            name = obj["Nickname"]
 
             if name in unused_metadata:
                 set_metadata(obj, metadata[name])
@@ -82,29 +85,23 @@ def update_metadata(obj_list, unused_metadata):
 
         # Recursively process contained objects
         if "ContainedObjects" in obj:
-            update_metadata(obj["ContainedObjects"], unused_metadata)
+            update_metadata(obj["ContainedObjects"], metadata, unused_metadata)
 
 
 def set_metadata(obj, md_value):
-    obj["GMNotes"] = md_value  # Store the metadata as GMNotes
+    obj["GMNotes"] = clean_json(json.dumps(md_value, separators=(",", ":")))
 
     # Initialize Tags as an empty list
     obj["Tags"] = []
 
-    # Parse metadata JSON string
-    metadata_dict = json.loads(md_value)
-
     # Add tags based on metadata conditions
-    if metadata_dict.get("type") == "Asset":
+    if md_value.get("type") == "Asset":
         obj["Tags"].append("Asset")
-    if metadata_dict.get("type") == "Location":
+    if md_value.get("type") == "Location":
         obj["Tags"].append("Location")
-    if (
-        metadata_dict.get("type") == "Location"
-        or metadata_dict.get("class") == "Mythos"
-    ):
+    if md_value.get("type") == "Location" or md_value.get("class") == "Mythos":
         obj["Tags"].append("ScenarioCard")
-    if metadata_dict.get("type") == "Asset" or metadata_dict.get("class") == "Neutral":
+    if md_value.get("type") == "Asset" or md_value.get("class") == "Neutral":
         obj["Tags"].append("PlayerCard")
 
 

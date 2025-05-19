@@ -19,6 +19,11 @@
     "value": 2,
     "clueSide": "front"
   },
+  "Collapsed Corridor": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Corridor": {
     "type": "perPlayer",
     "value": 1,
@@ -74,6 +79,16 @@
     "value": 2,
     "clueSide": "front"
   },
+  "Overgrown Path": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
+  "Entry Hall": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Abattoir": {
     "type": "perPlayer",
     "value": 2,
@@ -82,6 +97,11 @@
   "Banquet Hall": {
     "type": "perPlayer",
     "value": 1,
+    "clueSide": "front"
+  },
+  "Empty Room": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   "Freezer": {
@@ -199,6 +219,11 @@
     "value": 1,
     "clueSide": "front"
   },
+  "Town Center": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Wagon": {
     "type": "perPlayer",
     "value": 1,
@@ -209,9 +234,24 @@
     "value": 1,
     "clueSide": "front"
   },
+  "Mysterious Door (Sealed Shut)": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Mysterious Door (And a Mysterious Drawer)": {
     "type": "perPlayer",
     "value": 1,
+    "clueSide": "front"
+  },
+  "Library Stairs": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
+  "Library Entrance": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   "Canopy Sanctum West": {
@@ -404,9 +444,34 @@
     "value": 1,
     "clueSide": "front"
   },
+  " Stairwell": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
+  "Orb Reliquary": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
+  "Locus Beacon": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
+  "Crown Pedestal": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Torture Chamber": {
     "type": "perPlayer",
     "value": 2,
+    "clueSide": "front"
+  },
+  "Archways": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   "Unfinished Corridor": {
@@ -484,6 +549,11 @@
     "value": 2,
     "clueSide": "front"
   },
+  "Loading Yard": {
+    "type": "fixed",
+    "value": 0,
+    "clueSide": "front"
+  },
   "Iridescent Sac": {
     "type": "fixed",
     "value": 5,
@@ -502,6 +572,11 @@
   "Crystal Nursery": {
     "type": "fixed",
     "value": 3,
+    "clueSide": "front"
+  },
+  "Cove Entrance": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   "Siren's Grotto": {
@@ -532,6 +607,11 @@
   "Light at the End": {
     "type": "perPlayer",
     "value": 3,
+    "clueSide": "front"
+  },
+  "Narrow Steps": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   " Narrow Steps": {
@@ -567,6 +647,11 @@
   "Liver Outcrop ": {
     "type": "fixed",
     "value": 2,
+    "clueSide": "front"
+  },
+  "Rift": {
+    "type": "fixed",
+    "value": 0,
     "clueSide": "front"
   },
   "Alveolar Glade": {
