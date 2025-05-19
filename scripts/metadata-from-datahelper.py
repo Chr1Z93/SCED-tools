@@ -126,6 +126,19 @@ if __name__ == "__main__":
     unused_metadata = set(metadata.keys())
     savegame = load_JSON(SAVE_FILE)
 
+    outer_layer = None
+    index_in_objectstates = 0  # Default to first item if relevant
+
+    # Detect and extract nested ObjectStates structure
+    if "ObjectStates" in savegame:
+        outer_layer = savegame.copy()
+        object_states = outer_layer["ObjectStates"]
+
+        if isinstance(object_states, list) and object_states:
+            savegame = object_states[index_in_objectstates]
+        else:
+            raise ValueError("ObjectStates is empty or not a list.")
+
     if "ContainedObjects" in savegame:
         # Remove metadata
         print("Clearing existing GMNotes ...")
@@ -135,9 +148,16 @@ if __name__ == "__main__":
         print("Updating metadata ...")
         update_metadata(savegame["ContainedObjects"], metadata, unused_metadata)
 
+        # Restore the outer layer if it was present
+        if outer_layer is not None:
+            outer_layer["ObjectStates"][index_in_objectstates] = savegame
+            savegame_to_save = outer_layer
+        else:
+            savegame_to_save = savegame
+
         # Save the game
         print("Savegame update completed.")
-        save_savegame(SAVE_FILE, savegame)
+        save_savegame(SAVE_FILE, savegame_to_save)
 
         # Output unused metadata entries
         if unused_metadata:
