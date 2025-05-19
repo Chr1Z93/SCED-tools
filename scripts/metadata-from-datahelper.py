@@ -2,7 +2,7 @@ import json
 import re
 
 # Set the path to the TTS savegame JSON file
-SAVE_FILE = r"C:\git\SCED-downloads\downloadable\campaign\darkham_horror.json"
+SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Darkham Horror.json"
 DATAHELPER_FILE = r"C:\git\SCED-tools\scripts\datahelper.json"
 CYCLE_NAME = "Darkham Horror"
 
@@ -97,12 +97,10 @@ def set_metadata(obj, md_value):
     # Add tags based on metadata conditions
     if md_value.get("type") == "Asset":
         obj["Tags"].append("Asset")
+        obj["Tags"].append("PlayerCard")
     if md_value.get("type") == "Location":
         obj["Tags"].append("Location")
-    if md_value.get("type") == "Location" or md_value.get("class") == "Mythos":
         obj["Tags"].append("ScenarioCard")
-    if md_value.get("type") == "Asset" or md_value.get("class") == "Neutral":
-        obj["Tags"].append("PlayerCard")
 
 
 # Load JSON save file
