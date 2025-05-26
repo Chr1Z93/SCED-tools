@@ -13,6 +13,7 @@ key_order = [
     "cost",
     "level",
     "traits",
+    "specialist",
     "startsInHand",
     "startsInPlay",
     "permanent",
