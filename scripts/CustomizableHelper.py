@@ -92,6 +92,6 @@ else:
 
 # Save debug image
 cv2.imwrite("debug_checkboxes.png", debug_image)
-print("Debug image saved as 'debug_checkboxes.png'")
+print("\nDebug image saved as 'debug_checkboxes.png'")
 print("Green boxes = left-side checkboxes (included)")
 print("Red boxes = other checkboxes (excluded)")
