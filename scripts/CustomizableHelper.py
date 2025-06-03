@@ -3,7 +3,7 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\RunicAxe.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\RunicAxe2.png"
 PRINT_DISCARDED = False
 
 # Box identification parameters
@@ -20,7 +20,7 @@ LEFT_SIDE_THRESHOLD_MAX = -0.9
 Z_ROW_THRESHOLD = 0.03 / 1050
 
 # Used to ignore outliers in row's initial x-position
-X_INITIAL_DEVIATION_THRESHOLD = 0.1 / 750
+X_INITIAL_DEVIATION_THRESHOLD = 0.05 / 750
 
 # Used to ignore outliers in x-offset
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
