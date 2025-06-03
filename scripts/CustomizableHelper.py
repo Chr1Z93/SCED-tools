@@ -3,7 +3,7 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor2.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
 PRINT_DETAILS = False
 PRINT_DISCARDED = False
 
@@ -36,7 +36,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     output_lines.append(f"-- Customizable Cards: {card_name}\n")
     output_lines.append(f"boxSize  = 40")
 
-    # The script assumes that the first box is at x_initial + 1x x_offset
+    # The TTS script assumes that the first box is at x_initial + 1x x_offset
     # so we substract the offset for this output
     output_lines.append(f"xInitial = {global_mean_x_initial-global_mean_x_offset:.3f}")
     output_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
