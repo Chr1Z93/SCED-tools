@@ -54,7 +54,7 @@ def get_normalized_coords(x, z, w, h, width, height):
     return norm_x, norm_z
 
 
-def group_checkboxes_by_z(checkboxes, z_threshold):
+def group_checkboxes_by_z(checkboxes):
     if not checkboxes:
         return []
 
@@ -64,7 +64,7 @@ def group_checkboxes_by_z(checkboxes, z_threshold):
     for cb in checkboxes[1:]:
         _, prev_z = current_row[-1]
         _, curr_z = cb
-        if abs(curr_z - prev_z) <= z_threshold:
+        if abs(curr_z - prev_z) <= Z_ROW_THRESHOLD:
             current_row.append(cb)
         else:
             rows.append(current_row)
@@ -73,7 +73,7 @@ def group_checkboxes_by_z(checkboxes, z_threshold):
     return rows
 
 
-def filter_rows_by_x_initial(rows, deviation_threshold):
+def filter_rows_by_x_initial(rows):
     row_x_initials = [
         (i, min(row, key=lambda pt: pt[0])[0]) for i, row in enumerate(rows)
     ]
@@ -85,7 +85,7 @@ def filter_rows_by_x_initial(rows, deviation_threshold):
 
     for row_idx, x_init in row_x_initials:
         row = rows[row_idx]
-        if abs(x_init - mean_x_initial) <= deviation_threshold:
+        if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD:
             valid_rows.append((row_idx, row))
         else:
             discarded_rows.append((row_idx, row))
@@ -134,13 +134,10 @@ for cnt in contours:
             cv2.rectangle(debug_image, (x, z), (x + w, z + h), (0, 0, 255), 2)  # Red
 
 if checkboxes:
-    # Group checkboxes by Z
-    rows = group_checkboxes_by_z(checkboxes, Z_ROW_THRESHOLD)
+    rows = group_checkboxes_by_z(checkboxes)
 
     # Filter rows by x-initial deviation
-    valid_rows, discarded_rows, mean_x_initial = filter_rows_by_x_initial(
-        rows, X_INITIAL_DEVIATION_THRESHOLD
-    )
+    valid_rows, discarded_rows, mean_x_initial = filter_rows_by_x_initial(rows)
 
     # Print valid rows info
     print_rows_info("Grouped rows by similar Z-coordinates (valid):", valid_rows)
