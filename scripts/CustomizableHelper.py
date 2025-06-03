@@ -9,17 +9,17 @@ PRINT_DISCARDED = False
 # Box identification parameters
 MIN_ASPECT_RATIO = 0.9
 MAX_ASPECT_RATIO = 1.1
-MIN_BOX_SIZE = 20
-MAX_BOX_SIZE = 30
+MIN_BOX_SIZE = 20 / 750
+MAX_BOX_SIZE = 30 / 750
 
 # Ignore boxes left of this
 LEFT_SIDE_THRESHOLD = -0.5
 
 # Used for grouping boxes into rows
-Z_ROW_THRESHOLD = 0.03
+Z_ROW_THRESHOLD = 0.03 / 1050
 
 # Used to ignore outliers in row's initial x-position
-X_INITIAL_DEVIATION_THRESHOLD = 0.1
+X_INITIAL_DEVIATION_THRESHOLD = 0.1 / 750
 
 # Used to ignore outliers in x-offset within a row
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.2
@@ -29,8 +29,8 @@ def is_valid_checkbox(w, h):
     """Check if dimensions match checkbox criteria"""
     return (
         MIN_ASPECT_RATIO < w / h < MAX_ASPECT_RATIO
-        and MIN_BOX_SIZE < w < MAX_BOX_SIZE
-        and MIN_BOX_SIZE < h < MAX_BOX_SIZE
+        and MIN_BOX_SIZE < w / width < MAX_BOX_SIZE
+        and MIN_BOX_SIZE < h / width < MAX_BOX_SIZE
     )
 
 
@@ -114,7 +114,7 @@ def group_checkboxes_by_z(checkboxes):
     for cb in checkboxes[1:]:
         _, prev_z = current_row[-1]
         _, curr_z = cb
-        if abs(curr_z - prev_z) <= Z_ROW_THRESHOLD:
+        if abs(curr_z - prev_z) <= Z_ROW_THRESHOLD * height:
             current_row.append(cb)
         else:
             rows.append(current_row)
@@ -228,7 +228,7 @@ def filter_rows_by_x_initial(rows):
     mean_x_initial = statistics.mean(x_initial_values)
 
     for original_idx, (x_init, row_content) in row_x_initials_map.items():
-        if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD:
+        if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD * width:
             valid_rows_content.append(row_content)  # Just the content
         else:
             # Keep original index for context
