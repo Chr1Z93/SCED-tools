@@ -3,7 +3,8 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor2.png"
+PRINT_DETAILS = False
 PRINT_DISCARDED = False
 
 # Box identification parameters
@@ -49,7 +50,9 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
 
         output_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
         output_lines.append("    checkboxes = {")
-        output_lines.append(f"      posZ = {pos_z:.3f},")
+
+        # This is a purely empirical factor to fix the values for TTS
+        output_lines.append(f"      posZ = {1.094 * pos_z:.3f},")
         output_lines.append(f"      count = {len(row_content)}")
         output_lines.append("    }")
         output_lines.append("  },")
@@ -410,14 +413,16 @@ if __name__ == "__main__":
     global_x_offset_mean = statistics.mean(all_valid_x_offsets)
     global_x_offset_median = statistics.median(all_valid_x_offsets)
 
-    # Print summary stats
-    print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
-    print_rows_info(valid_rows_final)
+    if PRINT_DETAILS:
+        # Print summary stats
+        print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
+        print_rows_info(valid_rows_final)
 
-    print(f"\nx-initial mean:   {global_x_initial_mean:.3f}")
-    print(f"x-initial median: {global_x_initial_median:.3f}")
-    print(f"x-offset mean:    {global_x_offset_mean:+.3f}")
-    print(f"x-offset median:  {global_x_offset_median:+.3f}")
+        print(f"\nx-initial mean:   {global_x_initial_mean:.3f}")
+        print(f"x-initial median: {global_x_initial_median:.3f}")
+        print(f"x-offset mean:    {global_x_offset_mean:+.3f}")
+        print(f"x-offset median:  {global_x_offset_median:+.3f}")
+        print("")
 
     if PRINT_DISCARDED:
         # Prepare ALL discarded rows for printing (combining from various stages)
@@ -434,10 +439,12 @@ if __name__ == "__main__":
                 (i, row_content)
                 for i, (_, row_content) in enumerate(all_discarded_rows_for_printing)
             ]
-            print(f"\n--- Discarded checkboxes (due to filters) ---")
+            print(f"--- Discarded checkboxes (due to filters) ---")
             print_rows_info(indexed_discarded_rows_for_printing)
         else:
-            print("\nNo checkboxes were discarded by the filters.")
+            print("No checkboxes were discarded by the filters.")
+
+        print("")
 
     # Prepare debug data based on final filtering results
     final_debug_checkbox_statuses = []
@@ -451,9 +458,10 @@ if __name__ == "__main__":
 
     # Draw and save the debug image
     file_name = draw_debug_image(image, final_debug_checkbox_statuses)
-    print(f"\nDebug image saved as '{file_name}'")
-    print("Green boxes = included checkboxes (passed all filters)")
-    print("Red boxes   = disregarded checkboxes (failed any filter)")
+    print(f"Debug image saved as '{file_name}'")
+    print("  - Green boxes =    included checkboxes (passed all filters)")
+    print("  - Red boxes   = disregarded checkboxes (failed any filter)")
+    print("")
 
     # Generate and save TTSLua File
     script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -470,6 +478,6 @@ if __name__ == "__main__":
     try:
         with open(output_path, "w") as f:
             f.write(lua_output_string)
-        print(f"\nSuccessfully saved Lua output to '{output_filename}'")
+        print(f"Lua script saved as '{output_filename}'")
     except IOError as e:
-        print(f"\nError saving Lua output to file: {e}")
+        print(f"Error saving Lua output to file: {e}")

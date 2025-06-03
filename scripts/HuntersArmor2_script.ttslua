@@ -1,49 +1,49 @@
--- Customizable Cards: HuntersArmor
+-- Customizable Cards: HuntersArmor2
 
 boxSize  = 40
-xInitial = -0.871
-xOffset  = 0.069
+xInitial = -0.870
+xOffset  = 0.068
 
 customizations = {
   [1] = {
     checkboxes = {
-      posZ = -0.891,
+      posZ = -0.906,
       count = 1
     }
   },
   [2] = {
     checkboxes = {
-      posZ = -0.556,
+      posZ = -0.566,
       count = 2
     }
   },
   [3] = {
     checkboxes = {
-      posZ = -0.220,
+      posZ = -0.223,
       count = 2
     }
   },
   [4] = {
     checkboxes = {
-      posZ = -0.090,
+      posZ = -0.092,
       count = 2
     }
   },
   [5] = {
     checkboxes = {
-      posZ = 0.039,
+      posZ = 0.041,
       count = 2
     }
   },
   [6] = {
     checkboxes = {
-      posZ = 0.375,
+      posZ = 0.382,
       count = 3
     }
   },
   [7] = {
     checkboxes = {
-      posZ = 0.818,
+      posZ = 0.831,
       count = 3
     }
   },
