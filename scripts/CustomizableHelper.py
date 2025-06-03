@@ -22,7 +22,7 @@ for cnt in contours:
     # Search for checkboxes
     x, z, w, h = cv2.boundingRect(cnt)
     aspect_ratio = w / h
-    if 0.75 < aspect_ratio < 1.3 and 8 < w < 30 and 8 < h < 30:
+    if 0.9 < aspect_ratio < 1.1 and 20 < w < 40 and 20 < h < 30:
         # Compute normalized coordinates using width for both axes
         center_x = x + w / 2
         center_z = z + h / 2
@@ -33,7 +33,7 @@ for cnt in contours:
         # vertical (top to bottom), scaled to width
         norm_z = 2 * ((center_z - height / 2) / width)
 
-        if norm_x < -0.85:
+        if norm_x < -0.5:
             checkboxes.append((norm_x, norm_z))
 
 # Sort checkboxes from top to bottom (by z)
