@@ -2,6 +2,8 @@ import cv2
 import os
 import statistics
 import sys
+import tempfile
+import urllib.request
 
 # Configuration parameters
 IMAGE_PATH = r""
@@ -29,25 +31,56 @@ X_INITIAL_DEVIATION_THRESHOLD = 0.05 / 750
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 
+def is_url(path):
+    return path.startswith("http://") or path.startswith("https://")
+
+
+def download_temp_image(url):
+    try:
+        print(f"Downloading image from URL: {url}")
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
+        urllib.request.urlretrieve(url, temp_file.name)
+        return temp_file.name
+    except Exception as e:
+        print(f"Error downloading image:\n  {e}")
+        return None
+
+
 def get_image_path():
     global IMAGE_PATH
 
     # Priority 1: Use IMAGE_PATH if defined
-    if IMAGE_PATH and os.path.isfile(IMAGE_PATH):
-        return
-
-    # Priority 2: Use drag-and-drop (first CLI arg, if valid)
-    if len(sys.argv) > 1:
-        candidate = sys.argv[1]
-        if os.path.isfile(candidate):
-            IMAGE_PATH = candidate
+    if IMAGE_PATH:
+        if is_url(IMAGE_PATH):
+            IMAGE_PATH = download_temp_image(IMAGE_PATH)
             return
+
+        if os.path.isfile(IMAGE_PATH):
+            return
+
+    # Priority 2: Use CLI argument (drag-and-drop)
+    if len(sys.argv) > 1:
+        arg_path = sys.argv[1]
+        if is_url(arg_path):
+            IMAGE_PATH = download_temp_image(arg_path)
+            return
+
+        if os.path.isfile(arg_path):
+            IMAGE_PATH = arg_path
+            return
+
+        print(f"Error: Invalid path or file does not exist:\n  {arg_path}")
 
     # Priority 3: Prompt the user
     IMAGE_PATH = input("Please enter the path to the image file: ").strip()
-    if not os.path.isfile(IMAGE_PATH):
-        print(f"Error: File does not exist:\n  {IMAGE_PATH}")
-        exit()
+    if is_url(IMAGE_PATH):
+        IMAGE_PATH = download_temp_image(IMAGE_PATH)
+        return
+
+    if os.path.isfile(IMAGE_PATH):
+        return
+
+    print(f"Error: File not found:\n  {IMAGE_PATH}")
 
 
 def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_offset):
@@ -183,7 +216,7 @@ def draw_debug_image(image, final_checkbox_statuses):
 
 
 def extract_image_name_and_extension():
-    original_filename_with_ext = os.path.basename(IMAGE_PATH)
+    original_filename_with_ext = os.path.basename(IMAGE_PATH)  # type: ignore
     filename_base, file_extension = os.path.splitext(original_filename_with_ext)
     return filename_base, file_extension
 
