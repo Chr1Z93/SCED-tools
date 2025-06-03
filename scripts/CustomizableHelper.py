@@ -3,7 +3,7 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\RunicAxe2.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
 PRINT_DISCARDED = False
 
 # Box identification parameters
@@ -60,10 +60,11 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     return "\n".join(output_lines)
 
 
-def is_valid_checkbox(w, h):
+def is_valid_checkbox(w, h, width):
     """Check if dimensions match checkbox criteria"""
+    aspect_ratio = w / h
     return (
-        MIN_ASPECT_RATIO < w / h < MAX_ASPECT_RATIO
+        MIN_ASPECT_RATIO < aspect_ratio < MAX_ASPECT_RATIO
         and MIN_BOX_SIZE < w / width < MAX_BOX_SIZE
         and MIN_BOX_SIZE < h / width < MAX_BOX_SIZE
     )
@@ -84,14 +85,29 @@ def get_normalized_coords(x, z, w, h, width, height):
 
 
 def find_all_potential_checkboxes(contours, width, height):
-    """Finds all potential checkboxes based on size and aspect ratio."""
+    """Finds all potential checkboxes based on geometry and shape."""
 
-    # Stores (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
     potential_checkboxes = []
 
     for cnt in contours:
         x_pixel, z_pixel, w_pixel, h_pixel = cv2.boundingRect(cnt)
-        if is_valid_checkbox(w_pixel, h_pixel):
+
+        # Shape analysis
+        area = cv2.contourArea(cnt)
+        bbox_area = w_pixel * h_pixel
+        solidity = area / bbox_area if bbox_area > 0 else 0
+
+        # Approximate contour to count corners
+        epsilon = 0.02 * cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, epsilon, True)
+        corner_count = len(approx)
+
+        # Apply filters
+        if (
+            is_valid_checkbox(w_pixel, h_pixel, width)
+            and solidity > 0.7
+            and 3 <= corner_count <= 10
+        ):
             norm_x, norm_z = get_normalized_coords(
                 x_pixel, z_pixel, w_pixel, h_pixel, width, height
             )
