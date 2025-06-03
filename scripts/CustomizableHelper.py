@@ -28,6 +28,19 @@ X_INITIAL_DEVIATION_THRESHOLD = 0.05 / 750
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 
+def get_image_path():
+    global IMAGE_PATH
+
+    # If IMAGE_PATH is empty or None, prompt interactively
+    if not IMAGE_PATH:
+        IMAGE_PATH = input("Please enter the path to the image file: ").strip()
+
+    # Final check
+    if not IMAGE_PATH or not os.path.isfile(IMAGE_PATH):
+        print(f"Error: IMAGE_PATH is invalid or file does not exist:\n  {IMAGE_PATH}")
+        exit()
+
+
 def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_offset):
     """Generates a string formatted for a .ttslua file based on the detected checkboxes."""
     lua_script_lines = []
@@ -328,6 +341,8 @@ def print_rows_info(indexed_rows):
 
 # Main processing starts here
 if __name__ == "__main__":
+    get_image_path()
+
     # Load and preprocess the image
     image = cv2.imread(IMAGE_PATH)
     if image is None:
