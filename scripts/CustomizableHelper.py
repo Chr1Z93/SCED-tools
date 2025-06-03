@@ -25,6 +25,48 @@ X_INITIAL_DEVIATION_THRESHOLD = 0.1 / 750
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 
+def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_offset):
+    """
+    Generates a string formatted for a .ttslua file based on the detected checkboxes.
+
+    Args:
+        valid_rows_data (list): List of (display_index, list_of_checkboxes_content)
+                                for rows that passed all filters.
+        global_mean_x_initial (float): The mean x-initial of all valid rows.
+        global_mean_x_offset (float): The mean x-offset of all valid offsets.
+
+    Returns:
+        str: The formatted Lua script string.
+    """
+    output_lines = []
+
+    # Add the card name
+    card_name, _ = extract_image_name_and_extension()
+    output_lines.append(f"-- Customizable Cards: {card_name}\n")
+    output_lines.append(f"boxSize  = 40")
+    output_lines.append(f"xInitial = {global_mean_x_initial:.3f}")
+    output_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
+
+    # Start the customizations table
+    output_lines.append("customizations = {")
+
+    for idx, row_content in valid_rows_data:
+        # Use the median Z for posZ
+        pos_z = statistics.median([cb_z for _, cb_z in row_content])
+
+        output_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
+        output_lines.append("    checkboxes = {")
+        output_lines.append(f"      posZ = {pos_z:.3f},")
+        output_lines.append(f"      count = {len(row_content)}")
+        output_lines.append("    }")
+        output_lines.append("  },")
+
+    output_lines.append("}")
+    output_lines.append('require("playercards/customizable/UpgradeSheetLibrary")\n')
+
+    return "\n".join(output_lines)
+
+
 def is_valid_checkbox(w, h):
     """Check if dimensions match checkbox criteria"""
     return (
@@ -85,9 +127,7 @@ def draw_debug_image(image, final_checkbox_statuses):
     # os.path.dirname() extracts the directory part from that path.
     script_directory = os.path.dirname(os.path.abspath(__file__))
 
-    # Extract original filename and extension
-    original_filename_with_ext = os.path.basename(IMAGE_PATH)
-    filename_base, file_extension = os.path.splitext(original_filename_with_ext)
+    filename_base, file_extension = extract_image_name_and_extension()
 
     # Construct the new debug filename
     output_filename = f"{filename_base}_debug{file_extension}"
@@ -98,6 +138,12 @@ def draw_debug_image(image, final_checkbox_statuses):
     cv2.imwrite(output_path, debug_image)
 
     return output_filename
+
+
+def extract_image_name_and_extension():
+    original_filename_with_ext = os.path.basename(IMAGE_PATH)
+    filename_base, file_extension = os.path.splitext(original_filename_with_ext)
+    return filename_base, file_extension
 
 
 def group_checkboxes_by_z(checkboxes):
@@ -341,35 +387,35 @@ if __name__ == "__main__":
             overall_included_norm_coords.add((cb_norm_x, cb_norm_z))
 
     # Prepare valid rows for printing with new sequential indices
-    valid_rows_for_printing_indexed = [
-        (i, row) for i, row in enumerate(rows_after_initial_filter)
-    ]
+    valid_rows_final = [(i, row) for i, row in enumerate(rows_after_initial_filter)]
 
     print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
-    print_rows_info(valid_rows_for_printing_indexed)
+    print_rows_info(valid_rows_final)
+
+    # Calculate all x-initials from all valid rows
+    all_valid_x_initials = [
+        min(row, key=lambda pt: pt[0])[0] for _, row in valid_rows_final
+    ]
+
+    # Calculate all x-offsets from all valid rows
+    all_valid_x_offsets = []
+    for _, row_content in valid_rows_final:
+        row_sorted = sorted(row_content, key=lambda pt: pt[0])
+        xs = [x for x, _ in row_sorted]
+        for j in range(len(xs) - 1):
+            all_valid_x_offsets.append(xs[j + 1] - xs[j])
+
+    # Calculate summary stats
+    global_x_initial_mean = statistics.mean(all_valid_x_initials)
+    global_x_initial_median = statistics.median(all_valid_x_initials)
+    global_x_offset_mean = statistics.mean(all_valid_x_offsets)
+    global_x_offset_median = statistics.median(all_valid_x_offsets)
 
     # Print summary stats for valid rows
-    all_valid_x_offsets = []
-    if valid_rows_for_printing_indexed:
-        all_x_initials = [
-            min(row, key=lambda pt: pt[0])[0]
-            for _, row in valid_rows_for_printing_indexed
-        ]
-        print(f"\nx-initial mean:   {statistics.mean(all_x_initials):.3f}")
-        print(f"x-initial median: {statistics.median(all_x_initials):.3f}")
-
-        # Calculate all x-offsets from all valid rows
-        for _, row_content in valid_rows_for_printing_indexed:
-            row_sorted = sorted(row_content, key=lambda pt: pt[0])
-            xs = [x for x, _ in row_sorted]
-            for j in range(len(xs) - 1):
-                all_valid_x_offsets.append(xs[j + 1] - xs[j])
-
-        if all_valid_x_offsets:
-            print(f"x-offset mean:    {statistics.mean(all_valid_x_offsets):+.3f}")
-            print(f"x-offset median:  {statistics.median(all_valid_x_offsets):+.3f}")
-        else:
-            print("No offsets found for valid rows.")
+    print(f"\nx-initial mean:   {global_x_initial_mean:.3f}")
+    print(f"x-initial median: {global_x_initial_median:.3f}")
+    print(f"x-offset mean:    {global_x_offset_mean:+.3f}")
+    print(f"x-offset median:  {global_x_offset_median:+.3f}")
 
     if PRINT_DISCARDED:
         # Prepare ALL discarded rows for printing (combining from various stages)
@@ -406,3 +452,22 @@ if __name__ == "__main__":
     print(f"\nDebug image saved as '{file_name}'")
     print("Green boxes = included checkboxes (passed all filters)")
     print("Red boxes   = disregarded checkboxes (failed any filter)")
+
+    # Generate and save TTSLua File
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    filename_base, _ = extract_image_name_and_extension()
+    output_filename = f"{filename_base}_script.ttslua"
+    output_path = os.path.join(script_directory, output_filename)
+
+    lua_output_string = generate_lua_script(
+        valid_rows_final,
+        global_x_initial_mean,
+        global_x_offset_mean,
+    )
+
+    try:
+        with open(output_path, "w") as f:
+            f.write(lua_output_string)
+        print(f"\nSuccessfully saved Lua output to '{output_filename}'")
+    except IOError as e:
+        print(f"\nError saving Lua output to file: {e}")

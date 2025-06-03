@@ -1,0 +1,51 @@
+-- Customizable Cards: HuntersArmor
+
+boxSize  = 40
+xInitial = -0.803
+xOffset  = 0.069
+
+customizations = {
+  [1] = {
+    checkboxes = {
+      posZ = -0.815,
+      count = 1
+    }
+  },
+  [2] = {
+    checkboxes = {
+      posZ = -0.509,
+      count = 2
+    }
+  },
+  [3] = {
+    checkboxes = {
+      posZ = -0.201,
+      count = 2
+    }
+  },
+  [4] = {
+    checkboxes = {
+      posZ = -0.083,
+      count = 2
+    }
+  },
+  [5] = {
+    checkboxes = {
+      posZ = 0.036,
+      count = 2
+    }
+  },
+  [6] = {
+    checkboxes = {
+      posZ = 0.343,
+      count = 3
+    }
+  },
+  [7] = {
+    checkboxes = {
+      posZ = 0.748,
+      count = 3
+    }
+  },
+}
+require("playercards/customizable/UpgradeSheetLibrary")
