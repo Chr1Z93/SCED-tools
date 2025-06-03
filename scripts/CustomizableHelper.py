@@ -4,7 +4,7 @@ import statistics
 import sys
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+IMAGE_PATH = r""
 PRINT_DETAILS = False
 PRINT_DISCARDED = False
 TTS_Z_SCALE_FACTOR = 1.094
