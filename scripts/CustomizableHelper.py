@@ -6,6 +6,7 @@ import statistics
 IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
 PRINT_DETAILS = False
 PRINT_DISCARDED = False
+TTS_Z_SCALE_FACTOR = 1.094
 
 # Box identification parameters
 MIN_ASPECT_RATIO = 0.9
@@ -29,38 +30,52 @@ X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_offset):
     """Generates a string formatted for a .ttslua file based on the detected checkboxes."""
-    output_lines = []
+    lua_script_lines = []
 
     # Add the card name
     card_name, _ = extract_image_name_and_extension()
-    output_lines.append(f"-- Customizable Cards: {card_name}\n")
-    output_lines.append(f"boxSize  = 40")
+    lua_script_lines.append(f"-- Customizable Cards: {card_name}\n")
+    lua_script_lines.append(f"boxSize  = 40")
 
     # The TTS script assumes that the first box is at x_initial + 1x x_offset
     # so we substract the offset for this output
-    output_lines.append(f"xInitial = {global_mean_x_initial-global_mean_x_offset:.3f}")
-    output_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
+    lua_script_lines.append(
+        f"xInitial = {global_mean_x_initial-global_mean_x_offset:.3f}"
+    )
+    lua_script_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
 
     # Start the customizations table
-    output_lines.append("customizations = {")
+    lua_script_lines.append("customizations = {")
 
     for idx, row_content in valid_rows_data:
         # Use the median Z for posZ
         pos_z = statistics.median([cb_z for _, cb_z in row_content])
 
-        output_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
-        output_lines.append("    checkboxes = {")
+        lua_script_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
+        lua_script_lines.append("    checkboxes = {")
 
         # This is a purely empirical factor to fix the values for TTS
-        output_lines.append(f"      posZ = {1.094 * pos_z:.3f},")
-        output_lines.append(f"      count = {len(row_content)}")
-        output_lines.append("    }")
-        output_lines.append("  },")
+        lua_script_lines.append(f"      posZ = {TTS_Z_SCALE_FACTOR * pos_z:.3f},")
+        lua_script_lines.append(f"      count = {len(row_content)}")
+        lua_script_lines.append("    }")
+        lua_script_lines.append("  },")
 
-    output_lines.append("}")
-    output_lines.append('require("playercards/customizable/UpgradeSheetLibrary")\n')
+    lua_script_lines.append("}")
+    lua_script_lines.append('require("playercards/customizable/UpgradeSheetLibrary")')
+    lua_script_block = "\n".join(lua_script_lines)
 
-    return "\n".join(output_lines)
+    # Get base script name
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    base_script_path = os.path.join(script_directory, "CustomizableScript.ttslua")
+
+    # Read and replace the insert marker in the base script
+    with open(base_script_path, "r", encoding="utf-8") as f:
+        base_script = f.read()
+
+    replaced_name = base_script.replace("<<TTS_FILE_NAME>>", card_name)
+    replaced_lua = replaced_name.replace("--<<TTS_LUA_SCRIPT>>", lua_script_block)
+
+    return replaced_lua
 
 
 def is_valid_checkbox(w, h, width):
