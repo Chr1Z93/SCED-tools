@@ -11,6 +11,7 @@ MIN_HEIGHT = 20
 MAX_HEIGHT = 30
 LEFT_SIDE_THRESHOLD = -0.5
 Z_ROW_THRESHOLD = 0.03
+X_INITIAL_DEVIATION_THRESHOLD = 0.1
 
 # Load and preprocess the image
 image = cv2.imread(IMAGE_PATH)
@@ -79,6 +80,7 @@ for cnt in contours:
 
 # Print grouped rows by similar z
 if checkboxes:
+    # Step 1: Group checkboxes into rows
     rows = []
     current_row = [checkboxes[0]]
 
@@ -90,28 +92,55 @@ if checkboxes:
         else:
             rows.append(current_row)
             current_row = [cb]
-    rows.append(current_row)  # append the last row
+    rows.append(current_row)
 
-    print("\nGrouped rows by similar Z-coordinates:")
-    for i, row in enumerate(rows, 1):
-        # Sort the row by x to get left-to-right order
-        row_sorted = sorted(row, key=lambda pt: pt[0])
-        xs = [x for x, _ in row_sorted]
-        zs = [z for _, z in row_sorted]
+    # Step 2: Determine left-most x for each row and filter out outliers
+    row_x_initials = [
+        (i, min(row, key=lambda pt: pt[0])[0]) for i, row in enumerate(rows)
+    ]
+    x_initial_values = [x for _, x in row_x_initials]
+    x_initial_mean = statistics.mean(x_initial_values)
 
-        mean_z = statistics.mean(zs)
-        median_z = statistics.median(zs)
+    valid_rows = []
+    discarded_rows = []
 
-        # Calculate pairwise x offsets
-        pairwise_offsets = [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
+    for i, (row_idx, x_init) in enumerate(row_x_initials):
+        row = rows[row_idx]
+        if abs(x_init - x_initial_mean) <= X_INITIAL_DEVIATION_THRESHOLD:
+            valid_rows.append((row_idx, row))
+        else:
+            discarded_rows.append((row_idx, row))
 
-        print(
-            f"Row {i}: z-pos = {median_z:.3f}, count = {len(xs)}, x-initial = {xs[0]:.3f}, x-offsets: {pairwise_offsets}"
-        )
+    # Shared function for printing row info
+    def print_row_info(label, indexed_rows):
+        print(f"\n{label}")
+        for i, (original_index, row) in enumerate(indexed_rows, 1):
+            row_sorted = sorted(row, key=lambda pt: pt[0])
+            xs = [x for x, _ in row_sorted]
+            zs = [z for _, z in row_sorted]
 
-    all_x = [min(row, key=lambda pt: pt[0])[0] for row in rows]
-    print(f"\nx-initial mean: {statistics.mean(all_x):.3f}")
-    print(f"x-initial median: {statistics.median(all_x):.3f}")
+            median_z = statistics.median(zs)
+            pairwise_offsets = [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
+
+            print(
+                f"Row {original_index + 1}: z-pos = {median_z:.3f}, count = {len(xs)}, "
+                f"x-initial = {xs[0]:.3f}, x-offsets: {pairwise_offsets}"
+            )
+
+    # Step 3: Print valid rows
+    print_row_info("Grouped rows by similar Z-coordinates (valid):", valid_rows)
+
+    # Step 4: Summary stats
+    if valid_rows:
+        all_x = [min(row, key=lambda pt: pt[0])[0] for _, row in valid_rows]
+        print(f"\nx-initial mean: {statistics.mean(all_x):.3f}")
+        print(f"x-initial median: {statistics.median(all_x):.3f}")
+    else:
+        print("\nNo valid rows remaining after outlier removal.")
+
+    # Step 5: Print discarded rows, same format
+    if discarded_rows:
+        print_row_info("Discarded rows due to x-initial deviation:", discarded_rows)
 else:
     print("No checkboxes found.")
 
