@@ -1,7 +1,7 @@
 -- Customizable Cards: HuntersArmor
 
 boxSize  = 40
-xInitial = -0.803
+xInitial = -0.871
 xOffset  = 0.069
 
 customizations = {

@@ -26,25 +26,17 @@ X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 
 def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_offset):
-    """
-    Generates a string formatted for a .ttslua file based on the detected checkboxes.
-
-    Args:
-        valid_rows_data (list): List of (display_index, list_of_checkboxes_content)
-                                for rows that passed all filters.
-        global_mean_x_initial (float): The mean x-initial of all valid rows.
-        global_mean_x_offset (float): The mean x-offset of all valid offsets.
-
-    Returns:
-        str: The formatted Lua script string.
-    """
+    """Generates a string formatted for a .ttslua file based on the detected checkboxes."""
     output_lines = []
 
     # Add the card name
     card_name, _ = extract_image_name_and_extension()
     output_lines.append(f"-- Customizable Cards: {card_name}\n")
     output_lines.append(f"boxSize  = 40")
-    output_lines.append(f"xInitial = {global_mean_x_initial:.3f}")
+
+    # The script assumes that the first box is at x_initial + 1x x_offset
+    # so we substract the offset for this output
+    output_lines.append(f"xInitial = {global_mean_x_initial-global_mean_x_offset:.3f}")
     output_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
 
     # Start the customizations table
@@ -91,10 +83,7 @@ def get_normalized_coords(x, z, w, h, width, height):
 
 
 def find_all_potential_checkboxes(contours, width, height):
-    """
-    Finds all potential checkboxes based on size and aspect ratio,
-    returns their normalized and pixel coordinates.
-    """
+    """Finds all potential checkboxes based on size and aspect ratio."""
 
     # Stores (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
     potential_checkboxes = []
@@ -113,11 +102,7 @@ def find_all_potential_checkboxes(contours, width, height):
 
 
 def draw_debug_image(image, final_checkbox_statuses):
-    """
-    Draws bounding boxes on the image for debugging based on final inclusion status.
-    Green for included, Red for disregarded.
-    final_checkbox_statuses is a list of (bbox_pixel_coords, is_included)
-    """
+    """Draws bounding boxes on the image for debugging based on final inclusion status."""
     debug_image = image.copy()
     for (x, z, w, h), color in final_checkbox_statuses:
         cv2.rectangle(debug_image, (x, z), (x + w, z + h), color, 2)
@@ -147,9 +132,7 @@ def extract_image_name_and_extension():
 
 
 def group_checkboxes_by_z(checkboxes):
-    """Groups checkboxes into rows based on their z-coordinates.
-    Input checkboxes are expected to be (norm_x, norm_z) tuples.
-    """
+    """Groups checkboxes into rows based on their z-coordinates."""
     if not checkboxes:
         return []
 
@@ -278,9 +261,7 @@ def filter_rows_by_x_initial(rows):
 
 
 def print_rows_info(indexed_rows):
-    """Prints detailed information for each row of checkboxes.
-    indexed_rows format: [(display_index, [(norm_x, norm_z), ...]), ...]
-    """
+    """Prints detailed information for each row of checkboxes."""
     if not indexed_rows:
         print("No rows to display.")
         return
