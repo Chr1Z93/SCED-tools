@@ -8,15 +8,14 @@ from urllib.parse import urlparse, unquote
 
 # Configuration parameters
 IMAGE_PATH = r""
-PRINT_DETAILS = False
-PRINT_DISCARDED = False
-TTS_Z_SCALE_FACTOR = 1.094
+PRINT_DETAILS = True
+PRINT_DISCARDED = True
 
 # Box identification parameters
-MIN_ASPECT_RATIO = 0.9
-MAX_ASPECT_RATIO = 1.1
-MIN_BOX_SIZE = 15 / 750
-MAX_BOX_SIZE = 30 / 750
+MIN_BOX_RATIO = 0.9
+MAX_BOX_RATIO = 1.1
+MIN_BOX_SIZE = 20 / 1050
+MAX_BOX_SIZE = 45 / 1050
 
 # Ignore boxes outside of this
 LEFT_SIDE_THRESHOLD_MIN = -0.5
@@ -26,11 +25,16 @@ LEFT_SIDE_THRESHOLD_MAX = -0.9
 Z_ROW_THRESHOLD = 0.03 / 1050
 
 # Used to ignore outliers in row's initial x-position
-X_INITIAL_DEVIATION_THRESHOLD = 0.05 / 750
+X_INITIAL_DEVIATION_THRESHOLD = 0.07 / 1050
 
 # Used to ignore outliers in x-offset
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
+# Weird standard size for custom cards in TTS, but it is what it is
+TTS_CARD_HEIGHT = 3.062473
+
+# Don't ask me why this is necessary, it just works (emprically derived, should have been 1)
+TTS_FIRST_X_OFFSET_FACTOR = 0.775
 
 def is_url(path):
     return path.startswith("http://") or path.startswith("https://")
@@ -110,7 +114,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     # The TTS script assumes that the first box is at x_initial + 1x x_offset
     # so we substract the offset for this output
     lua_script_lines.append(
-        f"xInitial = {global_mean_x_initial-global_mean_x_offset:.3f}"
+        f"xInitial = {global_mean_x_initial - TTS_FIRST_X_OFFSET_FACTOR * global_mean_x_offset:.3f}"
     )
     lua_script_lines.append(f"xOffset  = {global_mean_x_offset:.3f}\n")
 
@@ -125,7 +129,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
         lua_script_lines.append("    checkboxes = {")
 
         # This is a purely empirical factor to fix the values for TTS
-        lua_script_lines.append(f"      posZ = {TTS_Z_SCALE_FACTOR * pos_z:.3f},")
+        lua_script_lines.append(f"      posZ = {pos_z:.3f},")
         lua_script_lines.append(f"      count = {len(row_content)}")
         lua_script_lines.append("    }")
         lua_script_lines.append("  },")
@@ -148,31 +152,34 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     return replaced_lua
 
 
-def is_valid_checkbox(w, h, width):
+def is_valid_checkbox(w, h):
     """Checks if dimensions match checkbox criteria."""
     aspect_ratio = w / h
     return (
-        MIN_ASPECT_RATIO < aspect_ratio < MAX_ASPECT_RATIO
-        and MIN_BOX_SIZE < w / width < MAX_BOX_SIZE
-        and MIN_BOX_SIZE < h / width < MAX_BOX_SIZE
+        MIN_BOX_RATIO < aspect_ratio < MAX_BOX_RATIO
+        and MIN_BOX_SIZE < w / height < MAX_BOX_SIZE
+        and MIN_BOX_SIZE < h / height < MAX_BOX_SIZE
     )
 
 
-def get_normalized_coords(x, z, w, h, width, height):
-    """Converts pixel coordinates to normalized coordinates."""
+def get_normalized_coords(x, z, w, h):
+    """Converts pixel coordinates to normalized card coordinates (x, z)."""
     center_x = x + w / 2
     center_z = z + h / 2
 
-    # horizontal (left to right)
-    norm_x = 2 * (center_x / width) - 1
+    # Scale factor: pixels to TTS units for z-axis
+    pixels_to_units = TTS_CARD_HEIGHT / height
 
-    # vertical (top to bottom), scaled to width
-    norm_z = 2 * ((center_z - height / 2) / width)
+    # Vertical (z): top to bottom becomes - to +
+    norm_z = (center_z - height / 2) * pixels_to_units
+
+    # Horizontal (x): apply same scale factor to preserve aspect ratio
+    norm_x = (center_x - width / 2) * pixels_to_units
 
     return norm_x, norm_z
 
 
-def find_all_potential_checkboxes(contours, width, height):
+def find_all_potential_checkboxes(contours):
     """Finds all potential checkboxes based on geometry and shape."""
 
     potential_checkboxes = []
@@ -192,13 +199,11 @@ def find_all_potential_checkboxes(contours, width, height):
 
         # Apply filters
         if (
-            is_valid_checkbox(w_pixel, h_pixel, width)
+            is_valid_checkbox(w_pixel, h_pixel)
             and solidity > 0.7
             and 3 <= corner_count <= 10
         ):
-            norm_x, norm_z = get_normalized_coords(
-                x_pixel, z_pixel, w_pixel, h_pixel, width, height
-            )
+            norm_x, norm_z = get_normalized_coords(x_pixel, z_pixel, w_pixel, h_pixel)
             potential_checkboxes.append(
                 (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
             )
@@ -356,7 +361,7 @@ def filter_rows_by_x_initial(rows):
     mean_x_initial = statistics.mean(x_initial_values)
 
     for original_idx, (x_init, row_content) in row_x_initials_map.items():
-        if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD * width:
+        if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD * height:
             valid_rows_content.append(row_content)  # Just the content
         else:
             # Keep original index for context
@@ -398,7 +403,7 @@ def print_rows_info(indexed_rows):
 
 def pause_if_run_from_explorer():
     # Always pause if run via Explorer (not a terminal)
-    if not hasattr(sys, "ps1"):
+    if not sys.stdin.isatty():
         input("\nDone. Press any key to exit...")
 
 
@@ -432,7 +437,7 @@ if __name__ == "__main__":
 
     # Find all potential checkboxes with their normalized and pixel coords
     # Each item: (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
-    all_potential_checkboxes = find_all_potential_checkboxes(contours, width, height)
+    all_potential_checkboxes = find_all_potential_checkboxes(contours)
 
     # Apply LEFT_SIDE_THRESHOLD filter and populate initial discarded set
     checkboxes_after_left_filter = []
@@ -503,8 +508,13 @@ if __name__ == "__main__":
 
     global_x_initial_mean = statistics.mean(all_valid_x_initials)
     global_x_initial_median = statistics.median(all_valid_x_initials)
-    global_x_offset_mean = statistics.mean(all_valid_x_offsets)
-    global_x_offset_median = statistics.median(all_valid_x_offsets)
+
+    if not all_valid_x_offsets:
+        global_x_offset_mean = 0
+        global_x_offset_median = 0
+    else:
+        global_x_offset_mean = statistics.mean(all_valid_x_offsets)
+        global_x_offset_median = statistics.median(all_valid_x_offsets)
 
     if PRINT_DETAILS:
         # Print summary stats
