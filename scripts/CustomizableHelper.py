@@ -4,6 +4,7 @@ import statistics
 import sys
 import tempfile
 import urllib.request
+from urllib.parse import urlparse, unquote
 
 # Configuration parameters
 IMAGE_PATH = r""
@@ -38,9 +39,23 @@ def is_url(path):
 def download_temp_image(url):
     try:
         print(f"Downloading image from URL: {url}")
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".png")
-        urllib.request.urlretrieve(url, temp_file.name)
-        return temp_file.name
+
+        # Try to extract the filename from the URL
+        parsed_url = urlparse(url)
+        filename = os.path.basename(parsed_url.path)
+        filename = unquote(filename)
+
+        # Fallback if URL has no filename
+        if not filename or "." not in filename:
+            filename = "CustomizableCard.png"
+
+        # Create a full temp path with that filename
+        temp_dir = tempfile.gettempdir()
+        temp_path = os.path.join(temp_dir, f"{filename}")
+
+        urllib.request.urlretrieve(url, temp_path)
+        return temp_path
+
     except Exception as e:
         print(f"Error downloading image:\n  {e}")
         return None
