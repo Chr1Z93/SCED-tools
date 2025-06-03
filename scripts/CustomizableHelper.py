@@ -403,7 +403,7 @@ def print_rows_info(indexed_rows):
 
 def pause_if_run_from_explorer():
     # Always pause if run via Explorer (not a terminal)
-    if not sys.stdin.isatty():
+    if not hasattr(sys, "ps1"):
         input("\nDone. Press any key to exit...")
 
 
