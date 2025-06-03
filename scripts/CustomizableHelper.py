@@ -1,4 +1,5 @@
 import cv2
+import os
 import statistics
 
 # Configuration parameters
@@ -69,9 +70,7 @@ def find_all_potential_checkboxes(contours, width, height):
     return potential_checkboxes
 
 
-def draw_debug_image(
-    image, final_checkbox_statuses, output_path="debug_checkboxes.png"
-):
+def draw_debug_image(image, final_checkbox_statuses):
     """
     Draws bounding boxes on the image for debugging based on final inclusion status.
     Green for included, Red for disregarded.
@@ -81,7 +80,25 @@ def draw_debug_image(
     for (x, z, w, h), is_included in final_checkbox_statuses:
         color = (0, 255, 0) if is_included else (0, 0, 255)  # Green or Red
         cv2.rectangle(debug_image, (x, z), (x + w, z + h), color, 2)
+
+    # Get the directory of the current script
+    # os.path.abspath(__file__) gets the absolute path of the script file.
+    # os.path.dirname() extracts the directory part from that path.
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+
+    # Extract original filename and extension
+    original_filename_with_ext = os.path.basename(IMAGE_PATH)
+    filename_base, file_extension = os.path.splitext(original_filename_with_ext)
+
+    # Construct the new debug filename
+    output_filename = f"{filename_base}_debug{file_extension}"
+
+    # Combine the script directory and the filename to create the full output path
+    output_path = os.path.join(script_directory, output_filename)
+
     cv2.imwrite(output_path, debug_image)
+
+    return output_filename
 
 
 def group_checkboxes_by_z(checkboxes):
@@ -403,7 +420,7 @@ if __name__ == "__main__":
             final_debug_checkbox_statuses.append((bbox_pixel_coords, False))  # Red
 
     # --- Step 8: Draw and save the debug image ---
-    draw_debug_image(image, final_debug_checkbox_statuses)
-    print("\nDebug image saved as 'debug_checkboxes.png'")
+    file_name = draw_debug_image(image, final_debug_checkbox_statuses)
+    print(f"\nDebug image saved as '{file_name}'")
     print("Green boxes = included checkboxes (passed all filters)")
     print("Red boxes   = disregarded checkboxes (failed any filter)")
