@@ -3,6 +3,7 @@ import statistics
 
 # Configuration parameters
 IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+PRINT_DISCARDED = False
 
 # Box identification parameters
 MIN_ASPECT_RATIO = 0.9
@@ -240,18 +241,16 @@ def print_rows_info(label, indexed_rows):
             continue
 
         median_z = statistics.median(zs)
-
-        # Calculate numerical x-offsets
-        numerical_offsets = [xs[j + 1] - xs[j] for j in range(len(xs) - 1)]
-
-        mean_x_offset_str = "N/A"
-        if numerical_offsets:
-            mean_x_offset = statistics.mean(numerical_offsets)
-            mean_x_offset_str = f"{mean_x_offset:+.3f}"
+        # Calculate pairwise offsets only if there's more than one checkbox in the row
+        pairwise_offsets = (
+            [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
+            if len(xs) > 1
+            else []
+        )
 
         print(
             f"Row {display_index + 1}: z-pos = {median_z:+.3f}, count = {len(xs)}, "
-            f"x-initial = {xs[0]:.3f}, x-offset = {mean_x_offset_str}"
+            f"x-initial = {xs[0]:.3f}, x-offsets: [{', '.join(pairwise_offsets)}]"
         )
 
 
@@ -347,40 +346,53 @@ if __name__ == "__main__":
     )
 
     # Print summary stats for valid rows
+    all_valid_x_offsets = []
     if valid_rows_for_printing_indexed:
         all_x_initials = [
             min(row, key=lambda pt: pt[0])[0]
             for _, row in valid_rows_for_printing_indexed
         ]
-        print(f"\nx-initial mean: {statistics.mean(all_x_initials):.3f}")
+        print(f"\nx-initial mean:   {statistics.mean(all_x_initials):.3f}")
         print(f"x-initial median: {statistics.median(all_x_initials):.3f}")
-    else:
-        print("\nNo valid rows remaining after all filters.")
 
-    # Prepare ALL discarded rows for printing (combining from various stages)
-    all_discarded_rows_for_printing = []
+        # Calculate all x-offsets from all valid rows
+        for _, row_content in valid_rows_for_printing_indexed:
+            row_sorted = sorted(row_content, key=lambda pt: pt[0])
+            xs = [x for x, _ in row_sorted]
+            for j in range(len(xs) - 1):
+                all_valid_x_offsets.append(xs[j + 1] - xs[j])
 
-    # Add rows discarded by initial X filter
-    all_discarded_rows_for_printing.extend(discarded_rows_by_initial_x)
+        if all_valid_x_offsets:
+            print(f"x-offset mean:    {statistics.mean(all_valid_x_offsets):+.3f}")
+            print(f"x-offset median:  {statistics.median(all_valid_x_offsets):+.3f}")
+        else:
+            print("No offsets found for valid rows.")
 
-    # Add rows/segments discarded by X-offset filter
-    all_discarded_rows_for_printing.extend(discarded_rows_by_offset)
+    if PRINT_DISCARDED:
+        # Prepare ALL discarded rows for printing (combining from various stages)
+        all_discarded_rows_for_printing = []
 
-    # Sort all discarded rows by their original index for better readability in output
-    all_discarded_rows_for_printing.sort(key=lambda x: x[0])
+        # Add rows discarded by initial X filter
+        all_discarded_rows_for_printing.extend(discarded_rows_by_initial_x)
 
-    if all_discarded_rows_for_printing:
-        # Re-index for printing for discarded rows for neatness
-        indexed_discarded_rows_for_printing = [
-            (i, row_content)
-            for i, (_, row_content) in enumerate(all_discarded_rows_for_printing)
-        ]
-        print_rows_info(
-            "Discarded checkboxes (due to any filter):",
-            indexed_discarded_rows_for_printing,
-        )
-    else:
-        print("\nNo checkboxes were discarded by the offset or initial X filters.")
+        # Add rows/segments discarded by X-offset filter
+        all_discarded_rows_for_printing.extend(discarded_rows_by_offset)
+
+        # Sort all discarded rows by their original index for better readability in output
+        all_discarded_rows_for_printing.sort(key=lambda x: x[0])
+
+        if all_discarded_rows_for_printing:
+            # Re-index for printing for discarded rows for neatness
+            indexed_discarded_rows_for_printing = [
+                (i, row_content)
+                for i, (_, row_content) in enumerate(all_discarded_rows_for_printing)
+            ]
+            print_rows_info(
+                "Discarded checkboxes (due to any filter):",
+                indexed_discarded_rows_for_printing,
+            )
+        else:
+            print("\nNo checkboxes were discarded by the offset or initial X filters.")
 
     # --- Step 7: Prepare debug data based on final filtering results ---
     final_debug_checkbox_statuses = []
