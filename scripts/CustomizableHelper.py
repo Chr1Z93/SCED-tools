@@ -3,7 +3,7 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor2.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
 PRINT_DISCARDED = False
 
 # Box identification parameters
@@ -21,8 +21,8 @@ Z_ROW_THRESHOLD = 0.03 / 1050
 # Used to ignore outliers in row's initial x-position
 X_INITIAL_DEVIATION_THRESHOLD = 0.1 / 750
 
-# Used to ignore outliers in x-offset within a row
-X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.2
+# Used to ignore outliers in x-offset
+X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 
 
 def is_valid_checkbox(w, h):
@@ -123,7 +123,22 @@ def group_checkboxes_by_z(checkboxes):
     return rows
 
 
-def filter_rows_by_x_offset_deviation(rows_grouped_by_z):
+def calculate_global_median_x_offset(rows_grouped_by_z):
+    all_offsets = []
+    for row in rows_grouped_by_z:
+        # Sort by x to calculate offsets
+        row_sorted = sorted(row, key=lambda pt: pt[0])
+        xs = [x for x, _ in row_sorted]
+        for i in range(len(xs) - 1):
+            offset = xs[i + 1] - xs[i]
+            all_offsets.append(offset)
+    if all_offsets:
+        return statistics.median(all_offsets)
+    else:
+        return 0
+
+
+def filter_rows_by_x_offset_deviation(rows_grouped_by_z, global_mean_offset):
     """
     Filters checkboxes within each row based on x-offset deviation from the previous box.
     If an x-offset is too large, that box and all subsequent boxes in the row are discarded.
@@ -139,44 +154,25 @@ def filter_rows_by_x_offset_deviation(rows_grouped_by_z):
         # Sort boxes within the row by x-coordinate for offset calculation
         row_sorted_by_x = sorted(row_content, key=lambda pt: pt[0])
 
-        valid_segment_in_row = []
-        discarded_segment_in_row = []  # To hold checkboxes discarded *within* this row
+        # Only include the first box initially
+        valid_segment_in_row = [row_sorted_by_x[0]]
+        discarded_segment_in_row = []
 
-        if len(row_sorted_by_x) < 2:
-            # Rows with 0 or 1 box are always valid for this filter (no offsets to check)
-            if row_sorted_by_x:  # Add if not empty
-                valid_rows_after_offset_filter.append(
-                    (original_row_idx, row_sorted_by_x)
-                )
-            continue
-
-        # Always include the first box
-        valid_segment_in_row.append(row_sorted_by_x[0])
-
-        # Calculate the first offset (between box 0 and box 1)
-        prev_offset = row_sorted_by_x[1][0] - row_sorted_by_x[0][0]
-
-        # Always include the second box (it defines the first offset for subsequent comparisons)
-        valid_segment_in_row.append(row_sorted_by_x[1])
-
-        # Iterate from the third box onwards (index 2)
-        for j in range(1, len(row_sorted_by_x) - 1):
+        # Iterate from the second box onwards (index 1) to check the offset relative to the *previous valid* box
+        for j in range(len(row_sorted_by_x) - 1):  # j goes from 0 to len-2
             current_cb = row_sorted_by_x[j + 1]
-            prev_cb_in_sequence = row_sorted_by_x[
-                j
-            ]  # This is the checkbox whose offset we're comparing FROM
 
-            current_offset = current_cb[0] - prev_cb_in_sequence[0]
+            # This is the checkbox whose offset we're comparing FROM
+            prev_cb = row_sorted_by_x[j]
 
-            if current_offset > X_OFFSET_DEVIATION_THRESHOLD_FACTOR * prev_offset:
+            current_offset_deviation = (current_cb[0] - prev_cb[0]) / global_mean_offset
+
+            if current_offset_deviation > X_OFFSET_DEVIATION_THRESHOLD_FACTOR:
                 # Discard current box and all subsequent boxes in this row
                 discarded_segment_in_row.extend(row_sorted_by_x[j + 1 :])
                 break  # Exit inner loop for this row, no more boxes from this row are valid
             else:
                 valid_segment_in_row.append(current_cb)
-                prev_offset = (
-                    current_offset  # Update previous_offset for the next iteration
-                )
 
         # Add segments to appropriate lists
         if valid_segment_in_row:
@@ -323,10 +319,14 @@ if __name__ == "__main__":
     )
 
     # --- Step 4: Filter rows by X-Offset Deviation ---
+
+    # --- Calculate global median x-offset from initially grouped rows ---
+    global_mean_x_offset = calculate_global_median_x_offset(rows_grouped_by_z)
+
     # `rows_after_offset_filter`: List of (original_row_idx, list_of_checkboxes_content)
     # `discarded_rows_by_offset`: List of (original_row_idx, list_of_checkboxes_content)
     rows_after_offset_filter, discarded_rows_by_offset = (
-        filter_rows_by_x_offset_deviation(rows_grouped_by_z)
+        filter_rows_by_x_offset_deviation(rows_grouped_by_z, global_mean_x_offset)
     )
 
     # Add checkboxes from rows/segments discarded by X-offset filter to overall discards
