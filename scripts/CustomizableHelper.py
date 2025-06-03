@@ -240,16 +240,18 @@ def print_rows_info(label, indexed_rows):
             continue
 
         median_z = statistics.median(zs)
-        # Calculate pairwise offsets only if there's more than one checkbox in the row
-        pairwise_offsets = (
-            [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
-            if len(xs) > 1
-            else []
-        )
+
+        # Calculate numerical x-offsets
+        numerical_offsets = [xs[j + 1] - xs[j] for j in range(len(xs) - 1)]
+
+        mean_x_offset_str = "N/A"
+        if numerical_offsets:
+            mean_x_offset = statistics.mean(numerical_offsets)
+            mean_x_offset_str = f"{mean_x_offset:+.3f}"
 
         print(
             f"Row {display_index + 1}: z-pos = {median_z:+.3f}, count = {len(xs)}, "
-            f"x-initial = {xs[0]:.3f}, x-offsets: [{', '.join(pairwise_offsets)}]"
+            f"x-initial = {xs[0]:.3f}, x-offset = {mean_x_offset_str}"
         )
 
 
