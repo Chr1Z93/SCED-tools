@@ -1,6 +1,7 @@
 import cv2
 import os
 import statistics
+import sys
 
 # Configuration parameters
 IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
@@ -31,13 +32,21 @@ X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 def get_image_path():
     global IMAGE_PATH
 
-    # If IMAGE_PATH is empty or None, prompt interactively
-    if not IMAGE_PATH:
-        IMAGE_PATH = input("Please enter the path to the image file: ").strip()
+    # Priority 1: Use IMAGE_PATH if defined
+    if IMAGE_PATH and os.path.isfile(IMAGE_PATH):
+        return
 
-    # Final check
-    if not IMAGE_PATH or not os.path.isfile(IMAGE_PATH):
-        print(f"Error: IMAGE_PATH is invalid or file does not exist:\n  {IMAGE_PATH}")
+    # Priority 2: Use drag-and-drop (first CLI arg, if valid)
+    if len(sys.argv) > 1:
+        candidate = sys.argv[1]
+        if os.path.isfile(candidate):
+            IMAGE_PATH = candidate
+            return
+
+    # Priority 3: Prompt the user
+    IMAGE_PATH = input("Please enter the path to the image file: ").strip()
+    if not os.path.isfile(IMAGE_PATH):
+        print(f"Error: File does not exist:\n  {IMAGE_PATH}")
         exit()
 
 
@@ -339,6 +348,12 @@ def print_rows_info(indexed_rows):
         )
 
 
+def pause_if_run_from_explorer():
+    # Always pause if run via Explorer (not a terminal)
+    if not hasattr(sys, "ps1"):
+        input("\nDone. Press any key to exit...")
+
+
 # Main processing starts here
 if __name__ == "__main__":
     get_image_path()
@@ -511,3 +526,5 @@ if __name__ == "__main__":
         print(f"Lua script saved as '{output_filename}'")
     except IOError as e:
         print(f"Error saving Lua output to file: {e}")
+
+    pause_if_run_from_explorer()
