@@ -3,7 +3,7 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor2.png"
 PRINT_DISCARDED = False
 
 # Box identification parameters
