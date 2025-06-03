@@ -3,14 +3,20 @@ import statistics
 
 # Configuration parameters
 IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+
+# Box identification parameters
 MIN_ASPECT_RATIO = 0.9
 MAX_ASPECT_RATIO = 1.1
-MIN_WIDTH = 20
-MAX_WIDTH = 30
-MIN_HEIGHT = 20
-MAX_HEIGHT = 30
+MIN_BOX_SIZE = 20
+MAX_BOX_SIZE = 30
+
+# Ignore boxes left of this
 LEFT_SIDE_THRESHOLD = -0.5
+
+# Used for grouping boxes into rows
 Z_ROW_THRESHOLD = 0.03
+
+# Used to ignore outliers
 X_INITIAL_DEVIATION_THRESHOLD = 0.1
 
 # Load and preprocess the image
@@ -32,11 +38,10 @@ height, width = image.shape[:2]
 
 def is_valid_checkbox(w, h):
     """Check if dimensions match checkbox criteria"""
-    aspect_ratio = w / h
     return (
-        MIN_ASPECT_RATIO < aspect_ratio < MAX_ASPECT_RATIO
-        and MIN_WIDTH < w < MAX_WIDTH
-        and MIN_HEIGHT < h < MAX_HEIGHT
+        MIN_ASPECT_RATIO < w / h < MAX_ASPECT_RATIO
+        and MIN_BOX_SIZE < w < MAX_BOX_SIZE
+        and MIN_BOX_SIZE < h < MAX_BOX_SIZE
     )
 
 
@@ -83,12 +88,15 @@ def filter_rows_by_x_initial(rows):
     valid_rows = []
     discarded_rows = []
 
+    discarded_row_id = 0
+
     for row_idx, x_init in row_x_initials:
         row = rows[row_idx]
         if abs(x_init - mean_x_initial) <= X_INITIAL_DEVIATION_THRESHOLD:
-            valid_rows.append((row_idx, row))
+            valid_rows.append((row_idx - discarded_row_id, row))
         else:
-            discarded_rows.append((row_idx, row))
+            discarded_rows.append((discarded_row_id, row))
+            discarded_row_id += 1
 
     return valid_rows, discarded_rows, mean_x_initial
 
@@ -104,7 +112,7 @@ def print_rows_info(label, indexed_rows):
         pairwise_offsets = [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
 
         print(
-            f"Row {original_index + 1}: z-pos = {median_z:.3f}, count = {len(xs)}, "
+            f"Row {original_index + 1}: z-pos = {median_z:+.3f}, count = {len(xs)}, "
             f"x-initial = {xs[0]:.3f}, x-offsets: {pairwise_offsets}"
         )
 
@@ -127,7 +135,6 @@ for cnt in contours:
     x, z, w, h = cv2.boundingRect(cnt)
     if is_valid_checkbox(w, h):
         norm_x, _ = get_normalized_coords(x, z, w, h, width, height)
-        # Draw rectangle - green for left-side checkboxes, red for others
         if norm_x < LEFT_SIDE_THRESHOLD:
             cv2.rectangle(debug_image, (x, z), (x + w, z + h), (0, 255, 0), 2)  # Green
         else:
@@ -145,7 +152,7 @@ if checkboxes:
     # Print summary stats for valid rows
     if valid_rows:
         all_x = [min(row, key=lambda pt: pt[0])[0] for _, row in valid_rows]
-        print(f"\nx-initial mean: {statistics.mean(all_x):.3f}")
+        print(f"\nx-initial   mean: {statistics.mean(all_x):.3f}")
         print(f"x-initial median: {statistics.median(all_x):.3f}")
     else:
         print("\nNo valid rows remaining after outlier removal.")
@@ -160,5 +167,5 @@ else:
 # Save debug image
 cv2.imwrite("debug_checkboxes.png", debug_image)
 print("\nDebug image saved as 'debug_checkboxes.png'")
-print("Green boxes = left-side checkboxes (included)")
-print("Red boxes = other checkboxes (excluded)")
+print("Green boxes = included checkboxes")
+print("Red boxes   = disregarded checkboxes")
