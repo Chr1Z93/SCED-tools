@@ -50,12 +50,12 @@ def get_normalized_coords(x, z, w, h, width, height):
 
 def find_all_potential_checkboxes(contours, width, height):
     """
-    Finds all valid checkboxes based on size and aspect ratio,
+    Finds all potential checkboxes based on size and aspect ratio,
     returns their normalized and pixel coordinates.
     """
-    potential_checkboxes = (
-        []
-    )  # Stores (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
+
+    # Stores (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
+    potential_checkboxes = []
 
     for cnt in contours:
         x_pixel, z_pixel, w_pixel, h_pixel = cv2.boundingRect(cnt)
@@ -77,8 +77,7 @@ def draw_debug_image(image, final_checkbox_statuses):
     final_checkbox_statuses is a list of (bbox_pixel_coords, is_included)
     """
     debug_image = image.copy()
-    for (x, z, w, h), is_included in final_checkbox_statuses:
-        color = (0, 255, 0) if is_included else (0, 0, 255)  # Green or Red
+    for (x, z, w, h), color in final_checkbox_statuses:
         cv2.rectangle(debug_image, (x, z), (x + w, z + h), color, 2)
 
     # Get the directory of the current script
@@ -145,10 +144,10 @@ def filter_rows_by_x_offset_deviation(rows_grouped_by_z, global_mean_offset):
     Input rows_grouped_by_z: list of lists of (norm_x, norm_z) tuples.
     Returns:
         valid_rows_after_offset_filter: List of (original_row_idx, list_of_checkboxes_content)
-        discarded_rows_by_offset_filter: List of (original_row_idx, list_of_checkboxes_content)
+        discarded_rows_by_x_offset_filter: List of (original_row_idx, list_of_checkboxes_content)
     """
     valid_rows_after_offset_filter = []
-    discarded_rows_by_offset_filter = []
+    discarded_rows_by_x_offset_filter = []
 
     for original_row_idx, row_content in enumerate(rows_grouped_by_z):
         # Sort boxes within the row by x-coordinate for offset calculation
@@ -179,14 +178,14 @@ def filter_rows_by_x_offset_deviation(rows_grouped_by_z, global_mean_offset):
             valid_rows_after_offset_filter.append(
                 (original_row_idx, valid_segment_in_row)
             )
-        if (
-            discarded_segment_in_row
-        ):  # Only add if something was actually discarded from this row
-            discarded_rows_by_offset_filter.append(
+
+        # Only add if something was actually discarded from this row
+        if discarded_segment_in_row:
+            discarded_rows_by_x_offset_filter.append(
                 (original_row_idx, discarded_segment_in_row)
             )
 
-    return valid_rows_after_offset_filter, discarded_rows_by_offset_filter
+    return valid_rows_after_offset_filter, discarded_rows_by_x_offset_filter
 
 
 def filter_rows_by_x_initial(rows):
@@ -196,11 +195,10 @@ def filter_rows_by_x_initial(rows):
     Input rows are expected to be [(original_index_from_prev_filter, [(norm_x, norm_z), ...]), ...]
     Returns:
         valid_rows_content: List of lists of (norm_x, norm_z) content that passed this filter.
-        discarded_rows_by_initial_x: List of (original_index, list_of_checkboxes_content)
-        mean_x_initial: The mean x-initial of the valid rows.
+        discarded_rows_by_x_initial: List of (original_index, list_of_checkboxes_content)
     """
-    valid_rows_content = []  # Initialize here
-    discarded_rows_by_initial_x = []  # Initialize here
+    valid_rows_content = []
+    discarded_rows_by_x_initial = []
 
     row_x_initials_map = {}  # Map (original_index, row_content) for easier processing
     for original_idx_from_prev_filter, row_content in rows:
@@ -211,7 +209,7 @@ def filter_rows_by_x_initial(rows):
             )
         else:
             # If an empty row makes it here, it effectively gets discarded by this filter's logic
-            discarded_rows_by_initial_x.append((original_idx_from_prev_filter, []))
+            discarded_rows_by_x_initial.append((original_idx_from_prev_filter, []))
             continue
 
     x_initial_values = [x for x, _ in row_x_initials_map.values()]
@@ -219,7 +217,7 @@ def filter_rows_by_x_initial(rows):
     if not x_initial_values:
         # If no non-empty rows passed to this filter, return empty results,
         # but include any empty rows that were already accumulated as discarded.
-        return [], discarded_rows_by_initial_x, 0
+        return [], discarded_rows_by_x_initial
 
     mean_x_initial = statistics.mean(x_initial_values)
 
@@ -228,16 +226,15 @@ def filter_rows_by_x_initial(rows):
             valid_rows_content.append(row_content)  # Just the content
         else:
             # Keep original index for context
-            discarded_rows_by_initial_x.append((original_idx, row_content))
+            discarded_rows_by_x_initial.append((original_idx, row_content))
 
-    return valid_rows_content, discarded_rows_by_initial_x, mean_x_initial
+    return valid_rows_content, discarded_rows_by_x_initial
 
 
-def print_rows_info(label, indexed_rows):
+def print_rows_info(indexed_rows):
     """Prints detailed information for each row of checkboxes.
     indexed_rows format: [(display_index, [(norm_x, norm_z), ...]), ...]
     """
-    print(f"\n--- {label} ---")
     if not indexed_rows:
         print("No rows to display.")
         return
@@ -293,74 +290,63 @@ if __name__ == "__main__":
     overall_included_norm_coords = set()
     overall_discarded_norm_coords = set()
 
-    # --- Step 1: Find all potential checkboxes with their normalized and pixel coords ---
+    # Find all potential checkboxes with their normalized and pixel coords
     # Each item: (norm_x, norm_z, (x_pixel, z_pixel, w_pixel, h_pixel))
-    all_potential_checkboxes_with_coords = find_all_potential_checkboxes(
-        contours, width, height
-    )
+    all_potential_checkboxes = find_all_potential_checkboxes(contours, width, height)
 
-    # --- Step 2: Apply LEFT_SIDE_THRESHOLD filter and populate initial discarded set ---
-    # These will be used for row grouping
-    checkboxes_passing_left_filter_norm_coords = []
-    for norm_x, norm_z, bbox_pixel_coords in all_potential_checkboxes_with_coords:
+    # Apply LEFT_SIDE_THRESHOLD filter and populate initial discarded set
+    checkboxes_after_left_filter = []
+    for norm_x, norm_z, bbox_pixel_coords in all_potential_checkboxes:
         if norm_x < LEFT_SIDE_THRESHOLD:
-            checkboxes_passing_left_filter_norm_coords.append((norm_x, norm_z))
+            checkboxes_after_left_filter.append((norm_x, norm_z))
         else:
-            # Discarded by left threshold
             overall_discarded_norm_coords.add((norm_x, norm_z))
 
     # Sort these checkboxes from top to bottom (by z) for consistent row grouping
-    # Sort by norm_z
-    checkboxes_passing_left_filter_norm_coords.sort(key=lambda pt: pt[1])
+    checkboxes_after_left_filter.sort(key=lambda pt: pt[1])
 
-    # --- Step 3: Group initially filtered checkboxes into rows by Z ---
-    rows_grouped_by_z = group_checkboxes_by_z(
-        checkboxes_passing_left_filter_norm_coords
-    )
+    # Group initially filtered checkboxes into rows by Z
+    rows_grouped_by_z = group_checkboxes_by_z(checkboxes_after_left_filter)
 
-    # --- Step 4: Filter rows by X-Offset Deviation ---
-
-    # --- Calculate global median x-offset from initially grouped rows ---
+    # Calculate global median x-offset from initially grouped rows
     global_mean_x_offset = calculate_global_median_x_offset(rows_grouped_by_z)
 
+    # Filter rows by X-Offset Deviation
     # `rows_after_offset_filter`: List of (original_row_idx, list_of_checkboxes_content)
-    # `discarded_rows_by_offset`: List of (original_row_idx, list_of_checkboxes_content)
-    rows_after_offset_filter, discarded_rows_by_offset = (
+    # `discarded_rows_by_x_offset`: List of (original_row_idx, list_of_checkboxes_content)
+    rows_after_offset_filter, discarded_rows_by_x_offset = (
         filter_rows_by_x_offset_deviation(rows_grouped_by_z, global_mean_x_offset)
     )
 
     # Add checkboxes from rows/segments discarded by X-offset filter to overall discards
-    for _, row_content in discarded_rows_by_offset:
+    for _, row_content in discarded_rows_by_x_offset:
         for cb_norm_x, cb_norm_z in row_content:
             overall_discarded_norm_coords.add((cb_norm_x, cb_norm_z))
 
-    # --- Step 5: Filter rows by X-Initial Deviation ---
-    # `valid_rows_content_final`: List of lists of (norm_x, norm_z) content.
-    # `discarded_rows_by_initial_x`: List of (original_idx, list_of_checkboxes_content)
-    valid_rows_content_final, discarded_rows_by_initial_x, mean_x_initial = (
-        filter_rows_by_x_initial(rows_after_offset_filter)
+    # Filter rows by X-Initial Deviation
+    # `rows_after_initial_filter`: List of lists of (norm_x, norm_z) content.
+    # `discarded_rows_by_x_initial`: List of (original_idx, list_of_checkboxes_content)
+    rows_after_initial_filter, discarded_rows_by_x_initial = filter_rows_by_x_initial(
+        rows_after_offset_filter
     )
 
-    # Add checkboxes from rows discarded by X-initial filter to overall discards
-    for _, row_content in discarded_rows_by_initial_x:
+    # Add checkboxes from rows discarded by x-initial filter to overall discards
+    for _, row_content in discarded_rows_by_x_initial:
         for cb_norm_x, cb_norm_z in row_content:
             overall_discarded_norm_coords.add((cb_norm_x, cb_norm_z))
 
     # Populate final included set (these passed ALL filters)
-    for row_content in valid_rows_content_final:
+    for row_content in rows_after_initial_filter:
         for cb_norm_x, cb_norm_z in row_content:
             overall_included_norm_coords.add((cb_norm_x, cb_norm_z))
 
-    # --- Step 6: Print detailed information about rows ---
-
     # Prepare valid rows for printing with new sequential indices
     valid_rows_for_printing_indexed = [
-        (i, row) for i, row in enumerate(valid_rows_content_final)
+        (i, row) for i, row in enumerate(rows_after_initial_filter)
     ]
-    print_rows_info(
-        "Grouped rows by similar Z-coordinates (valid and passed all filters)",
-        valid_rows_for_printing_indexed,
-    )
+
+    print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
+    print_rows_info(valid_rows_for_printing_indexed)
 
     # Print summary stats for valid rows
     all_valid_x_offsets = []
@@ -388,12 +374,8 @@ if __name__ == "__main__":
     if PRINT_DISCARDED:
         # Prepare ALL discarded rows for printing (combining from various stages)
         all_discarded_rows_for_printing = []
-
-        # Add rows discarded by initial X filter
-        all_discarded_rows_for_printing.extend(discarded_rows_by_initial_x)
-
-        # Add rows/segments discarded by X-offset filter
-        all_discarded_rows_for_printing.extend(discarded_rows_by_offset)
+        all_discarded_rows_for_printing.extend(discarded_rows_by_x_initial)
+        all_discarded_rows_for_printing.extend(discarded_rows_by_x_offset)
 
         # Sort all discarded rows by their original index for better readability in output
         all_discarded_rows_for_printing.sort(key=lambda x: x[0])
@@ -404,22 +386,22 @@ if __name__ == "__main__":
                 (i, row_content)
                 for i, (_, row_content) in enumerate(all_discarded_rows_for_printing)
             ]
-            print_rows_info(
-                "Discarded checkboxes (due to any filter):",
-                indexed_discarded_rows_for_printing,
-            )
+            print(f"\n--- Discarded checkboxes (due to filters) ---")
+            print_rows_info(indexed_discarded_rows_for_printing)
         else:
-            print("\nNo checkboxes were discarded by the offset or initial X filters.")
+            print("\nNo checkboxes were discarded by the filters.")
 
-    # --- Step 7: Prepare debug data based on final filtering results ---
+    # Prepare debug data based on final filtering results
     final_debug_checkbox_statuses = []
-    for norm_x, norm_z, bbox_pixel_coords in all_potential_checkboxes_with_coords:
+    for norm_x, norm_z, bbox_pixel_coords in all_potential_checkboxes:
         if (norm_x, norm_z) in overall_included_norm_coords:
-            final_debug_checkbox_statuses.append((bbox_pixel_coords, True))  # Green
+            color = (0, 255, 0)  # Green
         else:
-            final_debug_checkbox_statuses.append((bbox_pixel_coords, False))  # Red
+            color = (0, 0, 255)  # Red
 
-    # --- Step 8: Draw and save the debug image ---
+        final_debug_checkbox_statuses.append((bbox_pixel_coords, color))
+
+    # Draw and save the debug image
     file_name = draw_debug_image(image, final_debug_checkbox_statuses)
     print(f"\nDebug image saved as '{file_name}'")
     print("Green boxes = included checkboxes (passed all filters)")
