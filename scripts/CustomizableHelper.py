@@ -3,17 +3,18 @@ import os
 import statistics
 
 # Configuration parameters
-IMAGE_PATH = r"C:\git\SCED-tools\scripts\HuntersArmor.png"
+IMAGE_PATH = r"C:\git\SCED-tools\scripts\RunicAxe.png"
 PRINT_DISCARDED = False
 
 # Box identification parameters
 MIN_ASPECT_RATIO = 0.9
 MAX_ASPECT_RATIO = 1.1
-MIN_BOX_SIZE = 20 / 750
+MIN_BOX_SIZE = 15 / 750
 MAX_BOX_SIZE = 30 / 750
 
-# Ignore boxes left of this
-LEFT_SIDE_THRESHOLD = -0.5
+# Ignore boxes outside of this
+LEFT_SIDE_THRESHOLD_MIN = -0.5
+LEFT_SIDE_THRESHOLD_MAX = -0.9
 
 # Used for grouping boxes into rows
 Z_ROW_THRESHOLD = 0.03 / 1050
@@ -324,7 +325,7 @@ if __name__ == "__main__":
     # Apply LEFT_SIDE_THRESHOLD filter and populate initial discarded set
     checkboxes_after_left_filter = []
     for norm_x, norm_z, bbox_pixel_coords in all_potential_checkboxes:
-        if norm_x < LEFT_SIDE_THRESHOLD:
+        if LEFT_SIDE_THRESHOLD_MAX < norm_x < LEFT_SIDE_THRESHOLD_MIN:
             checkboxes_after_left_filter.append((norm_x, norm_z))
         else:
             overall_discarded_norm_coords.add((norm_x, norm_z))
@@ -370,9 +371,6 @@ if __name__ == "__main__":
     # Prepare valid rows for printing with new sequential indices
     valid_rows_final = [(i, row) for i, row in enumerate(rows_after_initial_filter)]
 
-    print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
-    print_rows_info(valid_rows_final)
-
     # Calculate all x-initials from all valid rows
     all_valid_x_initials = [
         min(row, key=lambda pt: pt[0])[0] for _, row in valid_rows_final
@@ -387,12 +385,19 @@ if __name__ == "__main__":
             all_valid_x_offsets.append(xs[j + 1] - xs[j])
 
     # Calculate summary stats
+    if not all_valid_x_initials:
+        print("Didn't find any boxes.")
+        exit()
+
     global_x_initial_mean = statistics.mean(all_valid_x_initials)
     global_x_initial_median = statistics.median(all_valid_x_initials)
     global_x_offset_mean = statistics.mean(all_valid_x_offsets)
     global_x_offset_median = statistics.median(all_valid_x_offsets)
 
-    # Print summary stats for valid rows
+    # Print summary stats
+    print(f"\n--- Grouped rows by Z-coordinates (valid and passed all filters) ---")
+    print_rows_info(valid_rows_final)
+
     print(f"\nx-initial mean:   {global_x_initial_mean:.3f}")
     print(f"x-initial median: {global_x_initial_median:.3f}")
     print(f"x-offset mean:    {global_x_offset_mean:+.3f}")
