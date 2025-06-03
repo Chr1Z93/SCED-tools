@@ -16,6 +16,9 @@ MIN_BOX_RATIO = 0.9
 MAX_BOX_RATIO = 1.1
 MIN_BOX_SIZE = 20 / 1050
 MAX_BOX_SIZE = 45 / 1050
+MIN_BOX_SOLIDITY = 0.7
+MIN_BOX_CORNERS = 3
+MAX_BOX_CORNERS = 10
 
 # Ignore boxes outside of this
 LEFT_SIDE_THRESHOLD_MIN = -0.5
@@ -35,6 +38,7 @@ TTS_CARD_HEIGHT = 3.062473
 
 # Don't ask me why this is necessary, it just works (emprically derived, should have been 1)
 TTS_FIRST_X_OFFSET_FACTOR = 0.775
+
 
 def is_url(path):
     return path.startswith("http://") or path.startswith("https://")
@@ -200,8 +204,8 @@ def find_all_potential_checkboxes(contours):
         # Apply filters
         if (
             is_valid_checkbox(w_pixel, h_pixel)
-            and solidity > 0.7
-            and 3 <= corner_count <= 10
+            and solidity > MIN_BOX_SOLIDITY
+            and MIN_BOX_CORNERS <= corner_count <= MAX_BOX_CORNERS
         ):
             norm_x, norm_z = get_normalized_coords(x_pixel, z_pixel, w_pixel, h_pixel)
             potential_checkboxes.append(
