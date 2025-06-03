@@ -64,7 +64,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
 
 
 def is_valid_checkbox(w, h, width):
-    """Check if dimensions match checkbox criteria"""
+    """Checks if dimensions match checkbox criteria."""
     aspect_ratio = w / h
     return (
         MIN_ASPECT_RATIO < aspect_ratio < MAX_ASPECT_RATIO
@@ -74,7 +74,7 @@ def is_valid_checkbox(w, h, width):
 
 
 def get_normalized_coords(x, z, w, h, width, height):
-    """Convert pixel coordinates to normalized coordinates"""
+    """Converts pixel coordinates to normalized coordinates."""
     center_x = x + w / 2
     center_z = z + h / 2
 
