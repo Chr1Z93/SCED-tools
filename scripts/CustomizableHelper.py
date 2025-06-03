@@ -94,12 +94,24 @@ if checkboxes:
 
     print("\nGrouped rows by similar Z-coordinates:")
     for i, row in enumerate(rows, 1):
-        row_str = " | ".join(f"(x={x:.3f}, z={z:.3f})" for x, z in row)
-        print(f"Row {i}: {row_str}")
+        # Sort the row by x to get left-to-right order
+        row_sorted = sorted(row, key=lambda pt: pt[0])
+        xs = [x for x, _ in row_sorted]
+        zs = [z for _, z in row_sorted]
 
-    all_x = [x for row in rows for x, _ in row]
-    print(f"\nX-coordinate mean: {statistics.mean(all_x):.3f}")
-    print(f"X-coordinate median: {statistics.median(all_x):.3f}")
+        mean_z = statistics.mean(zs)
+        median_z = statistics.median(zs)
+
+        # Calculate pairwise x offsets
+        pairwise_offsets = [f"{(xs[j+1] - xs[j]):+.3f}" for j in range(len(xs) - 1)]
+
+        print(
+            f"Row {i}: z-pos = {median_z:.3f}, count = {len(xs)}, x-initial = {xs[0]:.3f}, x-offsets: {pairwise_offsets}"
+        )
+
+    all_x = [min(row, key=lambda pt: pt[0])[0] for row in rows]
+    print(f"\nx-initial mean: {statistics.mean(all_x):.3f}")
+    print(f"x-initial median: {statistics.median(all_x):.3f}")
 else:
     print("No checkboxes found.")
 
