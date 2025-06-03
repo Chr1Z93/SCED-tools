@@ -10,6 +10,7 @@ MAX_WIDTH = 30
 MIN_HEIGHT = 20
 MAX_HEIGHT = 30
 LEFT_SIDE_THRESHOLD = -0.5
+Z_ROW_THRESHOLD = 0.03
 
 # Load and preprocess the image
 image = cv2.imread(IMAGE_PATH)
@@ -76,19 +77,32 @@ for cnt in contours:
         else:
             cv2.rectangle(debug_image, (x, z), (x + w, z + h), (0, 0, 255), 2)  # Red
 
-# Print results
+# Print grouped rows by similar z
 if checkboxes:
-    x_coords = [nx for nx, nz in checkboxes]
-    z_coords = [nz for nx, nz in checkboxes]
+    rows = []
+    current_row = [checkboxes[0]]
 
-    print("\nZ-coordinates:")
-    for i, nz in enumerate(z_coords):
-        print(f"{i+1}: z={nz:.3f}")
+    for cb in checkboxes[1:]:
+        _, prev_z = current_row[-1]
+        _, curr_z = cb
+        if abs(curr_z - prev_z) <= Z_ROW_THRESHOLD:
+            current_row.append(cb)
+        else:
+            rows.append(current_row)
+            current_row = [cb]
+    rows.append(current_row)  # append the last row
 
-    print(f"\nX-coordinate mean: {statistics.mean(x_coords):.3f}")
-    print(f"X-coordinate median: {statistics.median(x_coords):.3f}")
+    print("\nGrouped rows by similar Z-coordinates:")
+    for i, row in enumerate(rows, 1):
+        row_str = " | ".join(f"(x={x:.3f}, z={z:.3f})" for x, z in row)
+        print(f"Row {i}: {row_str}")
+
+    all_x = [x for row in rows for x, _ in row]
+    print(f"\nX-coordinate mean: {statistics.mean(all_x):.3f}")
+    print(f"X-coordinate median: {statistics.median(all_x):.3f}")
 else:
     print("No checkboxes found.")
+
 
 # Save debug image
 cv2.imwrite("debug_checkboxes.png", debug_image)
