@@ -81,6 +81,11 @@ def get_image_path():
         if os.path.isfile(IMAGE_PATH):
             return
 
+        temp_path = get_global_path(IMAGE_PATH)
+        if os.path.isfile(temp_path):
+            IMAGE_PATH = temp_path
+            return
+
     # Priority 2: Use CLI argument (drag-and-drop)
     if len(sys.argv) > 1:
         arg_path = sys.argv[1]
@@ -92,6 +97,11 @@ def get_image_path():
             IMAGE_PATH = arg_path
             return
 
+        temp_path = get_global_path(IMAGE_PATH)
+        if os.path.isfile(temp_path):
+            IMAGE_PATH = temp_path
+            return
+
         print(f"Error: Invalid path or file does not exist:\n  {arg_path}")
 
     # Priority 3: Prompt the user (and strip spaces and quotes)
@@ -101,6 +111,11 @@ def get_image_path():
         return
 
     if os.path.isfile(IMAGE_PATH):
+        return
+
+    temp_path = get_global_path(IMAGE_PATH)
+    if os.path.isfile(temp_path):
+        IMAGE_PATH = temp_path
         return
 
     print(f"Error: File not found:\n  {IMAGE_PATH}")
@@ -143,8 +158,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     lua_script_block = "\n".join(lua_script_lines)
 
     # Get base script name
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    base_script_path = os.path.join(script_directory, "CustomizableScript.ttslua")
+    base_script_path = get_global_path("CustomizableScript.ttslua")
 
     # Read and replace the insert marker in the base script
     with open(base_script_path, "r", encoding="utf-8") as f:
@@ -154,6 +168,14 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     replaced_lua = replaced_name.replace("--<<TTS_LUA_SCRIPT>>", lua_script_block)
 
     return replaced_lua
+
+
+def get_global_path(localPath):
+    # os.path.abspath(__file__) gets the absolute path of the script file.
+    # os.path.dirname() extracts the directory part from that path.
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    global_path = os.path.join(script_directory, localPath)
+    return global_path
 
 
 def is_valid_checkbox(w, h):
@@ -220,18 +242,13 @@ def draw_debug_image(image, final_checkbox_statuses):
     for (x, z, w, h), color in final_checkbox_statuses:
         cv2.rectangle(debug_image, (x, z), (x + w, z + h), color, 2)
 
-    # Get the directory of the current script
-    # os.path.abspath(__file__) gets the absolute path of the script file.
-    # os.path.dirname() extracts the directory part from that path.
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-
     filename_base, file_extension = extract_image_name_and_extension()
 
     # Construct the new debug filename
     output_filename = f"{filename_base}_debug{file_extension}"
 
     # Combine the script directory and the filename to create the full output path
-    output_path = os.path.join(script_directory, output_filename)
+    output_path = get_global_path(output_filename)
 
     cv2.imwrite(output_path, debug_image)
 
@@ -570,10 +587,9 @@ if __name__ == "__main__":
     print("")
 
     # Generate and save TTSLua File
-    script_directory = os.path.dirname(os.path.abspath(__file__))
     filename_base, _ = extract_image_name_and_extension()
     output_filename = f"{filename_base}_script.ttslua"
-    output_path = os.path.join(script_directory, output_filename)
+    output_path = get_global_path(output_filename)
 
     lua_output_string = generate_lua_script(
         valid_rows_final,
