@@ -105,7 +105,9 @@ def get_image_path():
         print(f"Error: Invalid path or file does not exist:\n  {arg_path}")
 
     # Priority 3: Prompt the user (and strip spaces and quotes)
-    IMAGE_PATH = input("Please enter the path to the image file: ").strip(" \"'")
+    IMAGE_PATH = input(
+        "Please enter the path to the image file (local or global): "
+    ).strip(" \"'")
     if is_url(IMAGE_PATH):
         IMAGE_PATH = download_temp_image(IMAGE_PATH)
         return
