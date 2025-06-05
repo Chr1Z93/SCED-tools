@@ -94,8 +94,8 @@ def get_image_path():
 
         print(f"Error: Invalid path or file does not exist:\n  {arg_path}")
 
-    # Priority 3: Prompt the user
-    IMAGE_PATH = input("Please enter the path to the image file: ").strip()
+    # Priority 3: Prompt the user (and strip spaces and quotes)
+    IMAGE_PATH = input("Please enter the path to the image file: ").strip(" \"'")
     if is_url(IMAGE_PATH):
         IMAGE_PATH = download_temp_image(IMAGE_PATH)
         return
@@ -158,9 +158,8 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
 
 def is_valid_checkbox(w, h):
     """Checks if dimensions match checkbox criteria."""
-    aspect_ratio = w / h
     return (
-        MIN_BOX_RATIO < aspect_ratio < MAX_BOX_RATIO
+        MIN_BOX_RATIO < w / h < MAX_BOX_RATIO
         and MIN_BOX_SIZE < w / height < MAX_BOX_SIZE
         and MIN_BOX_SIZE < h / height < MAX_BOX_SIZE
     )
