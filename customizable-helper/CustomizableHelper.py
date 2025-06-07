@@ -423,12 +423,6 @@ def print_rows_info(indexed_rows):
         )
 
 
-def pause_if_run_from_explorer():
-    # Always pause if run via Explorer (not a terminal)
-    if not hasattr(sys, "ps1"):
-        input("\nDone. Press any key to exit...")
-
-
 # Main processing starts here
 if __name__ == "__main__":
     get_image_path()
@@ -436,7 +430,7 @@ if __name__ == "__main__":
     # Load and preprocess the image
     image = cv2.imread(IMAGE_PATH)
     if image is None:
-        print(f"Error: Could not load image at {IMAGE_PATH}")
+        input(f"Error: Could not load image at {IMAGE_PATH}. Press Enter to exit...")
         exit()
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -525,7 +519,7 @@ if __name__ == "__main__":
 
     # Calculate summary stats
     if not all_valid_x_initials:
-        print("Didn't find any boxes.")
+        input(f"Error: Didn't find any boxes. Press Enter to exit...")
         exit()
 
     global_x_initial_mean = statistics.mean(all_valid_x_initials)
@@ -606,4 +600,4 @@ if __name__ == "__main__":
     except IOError as e:
         print(f"Error saving Lua output to file: {e}")
 
-    pause_if_run_from_explorer()
+    input("\nDone. Press Enter to exit...")
