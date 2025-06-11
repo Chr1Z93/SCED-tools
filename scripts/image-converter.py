@@ -4,6 +4,8 @@ import sys
 import os
 from PIL import Image
 
+ROTATE_HORIZONTAL_IMAGES = False
+
 
 def get_unique_filename(base_path, base_name, extension):
     """Generate a unique filename by adding a numeric suffix if the file already exists."""
@@ -22,14 +24,20 @@ def resize_and_compress(image_path, max_file_size_kb=450):
             if img.mode == "RGBA":
                 img = img.convert("RGB")
 
-            # Determine orientation and set target size accordingly
-            if img.width > img.height:
-                output_size = (1050, 750)  # Landscape
+            if ROTATE_HORIZONTAL_IMAGES:
+                output_size = (750, 1050)
+                # Rotate horizontal images 90° clockwise
+                if img.width > img.height:
+                    img = img.rotate(-90, expand=True)
             else:
-                output_size = (750, 1050)  # Portrait
+                # Determine orientation and set target size accordingly
+                if img.width > img.height:
+                    output_size = (1050, 750)  # Landscape
+                else:
+                    output_size = (750, 1050)  # Portrait
 
             # Resize image to exact dimensions (without keeping aspect ratio)
-            img = img.resize(output_size, Image.LANCZOS)
+            img = img.resize(output_size, Image.Resampling.LANCZOS)
 
             # Define output path
             base_path = os.path.dirname(image_path)

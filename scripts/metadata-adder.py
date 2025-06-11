@@ -4,7 +4,7 @@ import re
 
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\git\SCED-downloads\downloadable\campaign\call_of_the_plaguebearer.json"
-METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata.xlsx"
+METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-adder-CoP.xlsx"
 
 
 # Function to clean up trailing commas in JSON strings

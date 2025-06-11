@@ -3,7 +3,7 @@ import re
 
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Darkham Horror.json"
-DATAHELPER_FILE = r"C:\git\SCED-tools\scripts\datahelper.json"
+DATAHELPER_FILE = r"C:\git\SCED-tools\scripts\metadata-from-datahelper-data.json"
 CYCLE_NAME = "Darkham Horror"
 
 # Function to clean up trailing commas in JSON strings

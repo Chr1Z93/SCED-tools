@@ -1,3 +1,5 @@
+# Adds GUIDs to a JSON object
+
 import json
 import random
 from pathlib import Path

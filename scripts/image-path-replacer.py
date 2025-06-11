@@ -1,7 +1,11 @@
+# Replaces the image path based on a Excel table
+
 import pandas as pd
 import os
 import re
 
+DATA_PATH = r"C:\git\SCED-tools\scripts\image-path-replacer-data.xlsx"
+FOLDER_PATH = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
 
 def load_excel_data(excel_path):
     df = pd.read_excel(excel_path, dtype={"ID": int, "URL": str})
@@ -43,11 +47,8 @@ def update_json_files(folder_path, replacements):
 
 
 def main():
-    excel_path = r"C:\git\SCED-tools\scripts\ImageData.xlsx"
-    folder_path = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
-
-    replacements = load_excel_data(excel_path)
-    update_json_files(folder_path, replacements)
+    replacements = load_excel_data(DATA_PATH)
+    update_json_files(FOLDER_PATH, replacements)
 
 
 if __name__ == "__main__":

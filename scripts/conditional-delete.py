@@ -1,3 +1,5 @@
+# Deletes all files that contain the filter_string in the search_folder
+
 import os
 
 # Config

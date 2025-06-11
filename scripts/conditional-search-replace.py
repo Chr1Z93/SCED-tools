@@ -1,3 +1,5 @@
+# Filters files with a filter_string and then performs a search & replace on these files
+
 import os
 
 # Config
