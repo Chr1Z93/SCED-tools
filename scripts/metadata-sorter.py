@@ -1,3 +1,5 @@
+# Sorts the metadata based on the specified order
+
 import json
 import os
 

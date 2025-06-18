@@ -1,3 +1,5 @@
+# Adds the bonded metadata for decomposed card data from an arkham.build export
+
 import os
 import json
 

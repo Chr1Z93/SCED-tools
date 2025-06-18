@@ -1,3 +1,5 @@
+# Rounds the scriptstates (primarily for Memory Bags)
+
 import json
 import os
 

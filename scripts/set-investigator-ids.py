@@ -1,3 +1,5 @@
+# Sets IDs for investigators from the Zoop GUIDs
+
 import os
 import json
 
