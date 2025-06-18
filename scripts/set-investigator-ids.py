@@ -25,7 +25,7 @@ for root, _, files in os.walk(CARD_FOLDER):
 
         if "ID" not in data:
             if "TtsZoopGuid" in data:
-                data["ID"] = data["TtsZoopGuid"]
+                data["id"] = data["TtsZoopGuid"]
                 print(f"Added ID to {filepath}")
 
                 with open(filepath, "w", encoding="utf-8") as f:
