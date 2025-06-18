@@ -26,7 +26,7 @@ for root, _, files in os.walk(CARD_FOLDER):
                 print(f"Skipping invalid JSON file: {filepath}")
                 continue
 
-        card_id = data.get("id")
+        card_id = data.get("id") or data.get("TtsZoopGuid")
         if not card_id:
             print(f"No 'id' field in {filepath}, skipping.")
             continue
@@ -37,5 +37,3 @@ for root, _, files in os.walk(CARD_FOLDER):
 
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-        else:
-            print(f"No bonded data for card {card_id} in {filepath}")
