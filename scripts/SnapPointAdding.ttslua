@@ -56,14 +56,18 @@ function addSnapPoints()
       -- only 17 snap points in the last row
       if not (row == 8 and col > 17) then
         -- add special investigator snap points
-        if row == 8 and col > 15 then
+        if row == 8 and col == 16 then
           col = col + 0.5
+        elseif row == 8 and col == 17 then
+          col = col + 1.5
         end
 
         local snap = {
-          y = 0.1,
-          [axisCol] = anchor[axisCol] + dirCol * stepCol * col,
-          [axisRow] = anchor[axisRow] + dirRow * stepRow * row
+          position = {
+            y = 0.1,
+            [axisCol] = anchor[axisCol] + dirCol * stepCol * col,
+            [axisRow] = anchor[axisRow] + dirRow * stepRow * row
+          }
         }
 
         table.insert(snaps, snap)
