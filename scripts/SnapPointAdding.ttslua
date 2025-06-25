@@ -1,0 +1,76 @@
+function onLoad()
+  self.addContextMenuItem("Add Snap Points", addSnapPoints)
+end
+
+function findCards()
+  local searchResult = Physics.cast({
+    origin       = self.getPosition() + Vector(0, 1, 0),
+    direction    = { 0, 1, 0 },
+    type         = 3,
+    size         = self.getBounds().size:setAt("y", 2),
+    max_distance = 0
+  })
+
+  local objList = {}
+  for _, v in ipairs(searchResult) do
+    if v.hit_object.type == "Card" then
+      table.insert(objList, v.hit_object)
+    end
+  end
+  return objList
+end
+
+function addSnapPoints()
+  local cards = findCards()
+  if #cards ~= 1 then
+    broadcastToAll("Make sure that there is exactly 1 card on the board.", "Red")
+    return
+  end
+
+  local anchor = self.positionToLocal(cards[1].getPosition())
+
+  -- Decide which axis carries the 20 columns and which carries the 9 rows
+  local axisCol, axisRow
+  if math.abs(anchor.x) >= math.abs(anchor.z) then
+    axisCol, axisRow = "x", "z" -- 20 across X, 9 across Z
+  else
+    axisCol, axisRow = "z", "x" -- 20 across Z, 9 across X
+  end
+
+  -- Full span along each axis (anchor → opposite side) is |anchor| * 2
+  local fullCol = math.abs(anchor[axisCol]) * 2
+  local fullRow = math.abs(anchor[axisRow]) * 2
+
+  -- Step sizes (distance between adjacent snap-points)
+  local stepCol = fullCol / 19 -- 20 points → 19 gaps
+  local stepRow = fullRow / 8  --  9 points →  8 gaps
+
+  -- Direction: move towards the centre, then past it to the far edge
+  local dirCol  = (anchor[axisCol] >= 0) and -1 or 1
+  local dirRow  = (anchor[axisRow] >= 0) and -1 or 1
+
+  -- Build the grid
+  local snaps   = {}
+  for col = 0, 19 do  -- 20 columns
+    for row = 0, 8 do -- 9 rows
+      -- only 17 snap points in the last row
+      if not (row == 8 and col > 17) then
+        -- add special investigator snap points
+        if row == 8 and col > 15 then
+          col = col + 0.5
+        end
+
+        local snap = {
+          y = 0.1,
+          [axisCol] = anchor[axisCol] + dirCol * stepCol * col,
+          [axisRow] = anchor[axisRow] + dirRow * stepRow * row
+        }
+
+        table.insert(snaps, snap)
+      end
+    end
+  end
+
+  self.setSnapPoints(snaps)
+  broadcastToAll("20 x 9 snap grid created.", "Green")
+end
