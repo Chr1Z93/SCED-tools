@@ -148,8 +148,6 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
 
         lua_script_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
         lua_script_lines.append("    checkboxes = {")
-
-        # This is a purely empirical factor to fix the values for TTS
         lua_script_lines.append(f"      posZ = {pos_z:.3f},")
         lua_script_lines.append(f"      count = {len(row_content)}")
         lua_script_lines.append("    }")
@@ -169,7 +167,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
     replaced_name = base_script.replace("<<TTS_FILE_NAME>>", card_name)
     replaced_lua = replaced_name.replace("--<<TTS_LUA_SCRIPT>>", lua_script_block)
 
-    return replaced_lua
+    return replaced_lua, lua_script_block
 
 
 def get_global_path(localPath):
@@ -423,6 +421,15 @@ def print_rows_info(indexed_rows):
         )
 
 
+def save_lua_file(output_path, lua_output_string):
+    try:
+        with open(output_path, "w") as f:
+            f.write(lua_output_string)
+        print(f"Lua script saved as '{output_filename}'")
+    except IOError as e:
+        print(f"Error saving Lua output to file: {e}")
+
+
 # Main processing starts here
 if __name__ == "__main__":
     get_image_path()
@@ -584,20 +591,21 @@ if __name__ == "__main__":
 
     # Generate and save TTSLua File
     filename_base, _ = extract_image_name_and_extension()
-    output_filename = f"{filename_base}_script.ttslua"
-    output_path = get_global_path(output_filename)
 
-    lua_output_string = generate_lua_script(
+    lua_output_string, base_lua_output_string = generate_lua_script(
         valid_rows_final,
         global_x_initial_mean,
         global_x_offset_mean,
     )
 
-    try:
-        with open(output_path, "w") as f:
-            f.write(lua_output_string)
-        print(f"Lua script saved as '{output_filename}'")
-    except IOError as e:
-        print(f"Error saving Lua output to file: {e}")
+    # Save base file
+    output_filename = f"{filename_base}_script_unbundled.ttslua"
+    output_path = get_global_path(output_filename)
+    save_lua_file(output_path, base_lua_output_string)
+
+    # Save bundled file
+    output_filename = f"{filename_base}_script.ttslua"
+    output_path = get_global_path(output_filename)
+    save_lua_file(output_path, lua_output_string)
 
     input("\nDone. Press Enter to exit...")
