@@ -31,9 +31,9 @@ DEFAULT_VALUES = {
 }
 
 # Set the root directory where your JSON files are located.
-# For example: 'C:/Users/YourUser/Documents/My Games/Tabletop Simulator/Saves'
+# For example: r'C:\git\SCED\objects'
 # Use '.' to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
+TARGET_DIRECTORY = r"C:\git\SCED\objects"
 
 
 def remove_default_values(data, defaults):
