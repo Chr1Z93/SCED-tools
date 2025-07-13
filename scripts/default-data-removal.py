@@ -2,10 +2,14 @@ import os
 import json
 import copy
 
+# Set the root directory where your JSON files are located.
+# For example: r'C:\git\SCED\objects'
+# Use '.' to process the directory where this script is located.
+TARGET_DIRECTORY = r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
+
 # Define the default key-value pairs you want to remove from your JSON files.
-# The script will recursively check these values. If a nested object in your
-# file becomes empty after removing its default-valued keys, the entire
-# object will be removed.
+# The script will check these values. If a key's value in your file
+# matches the default, the key will be removed.
 DEFAULT_VALUES = {
     "AltLookAngle": {"x": 0, "y": 0, "z": 0},
     "Autoraise": True,
@@ -30,11 +34,6 @@ DEFAULT_VALUES = {
     "XmlUI": "",
 }
 
-# Set the root directory where your JSON files are located.
-# For example: r'C:\git\SCED\objects'
-# Use '.' to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED\objects"
-
 
 def remove_default_values(data, defaults):
     """
@@ -47,43 +46,58 @@ def remove_default_values(data, defaults):
     """
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
-        if key in defaults:
-            default_value = defaults[key]
-            current_value = data.get(key)
+        current_value = data.get(key)
 
-            # If the value is a dictionary, recurse into it
-            if isinstance(current_value, dict) and isinstance(default_value, dict):
-                remove_default_values(current_value, default_value)
-                # If the nested dictionary is now empty, remove the key
-                if not current_value:
-                    del data[key]
-            # For non-dictionary values, if they match the default, remove the key
-            elif current_value == default_value:
+        # Case 1: The key is a defined default (e.g., "AltLookAngle").
+        # We compare the entire value directly.
+        if key in defaults:
+            # If the current value is identical to the default value, remove the key.
+            # This works for simple types (True, 0, "") and for entire dictionaries
+            # (e.g., {"x": 0, "y": 0, "z": 0}).
+            if current_value == defaults[key]:
                 del data[key]
+
+        # Case 2: The key is NOT a default, but its value is a dictionary.
+        # We should step into it to clean its contents recursively.
+        elif isinstance(current_value, dict):
+            remove_default_values(current_value, defaults)
+
+        # Case 3: The key is NOT a default, but its value is a list.
+        # We check for any dictionaries within the list to clean them.
+        # This is common for structures like "ObjectStates" in TTS files.
+        elif isinstance(current_value, list):
+            for item in current_value:
+                if isinstance(item, dict):
+                    remove_default_values(item, defaults)
 
 
 def process_files_in_directory(directory, defaults):
     """
     Walks through a directory and processes all .json files.
     """
-    print(f"Starting cleanup in directory: '{os.path.abspath(directory)}'\n")
+    abs_directory = os.path.abspath(directory)
+    if not os.path.isdir(abs_directory):
+        print(f"Error: The specified directory '{abs_directory}' does not exist.")
+        return
+
+    print(f"Starting cleanup in directory: '{abs_directory}'\n")
     total_files = 0
     modified_files = 0
 
     for root, _, files in os.walk(directory):
         for filename in files:
-            if filename.endswith(
-                (".json", ".ttslua")
-            ):  # Handles standard JSON and saved object files
+            # Handles standard JSON and Tabletop Simulator saved object files
+            if filename.endswith((".json")):
                 file_path = os.path.join(root, filename)
                 total_files += 1
 
                 print(f"-> Processing: {file_path}")
                 try:
                     # Read the original file to load JSON data
+                    # Using utf-8-sig to handle potential BOM (Byte Order Mark)
                     with open(file_path, "r", encoding="utf-8-sig") as f:
                         content = f.read()
-                        # TTS JSON can sometimes have leading/trailing characters
+                        # TTS JSON can sometimes have leading/trailing characters; we find the main object
                         json_start = content.find("{")
                         json_end = content.rfind("}") + 1
                         if json_start == -1:
@@ -93,7 +107,7 @@ def process_files_in_directory(directory, defaults):
                         json_content = content[json_start:json_end]
                         data = json.loads(json_content)
 
-                    # Keep a deep copy of the original data for comparison
+                    # Keep a deep copy of the original data for comparison later
                     original_data = copy.deepcopy(data)
 
                     # Remove the default values by modifying 'data' in place
@@ -104,7 +118,7 @@ def process_files_in_directory(directory, defaults):
                         with open(file_path, "w", encoding="utf-8") as f:
                             # Use an indent of 2 and no trailing whitespace for clean files
                             json.dump(data, f, indent=2, separators=(",", ": "))
-                            # Add a newline at the end of the file
+                            # Add a newline at the end of the file for POSIX compliance
                             f.write("\n")
                         print("   - ✅ Modified and saved.")
                         modified_files += 1
@@ -122,7 +136,4 @@ def process_files_in_directory(directory, defaults):
 
 
 if __name__ == "__main__":
-    if not os.path.isdir(TARGET_DIRECTORY):
-        print(f"Error: The specified directory '{TARGET_DIRECTORY}' does not exist.")
-    else:
-        process_files_in_directory(TARGET_DIRECTORY, DEFAULT_VALUES)
+    process_files_in_directory(TARGET_DIRECTORY, DEFAULT_VALUES)
