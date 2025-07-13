@@ -39,6 +39,7 @@ DEFAULT_VALUES = {
 }
 
 DETAILED_PRINTING = False
+PRINTING_DEPTH = 2
 
 def remove_default_values(data, defaults):
     """
@@ -85,11 +86,27 @@ def process_files_in_directory(directory, defaults):
         print(f"Error: The specified directory '{abs_directory}' does not exist.")
         return
 
-    print(f"Starting cleanup in directory: '{abs_directory}'\n")
+    print(f"Starting cleanup in directory: '{abs_directory}'")
     total_files = 0
     modified_files = 0
+    last_root = None
 
     for root, _, files in os.walk(directory):
+        # Print a header for the subfolder if within depth limit
+        if root != last_root:
+            relative_path = os.path.relpath(root, abs_directory)
+
+            # Calculate depth: root is 0, direct subfolder is 1, etc.
+            if relative_path == ".":
+                depth = 0
+            else:
+                depth = len(relative_path.split(os.sep))
+
+            # depth > 0 ensures we don't re-print the starting directory.
+            if depth > 0 and depth <= PRINTING_DEPTH:
+                print(f"Processing subfolder: {root}")
+            last_root = root
+
         for filename in files:
             # Handles standard JSON and Tabletop Simulator saved object files
             if filename.endswith((".json")):
