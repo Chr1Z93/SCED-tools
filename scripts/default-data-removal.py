@@ -3,9 +3,12 @@ import json
 import copy
 
 # Set the root directory where your JSON files are located.
-# For example: r'C:\git\SCED\objects'
-# Use '.' to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
+# Examples:
+# r"C:\git\SCED\objects"
+# r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
+# r"C:\git\SCED-downloads\decomposed"
+# Use "." to process the directory where this script is located.
+TARGET_DIRECTORY = r"C:\git\SCED\objects"
 
 # Define the default key-value pairs you want to remove from your JSON files.
 # The script will check these values. If a key's value in your file
@@ -34,6 +37,7 @@ DEFAULT_VALUES = {
     "XmlUI": "",
 }
 
+DETAILED_PRINTING = False
 
 def remove_default_values(data, defaults):
     """
@@ -120,10 +124,14 @@ def process_files_in_directory(directory, defaults):
                             json.dump(data, f, indent=2, separators=(",", ": "))
                             # Add a newline at the end of the file for POSIX compliance
                             f.write("\n")
-                        print("   - ✅ Modified and saved.")
+
                         modified_files += 1
+
+                        if DETAILED_PRINTING:
+                            print("   - ✅ Modified and saved.")
                     else:
-                        print("   - 💤 No changes needed.")
+                        if DETAILED_PRINTING:
+                            print("   - 💤 No changes needed.")
 
                 except json.JSONDecodeError:
                     print(f"   - ⚠️ Error: Could not decode JSON. Skipping.")
