@@ -8,7 +8,7 @@ import copy
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED\objects"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed"
 
 # Define the default key-value pairs you want to remove from your JSON files.
 # The script will check these values. If a key's value in your file
@@ -96,7 +96,8 @@ def process_files_in_directory(directory, defaults):
                 file_path = os.path.join(root, filename)
                 total_files += 1
 
-                print(f"-> Processing: {file_path}")
+                if DETAILED_PRINTING:
+                    print(f"-> Processing: {file_path}")
                 try:
                     # Read the original file to load JSON data
                     # Using utf-8-sig to handle potential BOM (Byte Order Mark)
@@ -135,9 +136,9 @@ def process_files_in_directory(directory, defaults):
                             print("   - 💤 No changes needed.")
 
                 except json.JSONDecodeError:
-                    print(f"   - ⚠️ Error: Could not decode JSON. Skipping.")
+                    print(f"   - ⚠️ Error: Could not decode JSON. ({file_path})")
                 except Exception as e:
-                    print(f"   - ❌ An unexpected error occurred: {e}. Skipping.")
+                    print(f"   - ❌ An unexpected error occurred: {e}. ({file_path})")
 
     print("\n--- ✨ Cleanup Complete! ---")
     print(f"Scanned {total_files} files.")
