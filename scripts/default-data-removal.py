@@ -19,6 +19,7 @@ DEFAULT_VALUES = {
     "ColorDiffuse": {"r": 0.71324, "g": 0.71324, "b": 0.71324},
     "Description": "",
     "DragSelectable": True,
+    "GMNotes": "",
     "Grid": True,
     "GridProjection": False,
     "Hands": True,
