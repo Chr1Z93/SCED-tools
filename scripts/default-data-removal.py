@@ -136,11 +136,22 @@ def process_files_in_directory(directory, defaults):
                     # Remove the default values by modifying 'data' in place
                     remove_default_values(data, defaults)
 
-                    # If the data has changed, write it back to the file
-                    if data != original_data:
+                    # We rewrite the file if data was changed OR if the original file
+                    # contained unicode escape sequences that need to be fixed.
+                    file_needs_rewrite = (data != original_data) or (
+                        "\\u" in json_content
+                    )
+
+                    if file_needs_rewrite:
                         with open(file_path, "w", encoding="utf-8") as f:
                             # Use an indent of 2 and no trailing whitespace for clean files
-                            json.dump(data, f, indent=2, separators=(",", ": "))
+                            json.dump(
+                                data,
+                                f,
+                                indent=2,
+                                separators=(",", ": "),
+                                ensure_ascii=False,
+                            )
                             # Add a newline at the end of the file for POSIX compliance
                             f.write("\n")
 
