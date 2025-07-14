@@ -3,13 +3,17 @@
 import os
 
 # Config
-search_folder = r"C:\git\SCED-downloads\decomposed\campaign\The Circle Undone"
-original_string = '"cycle": "The Circle Undone"'
-replacement_string = '"cycle": "Core"'
-filter_string = '"id": "01'  # must be part of file
+search_folder = r"C:\git\SCED-downloads"
+original_string = '"PlayerCard"'
+replacement_string = '"ScenarioCard"'
+filter_string = "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/"  # must be part of file
 
 # Loop through files
-for root, _, files in os.walk(search_folder):
+# We use 'dirs' instead of '_' to access the list of directories
+for root, dirs, files in os.walk(search_folder):
+    if ".git" in dirs:
+        dirs.remove(".git")
+
     for file in files:
         file_path = os.path.join(root, file)
 
