@@ -1,6 +1,7 @@
 import os
 import json
 import copy
+import math
 
 # Set the root directory where your JSON files are located.
 # Examples:
@@ -44,14 +45,14 @@ PRINTING_DEPTH = 2
 def remove_default_values(data, defaults):
     """
     Recursively removes keys from a dictionary if their values match the defaults.
-    Also handles the special case for "Deck" objects.
+    Also handles special cases for "Deck" objects and float precision.
     This function modifies the 'data' dictionary in place.
 
     Args:
         data (dict): The dictionary to clean (from the JSON file).
         defaults (dict): The dictionary of default values.
     """
-    # Special case: If the object's Name is "Deck", remove the "HideWhenFaceDown"
+    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown"
     # field regardless of its value.
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
@@ -61,12 +62,41 @@ def remove_default_values(data, defaults):
         current_value = data.get(key)
 
         # Case 1: The key is a defined default (e.g., "AltLookAngle").
-        # We compare the entire value directly.
         if key in defaults:
-            # If the current value is identical to the default value, remove the key.
-            # This works for simple types (True, 0, "") and for entire dictionaries
-            # (e.g., {"x": 0, "y": 0, "z": 0}).
-            if current_value == defaults[key]:
+            default_value = defaults[key]
+
+            # Special handling for "ColorDiffuse" to account for float precision.
+            if (
+                key == "ColorDiffuse"
+                and isinstance(current_value, dict)
+                and all(k in current_value for k in ("r", "g", "b"))
+            ):
+                precision = 5  # Precision based on the default value
+                # Using math.isclose is robust for float comparisons
+                if (
+                    math.isclose(
+                        current_value["r"],
+                        default_value["r"],
+                        rel_tol=1e-9,
+                        abs_tol=10**-precision,
+                    )
+                    and math.isclose(
+                        current_value["g"],
+                        default_value["g"],
+                        rel_tol=1e-9,
+                        abs_tol=10**-precision,
+                    )
+                    and math.isclose(
+                        current_value["b"],
+                        default_value["b"],
+                        rel_tol=1e-9,
+                        abs_tol=10**-precision,
+                    )
+                ):
+                    del data[key]
+
+            # Standard comparison for all other keys.
+            elif current_value == default_value:
                 del data[key]
 
         # Case 2: The key is NOT a default, but its value is a dictionary.
