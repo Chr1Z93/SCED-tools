@@ -44,12 +44,18 @@ PRINTING_DEPTH = 2
 def remove_default_values(data, defaults):
     """
     Recursively removes keys from a dictionary if their values match the defaults.
+    Also handles the special case for "Deck" objects.
     This function modifies the 'data' dictionary in place.
 
     Args:
         data (dict): The dictionary to clean (from the JSON file).
         defaults (dict): The dictionary of default values.
     """
+    # Special case: If the object's Name is "Deck", remove the "HideWhenFaceDown"
+    # field regardless of its value.
+    if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
+        del data["HideWhenFaceDown"]
+
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
         current_value = data.get(key)
