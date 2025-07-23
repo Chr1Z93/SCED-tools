@@ -17,6 +17,7 @@ TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed"
 DEFAULT_VALUES = {
     "AltLookAngle": {"x": 0, "y": 0, "z": 0},
     "Autoraise": True,
+    "Bag": {"Order": 0},
     "ColorDiffuse": {"r": 0.71324, "g": 0.71324, "b": 0.71324},
     "Description": "",
     "DragSelectable": True,
@@ -30,7 +31,10 @@ DEFAULT_VALUES = {
     "Locked": False,
     "LuaScript": "",
     "LuaScriptState": "",
+    "MaterialIndex": -1,
     "MeasureMovement": False,
+    "MeshIndex": -1,
+    "Number": 0,
     "SidewaysCard": False,
     "Snap": True,
     "Sticky": True,
@@ -41,6 +45,7 @@ DEFAULT_VALUES = {
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
+
 
 def remove_default_values(data, defaults):
     """
