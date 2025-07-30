@@ -6,7 +6,7 @@ from collections import OrderedDict
 # --- Configuration ---
 SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed")
 
-# Define your mapping of BackURLs to Tag values
+# Mapping of BackURLs to Tag values
 BACK_URL_MAPPING = {
     "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/": "ScenarioCard",
     "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/": "PlayerCard",
@@ -18,17 +18,19 @@ BACK_URL_MAPPING = {
 
 # --- Helper Functions ---
 def update_card_tags(json_file_path, managed_tags):
-    print(f"Processing {json_file_path}...")
-
     with open(json_file_path, "r", encoding="utf-8") as f_json:
         json_data = json.load(f_json)
 
     updated = False
 
+    # Skip decks
+    if json_data["Name"] == "Deck":
+        return
+
     if "CustomDeck" in json_data and isinstance(json_data["CustomDeck"], dict):
         for _, deck_data in json_data["CustomDeck"].items():
             if deck_data["BackURL"] not in BACK_URL_MAPPING:
-                continue
+                return
 
             tag_to_apply = BACK_URL_MAPPING[deck_data["BackURL"]]
 
@@ -68,8 +70,7 @@ def update_card_tags(json_file_path, managed_tags):
 def main():
     print(f"Starting script to update tags based on BackURL in: {SEARCH_FOLDER}")
 
-    # Create a set of all possible tag values that our script might manage
-    # This helps identify which existing tags might need to be removed or replaced.
+    # Create a set of all possible tag values that our script might manage (to remove mismatches)
     managed_tags = set(BACK_URL_MAPPING.values())
 
     for root, _, files in os.walk(SEARCH_FOLDER):
