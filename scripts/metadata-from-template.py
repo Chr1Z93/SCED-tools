@@ -5,30 +5,61 @@ from collections import OrderedDict
 
 # --- Config ---
 search_folder = Path(r"C:\git\SCED-downloads\decomposed")
-template_gmnotes_file = Path(
-    r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot\CoreNightoftheZealot.64a613\1TheGathering.667111\EncounterDeck.f98bcc\FrozeninFear.0f4202.gmnotes"
-)
+template_folder = Path(r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot")
 
-# For updating existing .gmnotes files
-filter_string_gmnotes = '"id": "01164"'  # String to search for within .gmnotes content
+# For updating existing .gmnotes files and discovering template
+filter_string_gmnotes = '"id": "01161"'
 
-# For adding new .gmnotes to .json files
-target_card_name = "Frozen in Fear"  # Exact match for the 'Nickname' field in the JSON
+# target_card_name will be determined automatically from the template's JSON
+target_card_name = None
+template_gmnotes = None
+new_gmnotes_content = None
 
+# --- Discover template .gmnotes file and derive target_card_name ---
+print(f"Searching for template .gmnotes file")
 
-# --- Load content from template file ---
-try:
-    with open(template_gmnotes_file, "r", encoding="utf-8") as f_template:
-        new_gmnotes_content = f_template.read()
-except FileNotFoundError:
-    print(f"Error: Template .gmnotes file not found at {template_gmnotes_file}")
+for root, _, files in os.walk(template_folder):
+    for file in files:
+        if not file.endswith(".gmnotes"):
+            continue
+
+        current_gmnotes_path = Path(root) / file
+        with open(current_gmnotes_path, "r", encoding="utf-8") as f_template_gmnotes:
+            content = f_template_gmnotes.read()
+            if not filter_string_gmnotes in content:
+                continue
+
+            template_gmnotes = current_gmnotes_path
+            new_gmnotes_content = content  # Load the content directly here
+            print(f"Found template .gmnotes file: {template_gmnotes}")
+
+            # Now, derive the corresponding JSON file and get its Nickname
+            template_json_path = current_gmnotes_path.with_suffix(".json")
+            if template_json_path.exists():
+                with open(template_json_path, "r", encoding="utf-8") as f_json_template:
+                    template_json_data = json.load(f_json_template)
+                    target_card_name = template_json_data.get("Nickname")
+                    if target_card_name:
+                        print(f"Detected target_card_name")
+                    else:
+                        print(f"Warning: Template JSON has no 'Nickname' field")
+            else:
+                print(f"Warning: Corresponding JSON file not found")
+            break  # Found the template, exit inner loop
+    if template_gmnotes:
+        break  # Found the template, exit outer loop
+
+if not template_gmnotes or not target_card_name:
+    if not template_gmnotes:
+        print(f"Error: No template .gmnotes file found.")
+    elif not target_card_name:
+        print(f"Error: Could not determine target_card_name.")
     exit()
-except Exception as e:
-    print(f"Error reading template .gmnotes file: {e}")
+
+if not new_gmnotes_content:
     exit()
 
-
-# --- Process files ---
+# --- Process files in the main search_folder ---
 for root, _, files in os.walk(search_folder):
     for file in files:
         file_path = Path(root) / file
@@ -42,25 +73,22 @@ for root, _, files in os.walk(search_folder):
                 if new_gmnotes_content != content:
                     with open(file_path, "w", encoding="utf-8") as f_target:
                         f_target.write(new_gmnotes_content)
-                    print(f"Updated existing .gmnotes: {file_path}")
+                    print(f"Updated .gmnotes: {file_path}")
 
         # Scenario 2: Add .gmnotes to .json files without metadata
         elif file.endswith(".json"):
-
             with open(file_path, "r", encoding="utf-8") as f_json:
                 json_data = json.load(f_json)
 
             # Check if GMNotes or GMNotes_path fields exist
             if "GMNotes" in json_data or "GMNotes_path" in json_data:
-                continue
+                continue  # Skip if metadata already exists
 
             # Check for exact match of the 'Nickname' field
             if json_data.get("Nickname") != target_card_name:
-                continue
+                continue  # Skip if Nickname doesn't match
 
             # Construct the path for the new .gmnotes file
-            # It will be in the same directory as the .json file,
-            # with the same name but a .gmnotes extension
             new_gmnotes_filename = file_path.stem + ".gmnotes"
             new_gmnotes_path_full = file_path.parent / new_gmnotes_filename
 
@@ -69,28 +97,19 @@ for root, _, files in os.walk(search_folder):
                 f_new_gmnotes.write(new_gmnotes_content)
 
             # --- Adjust relative path to start two folders deeper ---
-            # Example: C:\git\SCED-downloads\decomposed\scenario\Challenge Scenario - By the Book\BytheBook.cc7eb3\EncounterDeck.404746\FrozeninFear.0f4202.json
-            # If search_folder is C:\git\SCED-downloads\decomposed
-            # file_path is C:\git\SCED-downloads\decomposed\scenario\Challenge Scenario - By the Book\BytheBook.cc7eb3\EncounterDeck.404746\FrozeninFear.0f4202.json
-            # We want the relative path to be "BytheBook.cc7eb3/EncounterDeck.404746/FrozeninFear.0f4202.gmnotes"
-
             # Get the parts of the path relative to search_folder
             relative_to_search_folder = new_gmnotes_path_full.relative_to(search_folder)
 
-            # Split the path into parts and skip the first two (e.g., 'scenario' and 'Challenge Scenario - By the Book')
-            # We take from the 3rd component onwards (index 2)
+            # Split the path into parts and skip the first two
             path_components = relative_to_search_folder.parts
             if len(path_components) >= 3:
-                # Join the components from the third one onwards
                 adjusted_relative_gmnotes_path = Path(*path_components[2:]).as_posix()
             else:
-                # If there aren't enough components to skip two, use the full relative path
                 adjusted_relative_gmnotes_path = relative_to_search_folder.as_posix()
 
             json_data["GMNotes_path"] = adjusted_relative_gmnotes_path
 
             # --- Sort JSON fields alphabetically before writing ---
-            # Convert to OrderedDict, sort by keys, then dump
             sorted_json_data = OrderedDict(sorted(json_data.items()))
 
             # Save the updated JSON data
