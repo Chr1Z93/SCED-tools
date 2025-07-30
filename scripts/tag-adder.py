@@ -24,7 +24,7 @@ def update_card_tags(json_file_path: Path, managed_tags: set):
     updated = False
 
     # Skip decks
-    if json_data.get("Name") == "Deck":
+    if json_data.get("Name") != "Card" and json_data.get("Name") != "CardCustom":
         return
 
     # Initialize current_tags safely
@@ -48,10 +48,23 @@ def update_card_tags(json_file_path: Path, managed_tags: set):
             else:
                 return
 
+    # Check for GM Notes and their internal 'type' field
+    gmnotes_data = None
+    if json_data.get("GMNotes"):  # Inline GMNotes (encoded JSON string)
+        try:
+            gmnotes_data = json.loads(json_data["GMNotes"])
+        except json.JSONDecodeError:
+            print(f"  - Warning: Could not decode GMNotes in {json_file_path.name}.")
+    elif json_data.get("GMNotes_path"):  # External .gmnotes file
+        absolute_gmnotes_name = json_file_path.stem + ".gmnotes"
+        absolute_gmnotes_path = json_file_path.parent / absolute_gmnotes_name
+        if absolute_gmnotes_path.exists():
+            with open(absolute_gmnotes_path, "r", encoding="utf-8") as f_gmnotes:
+                gmnotes_data = json.load(f_gmnotes)
+
     # Check for metadata
-    if json_data.get("GMNotes_path") or json_data.get("GMNotes"):
-        # Check for 'type' field
-        card_type = ...
+    if gmnotes_data:
+        card_type = gmnotes_data.get("type")
         if card_type == "Asset" or card_type == "Location":
             new_tags_set.add(card_type)
     else:
