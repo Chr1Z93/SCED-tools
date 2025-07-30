@@ -7,10 +7,12 @@ from collections import OrderedDict
 SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed")
 TEMPLATE_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot")
 
+# Set TEMPLATE_FILE to a specific path if you want to process only one template.
+TEMPLATE_FILE = Path(r"")
+
 
 # --- Helper Functions ---
 def get_template_data(template_gmnotes_path: Path) -> dict | None:
-
     current_new_gmnotes_content = None
     current_filter_string_gmnotes = None
     current_target_card_name = None
@@ -29,6 +31,9 @@ def get_template_data(template_gmnotes_path: Path) -> dict | None:
             and template_type != "Treachery"
             and template_type != "Enemy"
         ):
+            print(
+                f"Warning: {template_gmnotes_path} has type '{template_type}'. Skipping."
+            )
             return None
 
         # Extract the 'id' field to form the filter string
@@ -59,8 +64,9 @@ def get_template_data(template_gmnotes_path: Path) -> dict | None:
     }
 
 
-def get_relative_gmnotes_path(absolute_path: Path):
-    # Construct the path for the new .gmnotes file
+def get_relative_gmnotes_path(absolute_path: Path) -> str:
+    # Construct the path for the new .gmnotes file (assuming absolute_path is the .json path)
+    # If absolute_path is already a .gmnotes path, this will just re-create it.
     new_gmnotes_filename = absolute_path.stem + ".gmnotes"
     new_gmnotes_path = absolute_path.parent / new_gmnotes_filename
 
@@ -87,7 +93,7 @@ def process_target_file(file_path: Path, template_data: dict):
             if current_new_gmnotes_content != content:
                 with open(file_path, "w", encoding="utf-8") as f_target:
                     f_target.write(current_new_gmnotes_content)
-                print(f"Updated .gmnotes:   {get_relative_gmnotes_path(file_path)}")
+                print(f"Updated .gmnotes:   {get_relative_gmnotes_path(file_path)}")
 
     # Scenario 2: Add .gmnotes to .json files without metadata
     elif file_path.suffix == ".json":
@@ -96,13 +102,23 @@ def process_target_file(file_path: Path, template_data: dict):
 
         # Check if GMNotes or GMNotes_path fields exist
         if "GMNotes" in json_data or "GMNotes_path" in json_data:
-            return
+            return  # Skip if metadata already exists
 
         # Check for exact match of the 'Nickname' field
         if json_data.get("Nickname") != current_target_card_name:
-            return
+            return  # Skip if Nickname doesn't match
 
+        # Get the relative path for the new .gmnotes file
         relative_gmnotes_path = get_relative_gmnotes_path(file_path)
+
+        # Construct the full path for the new .gmnotes file to write to
+        new_gmnotes_filename = file_path.stem + ".gmnotes"
+        new_gmnotes_path_full = file_path.parent / new_gmnotes_filename
+
+        # Write the template content to the new .gmnotes file
+        with open(new_gmnotes_path_full, "w", encoding="utf-8") as f_new_gmnotes:
+            f_new_gmnotes.write(current_new_gmnotes_content)
+
         json_data["GMNotes_path"] = relative_gmnotes_path
 
         # --- Sort JSON fields alphabetically before writing ---
@@ -117,29 +133,45 @@ def process_target_file(file_path: Path, template_data: dict):
 
 # --- Main Execution ---
 def main():
-    print(f"Starting script. Processing templates from: {TEMPLATE_FOLDER}")
+    templates_to_process = []
 
-    # Outer loop: Iterate through each potential template .gmnotes file
-    for template_root, _, template_files in os.walk(TEMPLATE_FOLDER):
-        for template_file_name in template_files:
-            if not template_file_name.endswith(".gmnotes"):
-                continue
+    # Decide whether to use a single TEMPLATE_FILE or scan TEMPLATE_FOLDER
+    if TEMPLATE_FILE.is_file():  # Check if TEMPLATE_FILE is a valid existing file
+        print(f"Using single template file: {TEMPLATE_FILE}")
+        template_data = get_template_data(TEMPLATE_FILE)
+        if template_data:
+            templates_to_process.append(template_data)
+        else:
+            print(
+                f"Error: Could not prepare data for single template file: {TEMPLATE_FILE}. Exiting."
+            )
+            return  # Exit main if single template fails
+    else:
+        print(f"Scanning template folder: {TEMPLATE_FOLDER}")
+        for template_root, _, template_files in os.walk(TEMPLATE_FOLDER):
+            for template_file_name in template_files:
+                if not template_file_name.endswith(".gmnotes"):
+                    continue
 
-            current_template_gmnotes_path = Path(template_root) / template_file_name
-            template_data = get_template_data(current_template_gmnotes_path)
+                current_template_gmnotes_path = Path(template_root) / template_file_name
+                template_data = get_template_data(current_template_gmnotes_path)
+                if template_data:
+                    templates_to_process.append(template_data)
 
-            if template_data is None:
-                continue  # Skip to the next template if data extraction failed
+    if not templates_to_process:
+        print("No valid templates found to process. Exiting.")
+        return
 
-            print(f"\n--- Processing ---")
-            print(f"Template ID filter: {template_data['filter_string_gmnotes']}")
-            print(f"Template Nickname: {template_data['target_card_name']}")
+    # Process files in SEARCH_FOLDER for each discovered/selected template
+    for template_data in templates_to_process:
+        print(f"\n--- Processing with template ---")
+        print(f"Template ID filter: {template_data['filter_string_gmnotes']}")
+        print(f"Template Nickname: {template_data['target_card_name']}")
 
-            # Inner loop: Process files in the main search_folder using current template's data
-            for root, _, files in os.walk(SEARCH_FOLDER):
-                for file_name in files:
-                    file_path = Path(root) / file_name
-                    process_target_file(file_path, template_data)
+        for root, _, files in os.walk(SEARCH_FOLDER):
+            for file_name in files:
+                file_path = Path(root) / file_name
+                process_target_file(file_path, template_data)
 
     print("\nScript finished.")
 
