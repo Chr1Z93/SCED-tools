@@ -1,5 +1,6 @@
 import os
 import re
+import json
 from collections import defaultdict
 from pathlib import Path
 
@@ -13,29 +14,44 @@ def analyze_ttsl_requires(base_folder):
     # Combined regex for Lua/TTSLua files and JSON files
     # For Lua: require("path")
     # For JSON: "LuaScript": "require(\"path\")" - requires handling of escaped quotes
-    require_pattern_lua = re.compile(r'require\("([^"]+)"\)')
-    require_pattern_json = re.compile(r'"LuaScript": "require\\\"([^\\\"]+)\\\""')
+    require_pattern = re.compile(r'require\("([^"]+)"\)')
 
     if not os.path.isdir(base_folder):
         print(f"Warning: Folder not found, skipping: {base_folder}")
         return counts
 
-    for root, _, files in os.walk(base_folder):
+    for root, dirs, files in os.walk(base_folder):
+        if ".git" in dirs:
+            dirs.remove(".git")
+
+        if ".vscode" in dirs:
+            dirs.remove(".vscode")
+
         for file_name in files:
-            if not file_name.endswith((".lua", ".ttslua")):
+            if not file_name.endswith((".lua", ".ttslua", ".json")):
                 continue
 
             with open(Path(root) / file_name, "r", encoding="utf-8") as f:
                 content = f.read()
 
                 if file_name.endswith((".lua", ".ttslua")):
-                    matches = require_pattern_lua.findall(content)
+                    matches = require_pattern.findall(content)
                     for required_path in matches:
                         counts[required_path] += 1
                 elif file_name.endswith(".json"):
-                    matches = require_pattern_json.findall(content)
-                    for required_path in matches:
-                        counts[required_path] += 1
+                    data = json.loads(content)
+                    if isinstance(data, dict):
+                        lua_script = data.get("LuaScript", "")
+                        match = require_pattern.match(lua_script)
+                        if match:
+                            counts[match.group(1)] += 1
+                    elif isinstance(data, list):
+                        for obj in data:
+                            if isinstance(obj, dict):
+                                lua_script = obj.get("LuaScript", "")
+                                match = require_pattern.match(lua_script)
+                                if match:
+                                    counts[match.group(1)] += 1
     return counts
 
 
@@ -47,10 +63,12 @@ def output_ranking(title, counts):
     print("----------------------")
 
     for file_path, count in ranking:
-        if count > 9:
+        if count > 99:
             print(f"{count} - {file_path}")
-        elif count > 1:
+        elif count > 9:
             print(f" {count} - {file_path}")
+        elif count > 4:
+            print(f"  {count} - {file_path}")
 
 
 if __name__ == "__main__":
@@ -72,7 +90,7 @@ if __name__ == "__main__":
         print("No 'require' statements found in either specified folder.")
         exit()
 
-    print("Info: Ranking excludes files that only occur once.")
+    print("Info: Ranking excludes files that only occur less than 5 times.")
 
     if counts_folder_1:
         output_ranking(f"{PROJECT_FOLDER_1.name} - Requires", counts_folder_1)
