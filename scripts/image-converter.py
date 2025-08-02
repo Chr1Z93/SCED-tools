@@ -1,16 +1,19 @@
-# Converts images to specified resolution, file format and file size JPG
+# Converts images to specified resolution, file format and file size (if JPG)
 
 import sys
 import os
 from PIL import Image
 
+# Configuration
 ROTATE_HORIZONTAL_IMAGES = False
 OUTPUT = (750, 1050)  # width x height
-OUTPUT_LANDSCAPE = (750, 1050)
-OUTPUT_PORTRAIT = (750, 1050)
-MAX_FILE_SIZE_KB = 450
-OUTPUT_FORMAT = "JPEG"
-FILE_ENDING = "jpg"
+MAX_FILE_SIZE_KB = 450  # only used for JPEGs
+OUTPUT_FORMAT = "JPG"  # e.g. PNG or JPEG
+
+# Data
+OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
+OUTPUT_PORTRAIT = OUTPUT
+FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
 
 
 def get_unique_filename(base_path, base_name, extension):
@@ -26,8 +29,8 @@ def get_unique_filename(base_path, base_name, extension):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
-            # Convert RGBA to RGB if necessary
-            if img.mode == "RGBA":
+            # Check the output format and convert if necessary
+            if OUTPUT_FORMAT == "JPEG" and img.mode == "RGBA":
                 img = img.convert("RGB")
 
             if ROTATE_HORIZONTAL_IMAGES:
@@ -48,19 +51,27 @@ def resize_and_compress(image_path):
             # Define output path
             base_path = os.path.dirname(image_path)
             base_name = os.path.splitext(os.path.basename(image_path))[0]
-            output_path = get_unique_filename(base_path, base_name, "." + FILE_ENDING)
+            output_path = get_unique_filename(
+                base_path, base_name, "." + FILE_ENDING[OUTPUT_FORMAT]
+            )
 
-            # Save with compression to ensure file size is under MAX_FILE_SIZE_KB
-            quality = 100
-            while quality > 50:
-                img.save(output_path, format=OUTPUT_FORMAT, quality=quality)
-                file_size_kb = os.path.getsize(output_path) / 1024
-                if file_size_kb <= MAX_FILE_SIZE_KB:
-                    break
-                quality -= 1
+            if OUTPUT_FORMAT.upper() == "PNG":
+                img.save(output_path, format=OUTPUT_FORMAT)
+            else:
+                # Save with compression to ensure file size is under MAX_FILE_SIZE_KB
+                quality = 100
+                while quality > 50:
+                    img.save(output_path, format=OUTPUT_FORMAT, quality=quality)
+                    file_size_kb = os.path.getsize(output_path) / 1024
+                    if file_size_kb <= MAX_FILE_SIZE_KB:
+                        break
+                    quality -= 1
 
-            if file_size_kb > MAX_FILE_SIZE_KB:
+            # Only perform size check for JPEG, as PNG compression is different
+            if OUTPUT_FORMAT == "JPEG" and file_size_kb > MAX_FILE_SIZE_KB:
                 print(f"[WARNING] Unable to compress {image_path}")
+            elif OUTPUT_FORMAT == "PNG":
+                file_size_kb = os.path.getsize(output_path) / 1024
 
             print(f"[SUCCESS] Saved {output_path} ({file_size_kb:.2f} KB)")
 
