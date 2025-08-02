@@ -6,7 +6,7 @@ from PIL import Image
 
 # Configuration
 ROTATE_HORIZONTAL_IMAGES = False
-OUTPUT = (750, 1050)  # width x height
+OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPG"  # e.g. PNG or JPEG
 
@@ -26,6 +26,29 @@ def get_unique_filename(base_path, base_name, extension):
     return output_path
 
 
+def calculate_new_size(original_size, target_size):
+    """Calculates new dimensions to maintain aspect ratio if one dimension is 0."""
+    original_width, original_height = original_size
+    target_width, target_height = target_size
+
+    if target_width == 0 and target_height == 0:
+        # No change needed
+        return original_size
+
+    if target_width == 0:
+        # Calculate width based on target height
+        new_width = int(original_width * target_height / original_height)
+        return (new_width, target_height)
+
+    if target_height == 0:
+        # Calculate height based on target width
+        new_height = int(original_height * target_width / original_width)
+        return (target_width, new_height)
+
+    # If both are specified, just return the target size as-is
+    return target_size
+
+
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
@@ -33,17 +56,22 @@ def resize_and_compress(image_path):
             if OUTPUT_FORMAT == "JPEG" and img.mode == "RGBA":
                 img = img.convert("RGB")
 
+            original_size = img.size
+
             if ROTATE_HORIZONTAL_IMAGES:
-                output_size = OUTPUT
+                # Calculate the final output size based on aspect ratio
+                output_size = calculate_new_size(original_size, OUTPUT)
+
                 # Rotate horizontal images 90° clockwise
-                if img.width > img.height:
+                if original_size[0] > original_size[1]:
                     img = img.rotate(-90, expand=True)
+                    output_size = (output_size[1], output_size[0])
             else:
                 # Determine orientation and set target size accordingly
-                if img.width > img.height:
-                    output_size = OUTPUT_LANDSCAPE
+                if original_size[0] > original_size[1]:
+                    output_size = calculate_new_size(original_size, OUTPUT_LANDSCAPE)
                 else:
-                    output_size = OUTPUT_PORTRAIT
+                    output_size = calculate_new_size(original_size, OUTPUT_PORTRAIT)
 
             # Resize image to exact dimensions (without keeping aspect ratio)
             img = img.resize(output_size, Image.Resampling.LANCZOS)
