@@ -1,10 +1,16 @@
-# Converts images to 750 x 1050 and JPG with max. 450 KB
+# Converts images to specified resolution, file format and file size JPG
 
 import sys
 import os
 from PIL import Image
 
 ROTATE_HORIZONTAL_IMAGES = False
+OUTPUT = (750, 1050)  # width x height
+OUTPUT_LANDSCAPE = (750, 1050)
+OUTPUT_PORTRAIT = (750, 1050)
+MAX_FILE_SIZE_KB = 450
+OUTPUT_FORMAT = "JPEG"
+FILE_ENDING = "jpg"
 
 
 def get_unique_filename(base_path, base_name, extension):
@@ -17,7 +23,7 @@ def get_unique_filename(base_path, base_name, extension):
     return output_path
 
 
-def resize_and_compress(image_path, max_file_size_kb=450):
+def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
             # Convert RGBA to RGB if necessary
@@ -25,16 +31,16 @@ def resize_and_compress(image_path, max_file_size_kb=450):
                 img = img.convert("RGB")
 
             if ROTATE_HORIZONTAL_IMAGES:
-                output_size = (750, 1050)
+                output_size = OUTPUT
                 # Rotate horizontal images 90° clockwise
                 if img.width > img.height:
                     img = img.rotate(-90, expand=True)
             else:
                 # Determine orientation and set target size accordingly
                 if img.width > img.height:
-                    output_size = (1050, 750)  # Landscape
+                    output_size = OUTPUT_LANDSCAPE
                 else:
-                    output_size = (750, 1050)  # Portrait
+                    output_size = OUTPUT_PORTRAIT
 
             # Resize image to exact dimensions (without keeping aspect ratio)
             img = img.resize(output_size, Image.Resampling.LANCZOS)
@@ -42,18 +48,18 @@ def resize_and_compress(image_path, max_file_size_kb=450):
             # Define output path
             base_path = os.path.dirname(image_path)
             base_name = os.path.splitext(os.path.basename(image_path))[0]
-            output_path = get_unique_filename(base_path, base_name, ".jpg")
+            output_path = get_unique_filename(base_path, base_name, "." + FILE_ENDING)
 
-            # Save with compression to ensure file size is under max_file_size_kb
+            # Save with compression to ensure file size is under MAX_FILE_SIZE_KB
             quality = 100
             while quality > 50:
-                img.save(output_path, format="JPEG", quality=quality)
+                img.save(output_path, format=OUTPUT_FORMAT, quality=quality)
                 file_size_kb = os.path.getsize(output_path) / 1024
-                if file_size_kb <= max_file_size_kb:
+                if file_size_kb <= MAX_FILE_SIZE_KB:
                     break
                 quality -= 1
 
-            if file_size_kb > max_file_size_kb:
+            if file_size_kb > MAX_FILE_SIZE_KB:
                 print(f"[WARNING] Unable to compress {image_path}")
 
             print(f"[SUCCESS] Saved {output_path} ({file_size_kb:.2f} KB)")
