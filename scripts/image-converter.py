@@ -51,9 +51,8 @@ def resize_and_compress(image_path):
             # Define output path
             base_path = os.path.dirname(image_path)
             base_name = os.path.splitext(os.path.basename(image_path))[0]
-            output_path = get_unique_filename(
-                base_path, base_name, "." + FILE_ENDING[OUTPUT_FORMAT]
-            )
+            ending = "." + FILE_ENDING[OUTPUT_FORMAT]
+            output_path = get_unique_filename(base_path, base_name, ending)
 
             if OUTPUT_FORMAT.upper() == "PNG":
                 img.save(output_path, format=OUTPUT_FORMAT)
