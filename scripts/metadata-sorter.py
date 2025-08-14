@@ -3,10 +3,10 @@
 import json
 import os
 
-base_dir = r"C:\git\SCED-downloads\decomposed"
+BASE_DIR = r"C:\git\SCED-downloads\decomposed"
 
 # Define the order of keys for top-level structure
-key_order = [
+KEY_ORDER = [
     "id",
     "alternate_ids",
     "type",
@@ -45,7 +45,7 @@ key_order = [
 ]
 
 # Define the order of keys specifically for subtables (nested dictionaries)
-subTableKeyOrder = [
+SUBTABLE_KEY_ORDER = [
     "victory",
     "vengeance",
     "icons",
@@ -77,7 +77,7 @@ def sortJSONKeys(data, is_top_level=True):
 
             if is_top_level:
                 # For the top-level dictionary, apply the specified key order
-                for key in key_order:
+                for key in KEY_ORDER:
                     if key in data:
                         sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
                 # Add any remaining keys in alphabetical order
@@ -85,8 +85,8 @@ def sortJSONKeys(data, is_top_level=True):
                     if key not in sorted_dict:
                         sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
             else:
-                # For subtables, apply subTableKeyOrder first, then alphabetically sort the remaining keys
-                for key in subTableKeyOrder:
+                # For subtables, apply SUBTABLE_KEY_ORDER first, then alphabetically sort the remaining keys
+                for key in SUBTABLE_KEY_ORDER:
                     if key in data:
                         sorted_dict[key] = sortJSONKeys(data[key], is_top_level=False)
                 for key in sorted(data.keys()):
@@ -135,11 +135,11 @@ def process_file(file_path):
 
 
 def main():
-    if not os.path.exists(base_dir):
-        print(f"Error: Directory '{base_dir}' does not exist.")
+    if not os.path.exists(BASE_DIR):
+        print(f"Error: Directory '{BASE_DIR}' does not exist.")
         return
 
-    for path, _, files in os.walk(base_dir):
+    for path, _, files in os.walk(BASE_DIR):
         for file in files:
             file_path = os.path.join(path, file)
             if file.endswith(".gmnotes"):

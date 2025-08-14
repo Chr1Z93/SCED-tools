@@ -8,7 +8,7 @@ from PIL import Image
 ROTATE_HORIZONTAL_IMAGES = False
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
-OUTPUT_FORMAT = "JPG"  # e.g. PNG or JPEG
+OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 
 # Data
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])

@@ -1,3 +1,5 @@
+# Copies metadata from a template file or an entire folder of files to all matching files
+
 import os
 import json
 from pathlib import Path
@@ -121,7 +123,7 @@ def process_target_file(file_path: Path, template_data: dict):
 
         json_data["GMNotes_path"] = relative_gmnotes_path
 
-        # --- Sort JSON fields alphabetically before writing ---
+        # Sort JSON fields alphabetically before writing
         sorted_json_data = OrderedDict(sorted(json_data.items()))
 
         # Save the updated JSON data
@@ -142,9 +144,7 @@ def main():
         if template_data:
             templates_to_process.append(template_data)
         else:
-            print(
-                f"Error: Could not prepare data for single template file: {TEMPLATE_FILE}. Exiting."
-            )
+            print(f"Error: Could not prepare data for single template file. Exiting.")
             return  # Exit main if single template fails
     else:
         print(f"Scanning template folder: {TEMPLATE_FOLDER}")

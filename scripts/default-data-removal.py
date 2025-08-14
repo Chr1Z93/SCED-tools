@@ -1,3 +1,7 @@
+# TTS saves include a lot of data that matches the default value
+# If such a field is missing, TTS will load the default value either way
+# So they can be safely removed to minimize file size and improve performance.
+
 import os
 import json
 import copy
@@ -119,9 +123,7 @@ def remove_default_values(data, defaults):
 
 
 def process_files_in_directory(directory, defaults):
-    """
-    Walks through a directory and processes all .json files.
-    """
+    """Walks through a directory and processes all .json files."""
     abs_directory = os.path.abspath(directory)
     if not os.path.isdir(abs_directory):
         print(f"Error: The specified directory '{abs_directory}' does not exist.")

@@ -1,15 +1,15 @@
-# Filters files with a filter_string and then performs a search & replace on these files
+# Filters files with a FILTER_STRING and then performs a search & replace on these files
 
 import os
 
 # Config
-search_folder = r"C:\git\SCED-downloads"
-original_string = '"PlayerCard"'
-replacement_string = '"ScenarioCard"'
-filter_string = "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/"  # must be part of file
+SEARCH_FOLDER = r"C:\git\SCED-downloads"
+ORIGINAL_STRING = '"PlayerCard"'
+REPLACEMENT_STRING = '"ScenarioCard"'
+FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/"  # must be part of file
 
 # Loop through files
-for root, dirs, files in os.walk(search_folder):
+for root, dirs, files in os.walk(SEARCH_FOLDER):
     if ".git" in dirs:
         dirs.remove(".git")
 
@@ -20,8 +20,8 @@ for root, dirs, files in os.walk(search_folder):
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            if filter_string in content:
-                new_content = content.replace(original_string, replacement_string)
+            if FILTER_STRING in content:
+                new_content = content.replace(ORIGINAL_STRING, REPLACEMENT_STRING)
 
                 if new_content != content:
                     with open(file_path, "w", encoding="utf-8") as f:

@@ -1,19 +1,19 @@
-# Deletes all files that contain the filter_string in the search_folder
+# Deletes all files that contain the FILTER_STRING in the SEARCH_FOLDER
 
 import os
 
 # Config
-search_folder = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577"
-excluded_folder = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577\Grundspiel.3c77b5"
-filter_string = "https://steamusercontent-a.akamaihd.net/ugc/1833529903258581968/029B34E50FFF71F1AA6E4EBE4A451986E0B3A51B/"
+SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577"
+EXCLUDED_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577\Grundspiel.3c77b5"
+FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/1833529903258581968/029B34E50FFF71F1AA6E4EBE4A451986E0B3A51B/"
 
 # Normalize excluded path for comparison
-excluded_folder = os.path.normpath(excluded_folder)
+EXCLUDED_FOLDER = os.path.normpath(EXCLUDED_FOLDER)
 
 # Loop through files
-for root, dirs, files in os.walk(search_folder):
+for root, dirs, files in os.walk(SEARCH_FOLDER):
     # Skip excluded folder
-    if os.path.commonpath([os.path.normpath(root), excluded_folder]) == excluded_folder:
+    if os.path.commonpath([os.path.normpath(root), EXCLUDED_FOLDER]) == EXCLUDED_FOLDER:
         continue
 
     for file in files:
@@ -23,7 +23,7 @@ for root, dirs, files in os.walk(search_folder):
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            if filter_string in content:
+            if FILTER_STRING in content:
                 print(f"Deleting: {file_path}")
                 os.remove(file_path)
 

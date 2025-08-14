@@ -1,3 +1,5 @@
+# Uses the BackURL to enforce correct tags on cards
+
 import os
 import json
 from pathlib import Path

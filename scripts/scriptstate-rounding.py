@@ -3,7 +3,7 @@
 import json
 import os
 
-basedir = r"C:\git\SCED-downloads\decomposed"
+BASE_FOLDER = r"C:\git\SCED-downloads\decomposed"
 
 def format_number(num, decimal_places):
     rounded = round(num, decimal_places)
@@ -50,7 +50,7 @@ def process_file(file_path):
     with open(file_path, "w") as f:
         json.dump(rounded_data, f, indent=2)
 
-for path, subdirs, files in os.walk(basedir):
+for path, subdirs, files in os.walk(BASE_FOLDER):
     for file in files:
         file_path = os.path.join(path, file)
         file_root, file_ext = os.path.splitext(file)
