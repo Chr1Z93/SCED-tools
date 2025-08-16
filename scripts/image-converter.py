@@ -65,7 +65,6 @@ def resize_and_compress(image_path):
                 # Rotate horizontal images 90° clockwise
                 if original_size[0] > original_size[1]:
                     img = img.rotate(-90, expand=True)
-                    output_size = (output_size[1], output_size[0])
             else:
                 # Determine orientation and set target size accordingly
                 if original_size[0] > original_size[1]:
