@@ -38,6 +38,7 @@ KEY_ORDER = [
     "customizations",
     "cycle",
     "extraToken",
+    "starterDeck",
     "signatures",
     "locationFront",
     "locationBack",
