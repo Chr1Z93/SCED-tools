@@ -32,7 +32,7 @@ def load_metadata(file):
         try:
             json.loads(metadata)
         except json.JSONDecodeError as e:
-            print(f"Invalid JSON at row {index + 2}: {e}")
+            print(f"Invalid JSON at row {index + 2}: {e}")  # type: ignore
             continue
 
         metadata_dict[(card_name, card_description)] = metadata

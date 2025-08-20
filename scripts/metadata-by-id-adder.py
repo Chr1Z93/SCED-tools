@@ -1,3 +1,5 @@
+# Updates objects with metadata (requires the name to be the ID)
+
 import json
 import pandas as pd
 import re
@@ -5,6 +7,7 @@ import re
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\TDC_WIP.json"
 METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-tdc.xlsx"
+CYCLE_NAME = "The Drowned City"
 
 
 # Function to clean up trailing commas in JSON strings
@@ -32,7 +35,7 @@ def load_metadata(file):
         try:
             json.loads(metadata)
         except json.JSONDecodeError as e:
-            print(f"Invalid JSON at row {index + 2}: {e}")
+            print(f"Invalid JSON at row {index + 2}: {e}")  # type: ignore
             continue
 
         metadata_dict[id] = {
@@ -77,7 +80,7 @@ def set_metadata(obj, md_value):
     metadata_dict = json.loads(md_value["GMNotes"])
 
     # Force correct cycle data
-    metadata_dict["cycle"] = "The Drowned City"
+    metadata_dict["cycle"] = CYCLE_NAME
 
     # Force correct type data
     metadata_dict["type"] = md_value["Type"]
