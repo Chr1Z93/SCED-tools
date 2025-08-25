@@ -13,7 +13,7 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 
 # Define the default key-value pairs you want to remove from your JSON files.
 # The script will check these values. If a key's value in your file
@@ -29,6 +29,16 @@ DEFAULT_VALUES = {
         "Convex": True,
         "CastShadows": True,
     },
+    # This does NOT match the default value but it is superfluous either way
+    "PhysicsMaterial": {
+        "StaticFriction": 0.6,
+        "DynamicFriction": 0.6,
+        "Bounciness": 0.0,
+        "FrictionCombine": 0,
+        "BounceCombine": 0,
+    },
+    # This does NOT match the default value but it is superfluous either way
+    "Rigidbody": {"Mass": 1.375, "Drag": 5.0, "AngularDrag": 5.0, "UseGravity": True},
     "Description": "",
     "DragSelectable": True,
     "GMNotes": "",
@@ -153,7 +163,13 @@ def process_files_in_directory(directory, defaults):
     modified_files = 0
     last_root = None
 
-    for root, _, files in os.walk(directory):
+    for root, dirs, files in os.walk(directory):
+        if ".git" in dirs:
+            dirs.remove(".git")
+
+        if ".vscode" in dirs:
+            dirs.remove(".vscode")
+
         # Print a header for the subfolder if within depth limit
         if root != last_root:
             relative_path = os.path.relpath(root, abs_directory)
