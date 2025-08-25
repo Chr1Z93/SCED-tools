@@ -13,7 +13,7 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot"
 
 # Define the default key-value pairs you want to remove from your JSON files.
 # The script will check these values. If a key's value in your file
@@ -23,6 +23,12 @@ DEFAULT_VALUES = {
     "Autoraise": True,
     "Bag": {"Order": 0},
     "ColorDiffuse": {"r": 0.71324, "g": 0.71324, "b": 0.71324},
+    "CustomMesh": {
+        "NormalURL": "",
+        "ColliderURL": "",
+        "Convex": True,
+        "CastShadows": True,
+    },
     "Description": "",
     "DragSelectable": True,
     "GMNotes": "",
@@ -102,6 +108,19 @@ def remove_default_values(data, defaults):
                         abs_tol=10**-precision,
                     )
                 ):
+                    del data[key]
+
+            # Special handling for "CustomMesh" to remove nested defaults.
+            elif key == "CustomMesh" and isinstance(current_value, dict):
+                # Iterate over a copy of the nested keys
+                for mesh_key in list(current_value.keys()):
+                    if (
+                        mesh_key in default_value
+                        and current_value[mesh_key] == default_value[mesh_key]
+                    ):
+                        del current_value[mesh_key]
+                # If the CustomMesh dictionary becomes empty after cleanup, remove it.
+                if not current_value:
                     del data[key]
 
             # Standard comparison for all other keys.
