@@ -1,0 +1,71 @@
+{
+  "SaveName": "",
+  "Date": "",
+  "VersionNumber": "",
+  "GameMode": "",
+  "GameType": "",
+  "GameComplexity": "",
+  "Tags": [],
+  "Gravity": 0.5,
+  "PlayArea": 0.5,
+  "Table": "",
+  "Sky": "",
+  "Note": "",
+  "TabStates": {},
+  "LuaScript": "",
+  "LuaScriptState": "",
+  "XmlUI": "",
+  "ObjectStates": [
+    {
+      "GUID": "a41362",
+      "Name": "Custom_PDF",
+      "Transform": {
+        "posX": 12.6559391,
+        "posY": 0.9600002,
+        "posZ": -0.62994343,
+        "rotX": -2.831109E-07,
+        "rotY": 270.000061,
+        "rotZ": -7.387143E-08,
+        "scaleX": 3.0,
+        "scaleY": 1.0,
+        "scaleZ": 3.0
+      },
+      "Nickname": "Spoiler Page",
+      "Description": "",
+      "GMNotes": "",
+      "AltLookAngle": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "ColorDiffuse": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0
+      },
+      "LayoutGroupSortIndex": 0,
+      "Value": 0,
+      "Locked": false,
+      "Grid": true,
+      "Snap": true,
+      "IgnoreFoW": false,
+      "MeasureMovement": false,
+      "DragSelectable": true,
+      "Autoraise": true,
+      "Sticky": true,
+      "Tooltip": true,
+      "GridProjection": false,
+      "HideWhenFaceDown": false,
+      "Hands": false,
+      "CustomPDF": {
+        "PDFUrl": "https://steamusercontent-a.akamaihd.net/ugc/10459137322916243274/D82EB9788261152EF60C7E912027843D1FF43ADD/",
+        "PDFPassword": "",
+        "PDFPage": 0,
+        "PDFPageOffset": 0
+      },
+      "LuaScript": "-- spoiler data definition\r\nlocal spoilerData  = {\r\n  -- page 1\r\n  {\r\n    -- first spoiler\r\n    {\r\n      position = { 0.627, -1.26 }, width = 119, height = 24\r\n    },\r\n    -- second spoiler\r\n    {\r\n      position = { 0.627, -0.535 }, width = 119, height = 76\r\n    }\r\n  },\r\n  -- further pages (not necessary yet)\r\n}\r\n\r\nlocal hiddenColor  = \"#888888\"\r\nlocal visibleColor = \"#88888825\"\r\nlocal zPos         = -22\r\n\r\nfunction onLoad()\r\n  buildXML()\r\nend\r\n\r\nfunction buildXML()\r\n  local page = 1\r\n\r\n  local bookXml = {}\r\n\r\n  for i, spoilerBarData in ipairs(spoilerData[page]) do\r\n    local spoilerBarXML = {\r\n      tag = \"Panel\",\r\n      attributes = {\r\n        onMouseEnter  = \"onMouseEnter\",\r\n        onMouseExit   = \"onMouseExit\",\r\n        id            = \"spoilerBar\" .. i,\r\n        width         = spoilerBarData.width,\r\n        height        = spoilerBarData.height,\r\n        color         = hiddenColor,\r\n        position      = spoilerBarData.position[1] * 100 .. \" \" .. spoilerBarData.position[2] * 100 .. \" \" .. zPos\r\n      }\r\n    }\r\n    table.insert(bookXml, spoilerBarXML)\r\n  end\r\n\r\n  self.UI.setXmlTable(bookXml)\r\nend\r\n\r\n-- make the respective spoiler bar transparent\r\nfunction onMouseEnter(player, _, elementId)\r\n  self.UI.setAttribute(elementId, \"color\", visibleColor)\r\nend\r\n\r\n-- make the respective spoiler bar opact again\r\nfunction onMouseExit(player, _, elementId)\r\n  self.UI.setAttribute(elementId, \"color\", hiddenColor)\r\nend\r\n",
+      "LuaScriptState": "",
+      "XmlUI": ""
+    }
+  ]
+}
