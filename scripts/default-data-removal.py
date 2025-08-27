@@ -181,13 +181,13 @@ def process_files_in_directory(directory, defaults):
                 depth = len(relative_path.split(os.sep))
 
             # depth > 0 ensures we don't re-print the starting directory.
-            if depth > 0 and depth <= PRINTING_DEPTH:
+            if 0 < depth <= PRINTING_DEPTH:
                 print(f"Processing subfolder: {root}")
             last_root = root
 
         for filename in files:
             # Handles standard JSON and Tabletop Simulator saved object files
-            if filename.endswith((".json")):
+            if filename.endswith(".json"):
                 file_path = os.path.join(root, filename)
                 total_files += 1
 
@@ -215,7 +215,7 @@ def process_files_in_directory(directory, defaults):
                     remove_default_values(data, defaults)
 
                     # We rewrite the file if data was changed OR if the original file
-                    # contained unicode escape sequences that need to be fixed.
+                    # contained Unicode escape sequences that need to be fixed.
                     file_needs_rewrite = (data != original_data) or (
                         "\\u" in json_content
                     )
