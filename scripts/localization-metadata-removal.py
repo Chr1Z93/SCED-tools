@@ -11,20 +11,19 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Player Cards\LanguagePackGerman-PlayerCards.GermanI"
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Player Cards\LanguagePackRussian-PlayerCards.RussianI"
+TARGET_DIRECTORY = (
+    r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Player Cards"
+)
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
-KEYS_TO_KEEP = {
-    "id"
-}
+KEYS_TO_KEEP = {"id"}
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
 
+
 def process_files_in_directory(directory, keys_to_keep):
-    """
-    Walks through a directory and processes all .json and .gmnotes files.
-    """
+    """Walks through a directory and processes all .json and .gmnotes files."""
     abs_directory = os.path.abspath(directory)
     if not os.path.isdir(abs_directory):
         print(f"Error: The specified directory '{abs_directory}' does not exist.")

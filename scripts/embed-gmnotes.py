@@ -1,4 +1,4 @@
-# Moves metadata inline if it is short enough
+# Embedds GMNotes if it is short enough
 
 import os
 import json
@@ -77,7 +77,7 @@ def main():
                     json.dump(sorted_json_data, f, indent=2)
                     f.write("\n")  # Add an empty line at the end
 
-                print(f"{json_data["Nickname"]}: Inlined GMNotes")
+                print(f"{json_data["Nickname"]}: Embedded GMNotes")
 
             else:
                 print(f"{json_data["Nickname"]}: GMNotes too long ({note_length})")
