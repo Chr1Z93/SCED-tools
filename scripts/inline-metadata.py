@@ -58,7 +58,8 @@ def main():
                 gmnotes_content = f_gmnotes.read()
 
             # Check the character count of the content
-            if len(gmnotes_content) <= MAX_CHARACTERS:
+            note_length = len(gmnotes_content)
+            if note_length <= MAX_CHARACTERS:
                 # Delete the .gmnotes file
                 os.remove(gmnotes_path)
 
@@ -75,6 +76,11 @@ def main():
                 with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(sorted_json_data, f, indent=2)
                     f.write("\n")  # Add an empty line at the end
+
+                print(f"{json_data["Nickname"]}: Inlined GMNotes")
+
+            else:
+                print(f"{json_data["Nickname"]}: GMNotes too long ({note_length})")
 
     print("\nScript finished.")
 
