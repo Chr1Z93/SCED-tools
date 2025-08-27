@@ -74,7 +74,7 @@ def main():
 
                 # Write the updated JSON back to the file
                 with open(file_path, "w", encoding="utf-8") as f:
-                    json.dump(sorted_json_data, f, indent=2)
+                    json.dump(sorted_json_data, f, indent=2, ensure_ascii=False)
                     f.write("\n")  # Add an empty line at the end
 
                 print(f"{json_data["Nickname"]}: Embedded GMNotes")
