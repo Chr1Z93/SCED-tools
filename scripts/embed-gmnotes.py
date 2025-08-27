@@ -1,4 +1,4 @@
-# Embedds GMNotes if it is short enough
+# Embeds GMNotes if it is short enough
 
 import os
 import json
