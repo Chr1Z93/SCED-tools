@@ -63,8 +63,8 @@ def main():
                 # Delete the .gmnotes file
                 os.remove(gmnotes_path)
 
-                # Add the content as a new "GMNotes" field
-                json_data["GMNotes"] = gmnotes_content
+                # Add the content as a new "GMNotes" field, removing newline from the end of the string
+                json_data["GMNotes"] = gmnotes_content.rstrip('\n')
 
                 # Delete the old "GMNotes_path" field
                 del json_data["GMNotes_path"]
