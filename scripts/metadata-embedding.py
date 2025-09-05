@@ -1,4 +1,4 @@
-# Embeds GMNotes if it is short enough
+# Embeds GMNotes if they are short enough
 
 import os
 import json
@@ -64,7 +64,7 @@ def main():
                 os.remove(gmnotes_path)
 
                 # Add the content as a new "GMNotes" field, removing newline from the end of the string
-                json_data["GMNotes"] = gmnotes_content.rstrip('\n')
+                json_data["GMNotes"] = gmnotes_content.rstrip("\n")
 
                 # Delete the old "GMNotes_path" field
                 del json_data["GMNotes_path"]
