@@ -8,6 +8,25 @@ import requests
 LOCALE = "DE"
 INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DieScharlachrotenSchlssel.72223c.json"
 
+# These cards are either double-sided and we only want the front-data
+# or they are for some other reason weirdly indexed in the data.
+REMOVE_SUFFIX = [
+    "09600",
+    "09606",
+    "09607",
+    "09615",
+    "09653",
+    "09654",
+    "09655",
+    "09674",
+    "09675",
+    "09676",
+    "09679",
+    "09747",
+    "09748",
+    "09749",
+]
+
 # Globals / Derived data
 input_folder_path = os.path.splitext(INPUT_FILE)[0]
 arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/{LOCALE.lower()}"
@@ -27,10 +46,14 @@ def load_translation_data():
         for item in response.json()["data"]["all_card"]:
             key = item["id"]
 
-            # Special handling for cards with type "Key" (double-sided)
-            if item["type_code"] == "key":
+            # Special handling for cards with type "Key" and double-sided cards
+            if item["type_code"] == "key" or item["id"][:-1] in REMOVE_SUFFIX:
                 # Remove the "a"/"b" from the key
                 key = item["id"][:-1]
+
+                # If base version is already in the data, skip this
+                if key in translation_data and item["id"][-1] == "b":
+                    continue
 
             # Metadata correction
             if key == "09569b":
