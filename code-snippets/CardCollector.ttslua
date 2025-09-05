@@ -1,0 +1,25 @@
+function onPlayerPing(_, _, object)
+  if not object then return end
+
+  local data = object.getData()
+
+  local result = {}
+  if data.ContainedObjects then
+    addCards(result, data.ContainedObjects)
+  end
+
+  data.ContainedObjects = result
+  object.destroy()
+  spawnObjectData({ data = data })
+end
+
+function addCards(result, objects)
+  for _, objectData in ipairs(objects) do
+    if objectData.Name == "Card" or objectData.Name == "CardCustom" then
+      table.insert(result, objectData)
+    end
+    if objectData.ContainedObjects then
+      addCards(result, objectData.ContainedObjects)
+    end
+  end
+end
