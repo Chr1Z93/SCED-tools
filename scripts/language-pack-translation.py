@@ -6,7 +6,7 @@ import requests
 
 # CONFIGURATION
 LOCALE = "DE"
-INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DieScharlachrotenSchlssel.72223c.json"
+INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DasVermächtnisvonDunwich.3b7aa9.json"
 
 # These cards are either double-sided and we only want the front-data
 # or they are for some other reason weirdly indexed in the data.
@@ -146,7 +146,7 @@ def update_json_files_in_folder(folder_path):
 
 def remove_characters(text):
     # return re.sub(r"[^a-zA-Z0-9-]", "", text)
-    chars_to_remove = [" ", ".", "(", ")", "?", '"']
+    chars_to_remove = [" ", ".", "(", ")", "?", '"', "“", "”"]
     for char in chars_to_remove:
         text = text.replace(char, "")
     return text
