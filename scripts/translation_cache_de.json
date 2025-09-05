@@ -1,0 +1,954 @@
+{
+  "08501": {
+    "name": "Eis und Tod",
+    "subname": null
+  },
+  "08502": {
+    "name": "Absturzstelle",
+    "subname": null
+  },
+  "08503": {
+    "name": "Vereiste Küste",
+    "subname": null
+  },
+  "08504": {
+    "name": "Trügerischer Pfad",
+    "subname": null
+  },
+  "08505": {
+    "name": "Instabile Eisdecke",
+    "subname": null
+  },
+  "08506": {
+    "name": "Ausgedehnte Schneewehe",
+    "subname": null
+  },
+  "08507": {
+    "name": "Eiswüste",
+    "subname": null
+  },
+  "08508": {
+    "name": "Felsklippen",
+    "subname": null
+  },
+  "08509": {
+    "name": "Schneegräber",
+    "subname": null
+  },
+  "08510": {
+    "name": "Eisbrecher-Landestelle",
+    "subname": null
+  },
+  "08511": {
+    "name": "Eishöhle",
+    "subname": null
+  },
+  "08512": {
+    "name": "Lager an der Eisbarriere",
+    "subname": null
+  },
+  "08513": {
+    "name": "Überreste von Lakes Lager",
+    "subname": null
+  },
+  "08514": {
+    "name": "Kristallhöhle",
+    "subname": null
+  },
+  "08515": {
+    "name": "Umherjagender Widersinn",
+    "subname": null
+  },
+  "08516": {
+    "name": "Apeirophobie",
+    "subname": null
+  },
+  "08517": {
+    "name": "Sicht gleich null",
+    "subname": null
+  },
+  "08518": {
+    "name": "Kalte Begrüßung",
+    "subname": null
+  },
+  "08519": {
+    "name": "Ins ewige Weiß hinein",
+    "subname": null
+  },
+  "08520": {
+    "name": "Die Zeit läuft ab",
+    "subname": null
+  },
+  "08521": {
+    "name": "Auf der Suche nach einem Lager",
+    "subname": null
+  },
+  "08522": {
+    "name": "Der Schrecken von den Sternen",
+    "subname": "Bringer von Eis und Tot"
+  },
+  "08523": {
+    "name": "Es weht ein rauer Wind",
+    "subname": null
+  },
+  "08524": {
+    "name": "Die Kälte der Nacht",
+    "subname": null
+  },
+  "08525": {
+    "name": "Wahnsinn und Tod",
+    "subname": null
+  },
+  "08526": {
+    "name": "Die vermisste Expedition",
+    "subname": null
+  },
+  "08527": {
+    "name": "Sackgasse",
+    "subname": null
+  },
+  "08528": {
+    "name": "Risse im Eis",
+    "subname": null
+  },
+  "08529": {
+    "name": "Traurige Überreste",
+    "subname": null
+  },
+  "08530": {
+    "name": "Verschwundene Fußspuren",
+    "subname": null
+  },
+  "08531": {
+    "name": "Sezierter Entdecker",
+    "subname": null
+  },
+  "08532": {
+    "name": "Das Böse in sich",
+    "subname": null
+  },
+  "08533": {
+    "name": "Blutiger Beweis",
+    "subname": null
+  },
+  "08534": {
+    "name": "Durchscheinender Wahnsinn",
+    "subname": null
+  },
+  "08535": {
+    "name": "Professor William Dyer",
+    "subname": "Professor für Geologie"
+  },
+  "08536": {
+    "name": "Danforth",
+    "subname": "Brillianter Student"
+  },
+  "08537": {
+    "name": "Eliyah Ashevak",
+    "subname": "Hundeführer"
+  },
+  "08538": {
+    "name": "Dr. Mala Sinha",
+    "subname": "Tapfere Ärztin"
+  },
+  "08539": {
+    "name": "Avery Claypool",
+    "subname": "Antarktis-Führer"
+  },
+  "08540": {
+    "name": "James „Cookie” Fredericks",
+    "subname": "Zweifelhafte Wahl"
+  },
+  "08541": {
+    "name": "Dr. Amy Kensler",
+    "subname": "Professor für Biologie"
+  },
+  "08542": {
+    "name": "Roald Ellsworth",
+    "subname": "Unerschrockener Entdecker"
+  },
+  "08543": {
+    "name": "Takada Hiroko",
+    "subname": "Flugzeugmechanikerin"
+  },
+  "08544": {
+    "name": "Manifestationen des Bösen",
+    "subname": null
+  },
+  "08545": {
+    "name": "Eisige Tiefen",
+    "subname": null
+  },
+  "08546": {
+    "name": "Wir werden angegriffen!",
+    "subname": null
+  },
+  "08547": {
+    "name": "Durchsickernder Albtraum",
+    "subname": null
+  },
+  "08548": {
+    "name": "Phantasmagorie",
+    "subname": null
+  },
+  "08549": {
+    "name": "Tödliches Trugbild",
+    "subname": null
+  },
+  "08550": {
+    "name": "Ätherische Verwicklung (V. I)",
+    "subname": null
+  },
+  "08551": {
+    "name": "Ätherische Verwicklung (V. II)",
+    "subname": null
+  },
+  "08552": {
+    "name": "Ätherische Verwicklung (V. III)",
+    "subname": null
+  },
+  "08553": {
+    "name": "Schatten der Vergangenheit (V. I)",
+    "subname": null
+  },
+  "08554": {
+    "name": "Schatten der Vergangenheit (V. II)",
+    "subname": null
+  },
+  "08555": {
+    "name": "Schatten der Vergangenheit (V. III)",
+    "subname": null
+  },
+  "08556": {
+    "name": "Gedankengefängnis",
+    "subname": null
+  },
+  "08557": {
+    "name": "Basislager",
+    "subname": null
+  },
+  "08558": {
+    "name": "Deck der Theodosia",
+    "subname": null
+  },
+  "08559": {
+    "name": "Universitätsflur",
+    "subname": null
+  },
+  "08560": {
+    "name": "Heckenlabyrinth",
+    "subname": null
+  },
+  "08561": {
+    "name": "Verlassene Station",
+    "subname": null
+  },
+  "08562": {
+    "name": "Küstengewässer",
+    "subname": null
+  },
+  "08563": {
+    "name": "Kammer der Alten",
+    "subname": null
+  },
+  "08564": {
+    "name": "Riverview-Theater",
+    "subname": null
+  },
+  "08565": {
+    "name": "Stehende Steine",
+    "subname": null
+  },
+  "08566": {
+    "name": "Flugplatz",
+    "subname": null
+  },
+  "08567": {
+    "name": "Alaskas Wildnis",
+    "subname": null
+  },
+  "08568": {
+    "name": "Chaotisches Studentenzimmer",
+    "subname": null
+  },
+  "08569": {
+    "name": "Dyers Hörsaal",
+    "subname": null
+  },
+  "08570": {
+    "name": "Krankenstation",
+    "subname": null
+  },
+  "08571": {
+    "name": "Dr. Kenslers Büro",
+    "subname": null
+  },
+  "08572": {
+    "name": "Moai-Statuen",
+    "subname": null
+  },
+  "08573": {
+    "name": "Osmanische Front",
+    "subname": null
+  },
+  "08574": {
+    "name": "Der Schwarze Stein",
+    "subname": null
+  },
+  "08575": {
+    "name": "Erinnerung an eine fehlgeschlagene Jagd",
+    "subname": null
+  },
+  "08576": {
+    "name": "Erinnerung an einen verlorenen Patienten",
+    "subname": null
+  },
+  "08577": {
+    "name": "Erinnerung an einen vermissten Vater",
+    "subname": null
+  },
+  "08578": {
+    "name": "Erinnerung an ein verwüstetes Land",
+    "subname": null
+  },
+  "08579": {
+    "name": "Erinnerung an eine bedauerliche Reise",
+    "subname": null
+  },
+  "08580": {
+    "name": "Erinnerung an ein unaussprechliches Übel",
+    "subname": null
+  },
+  "08581": {
+    "name": "Erinnerung an eine schreckliche Entdeckung",
+    "subname": null
+  },
+  "08582": {
+    "name": "Erinnerung an eine fremdartige Übersetzung",
+    "subname": null
+  },
+  "08583": {
+    "name": "Erinnerung an eine unerwiederte Liebe",
+    "subname": null
+  },
+  "08584": {
+    "name": "Entsetzlicher Schatten",
+    "subname": null
+  },
+  "08585": {
+    "name": "Flüchtiger Nebel",
+    "subname": null
+  },
+  "08586": {
+    "name": "Anamnesis",
+    "subname": null
+  },
+  "08587": {
+    "name": "Professor William Dyer",
+    "subname": "Professor für Geologie"
+  },
+  "08588": {
+    "name": "Danforth",
+    "subname": "Brillianter Student"
+  },
+  "08589": {
+    "name": "Eliyah Ashevak",
+    "subname": "Hundeführer"
+  },
+  "08590": {
+    "name": "Dr. Mala Sinha",
+    "subname": "Tapfere Ärztin"
+  },
+  "08591": {
+    "name": "Avery Claypool",
+    "subname": "Antarktis-Führer"
+  },
+  "08592": {
+    "name": "James „Cookie” Fredericks",
+    "subname": "Zweifelhafte Wahl"
+  },
+  "08593": {
+    "name": "Dr. Amy Kensler",
+    "subname": "Professor für Biologie"
+  },
+  "08594": {
+    "name": "Roald Ellsworth",
+    "subname": "Unerschrockener Entdecker"
+  },
+  "08595": {
+    "name": "Takada Hiroko",
+    "subname": "Flugzeugmechanikerin"
+  },
+  "08596": {
+    "name": "Zu den verbotenen Gipfeln",
+    "subname": null
+  },
+  "08597": {
+    "name": "Die Verbotenen Gipfel",
+    "subname": null
+  },
+  "08598": {
+    "name": "Der Schrecken steigt herab",
+    "subname": null
+  },
+  "08599": {
+    "name": "Die Besteigung des Berges",
+    "subname": null
+  },
+  "08600": {
+    "name": "Hohe Schneewehen",
+    "subname": null
+  },
+  "08601": {
+    "name": "Weiße Klippen",
+    "subname": null
+  },
+  "08602": {
+    "name": "Steiler Anstieg",
+    "subname": null
+  },
+  "08603": {
+    "name": "Schmaler Grad",
+    "subname": null
+  },
+  "08604": {
+    "name": "Felsvorsprung",
+    "subname": null
+  },
+  "08605": {
+    "name": "Schneebedeckte Felsen",
+    "subname": null
+  },
+  "08606": {
+    "name": "Windumtoster Pfad",
+    "subname": null
+  },
+  "08607": {
+    "name": "Der Gipfel",
+    "subname": null
+  },
+  "08608": {
+    "name": "Der Schrecken von den Sternen",
+    "subname": "Wächter der Verbotenen Gipfel"
+  },
+  "08609": {
+    "name": "Einschnürendes Altes Wesen",
+    "subname": null
+  },
+  "08610": {
+    "name": "Schneefall",
+    "subname": null
+  },
+  "08611": {
+    "name": "Lawine",
+    "subname": null
+  },
+  "08612": {
+    "name": "Am Rande des Abgrunds",
+    "subname": null
+  },
+  "08613": {
+    "name": "Unterkühlung",
+    "subname": null
+  },
+  "08614": {
+    "name": "Grüner Speckstein",
+    "subname": "Verwunschenes Abbild"
+  },
+  "08615": {
+    "name": "Holzschlitten",
+    "subname": null
+  },
+  "08616": {
+    "name": "Dynamit",
+    "subname": null
+  },
+  "08617": {
+    "name": "Miasmischer Kristall",
+    "subname": "Seltsames Fundstück"
+  },
+  "08618": {
+    "name": "Mineralienproben",
+    "subname": null
+  },
+  "08619": {
+    "name": "Kleines Funkgerät",
+    "subname": null
+  },
+  "08620": {
+    "name": "Ersatzteile",
+    "subname": null
+  },
+  "08621": {
+    "name": "Stadt der Alten Wesens",
+    "subname": null
+  },
+  "08622": {
+    "name": "Lauernde Schrecken",
+    "subname": null
+  },
+  "08623": {
+    "name": "Das Verderben aus der Tiefe",
+    "subname": null
+  },
+  "08624": {
+    "name": "Weitläufige Stadt (v. I)",
+    "subname": null
+  },
+  "08625": {
+    "name": "Weitläufige Stadt (v. II)",
+    "subname": null
+  },
+  "08626": {
+    "name": "Weitläufige Stadt (v. III)",
+    "subname": null
+  },
+  "08627": {
+    "name": "Die Jagd nach dem Unbekannten (v. I)",
+    "subname": null
+  },
+  "08628": {
+    "name": "Die Jagd nach dem Unbekannten (v. II)",
+    "subname": null
+  },
+  "08629": {
+    "name": "Die Jagd nach dem Unbekannten (v. III)",
+    "subname": null
+  },
+  "08630": {
+    "name": "Verborgener Tunnel",
+    "subname": "Eingang in die Tiefe"
+  },
+  "08631": {
+    "name": "Uraltes Planetarium",
+    "subname": null
+  },
+  "08632": {
+    "name": "Steinerne Brücke",
+    "subname": null
+  },
+  "08633": {
+    "name": "Zylindrischer Turm",
+    "subname": null
+  },
+  "08634": {
+    "name": "Labyrinthische Kammer",
+    "subname": null
+  },
+  "08635": {
+    "name": "Kartenraum",
+    "subname": null
+  },
+  "08636": {
+    "name": "Dachloser Wall",
+    "subname": null
+  },
+  "08637": {
+    "name": "Verfallene Straßen",
+    "subname": null
+  },
+  "08638": {
+    "name": "Zyclopische Turmspitzen",
+    "subname": null
+  },
+  "08639": {
+    "name": "Verschütterter Durchgang",
+    "subname": null
+  },
+  "08640": {
+    "name": "Tempel der Alten Wesen",
+    "subname": null
+  },
+  "08641": {
+    "name": "Der Schrecken von den Sternen",
+    "subname": "Fluch der Alten Wesen"
+  },
+  "08642": {
+    "name": "Bedachtes Altes Wesen",
+    "subname": null
+  },
+  "08643": {
+    "name": "Wiedererwachtes Altes Wesen",
+    "subname": null
+  },
+  "08644": {
+    "name": "Dämmernde Wahrheit",
+    "subname": null
+  },
+  "08645": {
+    "name": "Einstürzende Ruinen",
+    "subname": null
+  },
+  "08646": {
+    "name": "Erfrierung",
+    "subname": null
+  },
+  "08647": {
+    "name": "Besessen",
+    "subname": null
+  },
+  "08648": {
+    "name": "Das Herz des Wahnsinns",
+    "subname": null
+  },
+  "08649": {
+    "name": "Das Tor von Y'quaa",
+    "subname": "Primordiales Siegel"
+  },
+  "08650": {
+    "name": "Geothermaler Schlot",
+    "subname": null
+  },
+  "08651": {
+    "name": "Verlassener Tempel",
+    "subname": null
+  },
+  "08652": {
+    "name": "Bibliothek von Kós",
+    "subname": null
+  },
+  "08653": {
+    "name": "Protoplasmischer Tümpel",
+    "subname": null
+  },
+  "08654": {
+    "name": "Halle des sonnenlosen Sees",
+    "subname": null
+  },
+  "08655": {
+    "name": "Subnautische Ausdehnung",
+    "subname": null
+  },
+  "08656": {
+    "name": "Gewölbegang",
+    "subname": null
+  },
+  "08657": {
+    "name": "Urweltlicher Schrecken",
+    "subname": null
+  },
+  "08658": {
+    "name": "Wurzeln der Erde",
+    "subname": null
+  },
+  "08659": {
+    "name": "Das schlagende Herz",
+    "subname": null
+  },
+  "08660": {
+    "name": "Das Miasma lockt",
+    "subname": null
+  },
+  "08661": {
+    "name": "Ruf des Wahnsinns",
+    "subname": null
+  },
+  "08662": {
+    "name": "Im Ruhezustand",
+    "subname": null
+  },
+  "08663": {
+    "name": "Das große Siegel",
+    "subname": null
+  },
+  "08664": {
+    "name": "Gletschergrotte",
+    "subname": null
+  },
+  "08665": {
+    "name": "Aus Stein gehauene Krypta",
+    "subname": null
+  },
+  "08666": {
+    "name": "Altar der Unterstadt",
+    "subname": null
+  },
+  "08667": {
+    "name": "Sekretgefüllte Tunnel",
+    "subname": null
+  },
+  "08668": {
+    "name": "Kalksteinhöhlen",
+    "subname": null
+  },
+  "08669": {
+    "name": "Protopla-Gebilde",
+    "subname": null
+  },
+  "08670": {
+    "name": "Electrostatische Entladung",
+    "subname": null
+  },
+  "08671": {
+    "name": "Das Siegel wird schwächer",
+    "subname": null
+  },
+  "08672": {
+    "name": "Das, was keinen Namen hat",
+    "subname": null
+  },
+  "08673": {
+    "name": "Die Pfeiler zum Einsturz bringen",
+    "subname": null
+  },
+  "08674": {
+    "name": "Nebelpfeiler",
+    "subname": null
+  },
+  "08675": {
+    "name": "Nebelpfeiler",
+    "subname": null
+  },
+  "08676": {
+    "name": "Nebelpfeiler",
+    "subname": null
+  },
+  "08677": {
+    "name": "Nebelpfeiler",
+    "subname": null
+  },
+  "08678": {
+    "name": "Nebelpfeiler",
+    "subname": null
+  },
+  "08679": {
+    "name": "Der Namenlose Wahnsinn",
+    "subname": "Das Wesen im Trugbild"
+  },
+  "08680": {
+    "name": "Befreites Phantasma",
+    "subname": null
+  },
+  "08681": {
+    "name": "Das letzte Trugbild",
+    "subname": null
+  },
+  "08682": {
+    "name": "Titanische Rampe",
+    "subname": null
+  },
+  "08683": {
+    "name": "Titanische Rampe",
+    "subname": null
+  },
+  "08684": {
+    "name": "Titanische Rampe",
+    "subname": null
+  },
+  "08685": {
+    "name": "Titanische Rampe",
+    "subname": null
+  },
+  "08686": {
+    "name": "Verborgener Tunnel",
+    "subname": "Der Weg nach draußen"
+  },
+  "08687": {
+    "name": "Primordiales Böses",
+    "subname": null
+  },
+  "08688": {
+    "name": "Der innere Wahnsinn",
+    "subname": null
+  },
+  "08689": {
+    "name": "Manifestation des Wahnsinns",
+    "subname": null
+  },
+  "08690": {
+    "name": "Gletscher-Phantasma",
+    "subname": null
+  },
+  "08691": {
+    "name": "Vertrauter Nebel",
+    "subname": null
+  },
+  "08692": {
+    "name": "Antarktischer Wind",
+    "subname": null
+  },
+  "08693": {
+    "name": "Weißblendung",
+    "subname": null
+  },
+  "08694": {
+    "name": "Polarer Wirbelsturm",
+    "subname": null
+  },
+  "08695": {
+    "name": "Plünderer der Alten Wesen",
+    "subname": null
+  },
+  "08696": {
+    "name": "Wächter der Alten Wesen",
+    "subname": null
+  },
+  "08697": {
+    "name": "Aufstieg der Alten Wesen",
+    "subname": null
+  },
+  "08698": {
+    "name": "Einbruch im Eis",
+    "subname": null
+  },
+  "08699": {
+    "name": "Über das Eis",
+    "subname": null
+  },
+  "08700": {
+    "name": "Verschollene Forscherin",
+    "subname": null
+  },
+  "08701": {
+    "name": "Rasender Entdecker",
+    "subname": null
+  },
+  "08702": {
+    "name": "Dem Wahnsinn ausgeliefert",
+    "subname": null
+  },
+  "08703": {
+    "name": "Blasphemische Visionen",
+    "subname": null
+  },
+  "08704": {
+    "name": "Unaussprechliches erblicken",
+    "subname": null
+  },
+  "08705": {
+    "name": "Albtraumhafte Dämpfe",
+    "subname": null
+  },
+  "08706": {
+    "name": "Miasmatische Qual",
+    "subname": null
+  },
+  "08707": {
+    "name": "Nebelhaftes Miasma",
+    "subname": null
+  },
+  "08708": {
+    "name": "Riesiger Albino-Pinguin",
+    "subname": null
+  },
+  "08709": {
+    "name": "Wuk! Wuk! Wuk!",
+    "subname": null
+  },
+  "08710": {
+    "name": "Vergessener Shoggothe",
+    "subname": null
+  },
+  "08711": {
+    "name": "Tobender Shoggothe",
+    "subname": null
+  },
+  "08712": {
+    "name": "Polares Trugbild",
+    "subname": null
+  },
+  "08713": {
+    "name": "Dunkles Polarlicht",
+    "subname": null
+  },
+  "08714": {
+    "name": "Professor William Dyer",
+    "subname": "Professor für Geologie"
+  },
+  "08715": {
+    "name": "Danforth",
+    "subname": "Brillianter Student"
+  },
+  "08716": {
+    "name": "Eliyah Ashevak",
+    "subname": "Hundeführer"
+  },
+  "08717": {
+    "name": "Dr. Mala Sinha",
+    "subname": "Tapfere Ärztin"
+  },
+  "08718": {
+    "name": "Avery Claypool",
+    "subname": "Antarktis-Führer"
+  },
+  "08719": {
+    "name": "James „Cookie” Fredericks",
+    "subname": "Zweifelhafte Wahl"
+  },
+  "08720": {
+    "name": "Dr. Amy Kensler",
+    "subname": "Professorin für Biologie"
+  },
+  "08721": {
+    "name": "Roald Ellsworth",
+    "subname": "Unerschrockener Entdecker"
+  },
+  "08722": {
+    "name": "Takada Hiroko",
+    "subname": "Flugzeugmechanikerin"
+  },
+  "08723": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08724": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08725": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08726": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08727": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08728": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08729": {
+    "name": "Tekeli-li",
+    "subname": null
+  },
+  "08730": {
+    "name": "Claypools Pelzmantel",
+    "subname": null
+  },
+  "08731": {
+    "name": "Gesammelte Werke von Poe",
+    "subname": null
+  },
+  "08732": {
+    "name": "Cookies 32er Spezialanfertigung",
+    "subname": null
+  },
+  "08733": {
+    "name": "Dyers Zeichnungen",
+    "subname": null
+  },
+  "08734": {
+    "name": "Ellsworth’ Stiefel",
+    "subname": null
+  },
+  "08735": {
+    "name": "Kenslers Aufzeichnungen",
+    "subname": null
+  },
+  "08736": {
+    "name": "Sinhas Verbandskasten",
+    "subname": null
+  },
+  "08737": {
+    "name": "Takadas Notfallausrüstung",
+    "subname": null
+  },
+  "08738": {
+    "name": "Anyu",
+    "subname": "Treue Gefährtin"
+  }
+}
