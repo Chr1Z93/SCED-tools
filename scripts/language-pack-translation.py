@@ -2,62 +2,42 @@
 
 import json
 import os
-import re
-from urllib.request import urlopen
-from urllib.error import URLError, HTTPError
+import requests
 
 # CONFIGURATION
 LOCALE = "DE"
-INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\AmRandederWelt.f4f47a.json"
+INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DieScharlachrotenSchlssel.72223c.json"
 
-# Derived data
+# Globals / Derived data
 input_folder_path = os.path.splitext(INPUT_FILE)[0]
-script_dir = os.path.dirname(__file__)
-translation_cache_file_name = f"translation_cache_{LOCALE.lower()}.json"
-translation_cache_file = os.path.join(script_dir, translation_cache_file_name)
-arkhamdb_url = f"https://{LOCALE.lower()}.arkhamdb.com/api/public/card/"
+arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/{LOCALE.lower()}"
 renaming_cache = {}
+skipped_files = []
 
 
-def load_translation_cache():
-    global translation_cache
-    if os.path.exists(translation_cache_file):
-        with open(translation_cache_file, "r", encoding="utf-8") as file:
-            translation_cache = json.load(file)
-    else:
-        translation_cache = {}
-
-
-def save_translation_cache():
-    with open(translation_cache_file, "w", encoding="utf-8") as f:
-        json.dump(translation_cache, f, ensure_ascii=False, indent=2)
-
-
-def get_translated_name(adb_id):
-    """Get the translated card name from cache / ArkhamDB"""
-    global translation_cache
-
-    if adb_id in translation_cache:
-        return translation_cache[adb_id]
+def load_translation_data():
+    global translation_data
+    translation_data = {}
 
     try:
-        response = urlopen(arkhamdb_url + adb_id)
-    except HTTPError as e:
-        print(f"{adb_id} - couldn't get translated name (HTTP {e.code})")
-    except URLError as e:
-        print(f"{adb_id} - couldn't get translated name (URL {e.reason})")
+        response = requests.get(arkhambuild_url)
+        response.raise_for_status()
 
-    try:
-        data_json = json.loads(response.read())
+        # Create a lookup map
+        for item in response.json()["data"]["all_card"]:
+            key = item["id"]
+            # Special handling for cards with type "Key" (double-sided)
+            if item["type_code"] == "key":
+                # Remove the "a"/"b" from the key
+                key = item["id"][:-1]
+            translation_data[key] = item
+
+    except requests.exceptions.HTTPError as e:
+        print(f"Couldn't get translation data (HTTP {e.response.status_code})")
+    except requests.exceptions.ConnectionError as e:
+        print(f"Couldn't get translation data (Connection Error: {e})")
     except json.JSONDecodeError:
-        print(f"{adb_id} - couldn't parse JSON")
-
-    try:
-        translation = {"name": data_json["name"], "subname": data_json.get("subname")}
-        translation_cache[adb_id] = translation
-        return translation
-    except KeyError:
-        print(f"{adb_id} - JSON response did not contain 'name' key")
+        print(f"Couldn't parse API response")
 
 
 def update_json_data(file_path):
@@ -72,9 +52,10 @@ def update_json_data(file_path):
             if item in renaming_cache:
                 updated_item = renaming_cache[item]
                 updated_list.append(updated_item)
+            else:
+                updated_list.append(item)
 
         data["ContainedObjects_order"] = updated_list
-        print(f"Updated 'ContainedObjects_order' in: {file_path}")
 
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -99,38 +80,48 @@ def update_json_files_in_folder(folder_path):
             data = json.load(f)
 
         adb_id = data["Nickname"]
-        translation = get_translated_name(adb_id)
-        if translation:
-            data["Nickname"] = translation["name"]
-            data["Description"] = translation.get("subname", "")
-            data["GMNotes"] = '{\n  "id": "' + adb_id + '"\n}'
 
-            with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-                f.write("\n")
+        if adb_id in translation_data:
+            translation = translation_data[adb_id]
+        else:
+            skipped_files.append(adb_id)
+            continue
 
-            # Rename the file after updating its content
-            clean_name = remove_characters(translation["name"])
-            new_filename = clean_name + "." + data["GUID"] + ".json"
-            new_file_path = os.path.join(folder_path, new_filename)
+        data["Nickname"] = translation["name"]
+        data["Description"] = translation.get("subname", "")
+        data["GMNotes"] = '{\n  "id": "' + adb_id + '"\n}'
 
-            # Cache renaming, slicing to remove ".json"
-            renaming_cache[filename[:-5]] = new_filename[:-5]
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
 
-            os.rename(file_path, new_file_path)
-            print(f"Processed file: {filename} -> {new_filename}")
+        # Rename the file after updating its content
+        clean_name = remove_characters(translation["name"])
+        new_filename = clean_name + "." + data["GUID"] + ".json"
+        new_file_path = os.path.join(folder_path, new_filename)
+
+        # Cache renaming, slicing to remove ".json"
+        renaming_cache[filename[:-5]] = new_filename[:-5]
+
+        os.rename(file_path, new_file_path)
+        print(f"Processed file: {filename} -> {new_filename}")
 
 
 def remove_characters(text):
     # return re.sub(r"[^a-zA-Z0-9-]", "", text)
-    return text.replace(" ", "").replace(".", "").replace("(", "").replace(")", "")
+    chars_to_remove = [" ", ".", "(", ")", "?", '"']
+    for char in chars_to_remove:
+        text = text.replace(char, "")
+    return text
 
 
 def main():
-    load_translation_cache()
+    load_translation_data()
     update_json_files_in_folder(input_folder_path)
     update_json_data(INPUT_FILE)
-    save_translation_cache()
+
+    for item in skipped_files:
+        print(f"Skipped {item}")
 
 
 if __name__ == "__main__":
