@@ -146,7 +146,7 @@ def update_json_files_in_folder(folder_path):
 
 def remove_characters(text):
     # return re.sub(r"[^a-zA-Z0-9-]", "", text)
-    chars_to_remove = [" ", ".", "(", ")", "?", '"', "“", "”"]
+    chars_to_remove = [" ", ".", "(", ")", "?", '"', "“", "„", "”"]
     for char in chars_to_remove:
         text = text.replace(char, "")
     return text
