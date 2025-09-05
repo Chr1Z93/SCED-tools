@@ -77,7 +77,7 @@ def update_json_data(file_path):
         print(f"Updated 'ContainedObjects_order' in: {file_path}")
 
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
             f.write("\n")
 
 
@@ -102,11 +102,11 @@ def update_json_files_in_folder(folder_path):
         translation = get_translated_name(adb_id)
         if translation:
             data["Nickname"] = translation["name"]
-            data["Description"] = translation.get("subname")
+            data["Description"] = translation.get("subname", "")
             data["GMNotes"] = '{\n  "id": "' + adb_id + '"\n}'
 
             with open(file_path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
             # Rename the file after updating its content
@@ -115,7 +115,7 @@ def update_json_files_in_folder(folder_path):
             new_file_path = os.path.join(folder_path, new_filename)
 
             # Cache renaming, slicing to remove ".json"
-            renaming_cache[filename[:-6]] = new_filename[:-6]
+            renaming_cache[filename[:-5]] = new_filename[:-5]
 
             os.rename(file_path, new_file_path)
             print(f"Processed file: {filename} -> {new_filename}")
