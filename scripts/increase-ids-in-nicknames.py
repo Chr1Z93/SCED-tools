@@ -1,3 +1,5 @@
+# This adds 500 to the ArkhamDB IDs for a localized project (that stores IDs in Nicknames)
+
 import json
 import os
 
@@ -7,30 +9,32 @@ INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - 
 
 def increase_number(item_string):
     """Increases the first numerical part of a string by 500 and returns the updated string."""
+    # Check for dot
     if "." in item_string:
-        parts = item_string.split(".")
-        number_part = int(parts[0])
-        if int(parts[0][-3]) < 5:
-            mod = 500
-        if parts[0][0] == "0":
-            start = "0"
-        else:
-            start = ""
-
-        if parts[2]:
-            return start + str(number_part + mod) + "." + parts[1] + "." + parts[2]
-        else:
-            return start + str(number_part + mod) + "." + parts[1]
-
+        number_part, *rest = item_string.split(".")
     else:
-        number_part = int(item_string)
-        if int(item_string[-3]) < 5:
-            mod = 500
-        if item_string[0] == "0":
-            start = "0"
-        else:
-            start = ""
-        return start + str(number_part + mod)
+        number_part = item_string
+
+    # Check if increase is needed
+    if int(number_part[-3]) < 5:
+        mod = 500
+    else:
+        mod = 0
+
+    # Handle leading 0
+    if number_part[0] == "0":
+        start = "0"
+    else:
+        start = ""
+
+    # Perform increase
+    updated_number = int(number_part) + mod
+
+    # Maybe add 2nd and 3rd parts back to it
+    if "." in item_string:
+        return f"{start}{updated_number}.{".".join(rest)}"
+    else:
+        return f"{start}{updated_number}"
 
 
 def update_json_data(file_path):
