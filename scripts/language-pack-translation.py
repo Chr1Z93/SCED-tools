@@ -26,10 +26,16 @@ def load_translation_data():
         # Create a lookup map
         for item in response.json()["data"]["all_card"]:
             key = item["id"]
+
             # Special handling for cards with type "Key" (double-sided)
             if item["type_code"] == "key":
                 # Remove the "a"/"b" from the key
                 key = item["id"][:-1]
+
+            # Metadata correction
+            if key == "09569b":
+                continue
+
             translation_data[key] = item
 
     except requests.exceptions.HTTPError as e:
@@ -87,7 +93,15 @@ def update_json_files_in_folder(folder_path):
             skipped_files.append(adb_id)
             continue
 
-        data["Nickname"] = translation["name"]
+        if "name" in translation:
+            translated_name = translation["name"]
+        elif "real_name" in translation:
+            translated_name = translation["real_name"]
+        else:
+            skipped_files.append(adb_id)
+            continue
+
+        data["Nickname"] = translated_name
         data["Description"] = translation.get("subname", "")
         data["GMNotes"] = '{\n  "id": "' + adb_id + '"\n}'
 
@@ -96,7 +110,7 @@ def update_json_files_in_folder(folder_path):
             f.write("\n")
 
         # Rename the file after updating its content
-        clean_name = remove_characters(translation["name"])
+        clean_name = remove_characters(translated_name)
         new_filename = clean_name + "." + data["GUID"] + ".json"
         new_file_path = os.path.join(folder_path, new_filename)
 
