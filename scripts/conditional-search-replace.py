@@ -13,6 +13,9 @@ for root, dirs, files in os.walk(SEARCH_FOLDER):
     if ".git" in dirs:
         dirs.remove(".git")
 
+    if ".vscode" in dirs:
+        dirs.remove(".vscode")
+
     for file in files:
         file_path = os.path.join(root, file)
 
