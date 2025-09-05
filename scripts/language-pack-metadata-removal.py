@@ -1,5 +1,6 @@
 # Removes all metadata except ID from GMNotes. Should be used for localizations - only ID is needed to replace
 # the object, all other attributes are taken from the original object.
+# Tags are also removed.
 
 import os
 import json
@@ -78,6 +79,9 @@ def process_files_in_directory(directory, keys_to_keep):
 
                     # Get GMNotes object from JSON (if it exists) and modify it in-place
                     if filename.endswith(".json"):
+                        if "Tags" in data:
+                            data["Tags"] = []
+
                         if "GMNotes" in data:
                             gmnotes = json.loads(data["GMNotes"])
                             for key in list(gmnotes.keys()):
