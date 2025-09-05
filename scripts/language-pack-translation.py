@@ -1,4 +1,4 @@
-# This adds 500 to the ArkhamDB IDs for a localized project (that stores IDs in Nicknames)
+# This converts a localized project with IDs as names to properly named cards
 
 import json
 import os
