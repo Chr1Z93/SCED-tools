@@ -1,3 +1,5 @@
+# This script rebuilds the ContainedObjects-order key in a JSON file from the accompanying folder.
+
 import json
 from pathlib import Path
 from typing import List, Dict, Any
