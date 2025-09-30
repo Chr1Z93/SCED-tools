@@ -6,7 +6,7 @@ import requests
 
 # CONFIGURATION
 LOCALE = "DE"
-INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DasVermächtnisvonDunwich.3b7aa9.json"
+INPUT_FILE = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DerPfadnachCarcosa.6ad5dd.json"
 
 # These cards are either double-sided and we only want the front-data
 # or they are for some other reason weirdly indexed in the data.
