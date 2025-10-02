@@ -13,7 +13,10 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\downloadable\scenario"
+
+DETAILED_PRINTING = True
+PRINTING_DEPTH = 2
 
 # Define the default key-value pairs you want to remove from your JSON files.
 # The script will check these values. If a key's value in your file
@@ -62,9 +65,6 @@ DEFAULT_VALUES = {
     "Value": 0,
     "XmlUI": "",
 }
-
-DETAILED_PRINTING = False
-PRINTING_DEPTH = 2
 
 
 def remove_default_values(data, defaults):
