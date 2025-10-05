@@ -13,14 +13,13 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\downloadable\scenario"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 
 DETAILED_PRINTING = True
 PRINTING_DEPTH = 2
 
-# Define the default key-value pairs you want to remove from your JSON files.
-# The script will check these values. If a key's value in your file
-# matches the default, the key will be removed.
+# Default key-value pairs to remove from the JSON files.
+# If a key's value in a file matches the default, the key will be removed.
 DEFAULT_VALUES = {
     "AltLookAngle": {"x": 0, "y": 0, "z": 0},
     "Autoraise": True,
@@ -67,20 +66,31 @@ DEFAULT_VALUES = {
 }
 
 
-def remove_default_values(data, defaults):
+def remove_default_values(data, defaults, is_nested=False):
     """
     Recursively removes keys from a dictionary if their values match the defaults.
     Also handles special cases for "Deck" objects and float precision.
+    Removes position keys from any 'Transform' dictionary found
+    when is_nested is True (i.e., not the top-level object in the file).
     This function modifies the 'data' dictionary in place.
 
     Args:
         data (dict): The dictionary to clean (from the JSON file).
         defaults (dict): The dictionary of default values.
+        is_nested (bool, optional): True if the current data is nested
+                                    within the main file object. Defaults to False.
     """
-    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown"
-    # field regardless of its value.
+    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
+
+    # Remove position keys from 'Transform' if this object is nested (not top-level).
+    if is_nested and "Transform" in data:
+        transform_data = data["Transform"]
+        if isinstance(transform_data, dict):
+            for pos_key in ["posX", "posY", "posZ"]:
+                if pos_key in transform_data:
+                    del transform_data[pos_key]
 
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
@@ -137,10 +147,15 @@ def remove_default_values(data, defaults):
             elif current_value == default_value:
                 del data[key]
 
+        # Do not recurse into "AttachedDecals"
+        elif key == "AttachedDecals":
+            continue
+
         # Case 2: The key is NOT a default, but its value is a dictionary.
         # We should step into it to clean its contents recursively.
         elif isinstance(current_value, dict):
-            remove_default_values(current_value, defaults)
+            # Pass True to indicate that the next level is nested.
+            remove_default_values(current_value, defaults, is_nested=True)
 
         # Case 3: The key is NOT a default, but its value is a list.
         # We check for any dictionaries within the list to clean them.
@@ -148,7 +163,28 @@ def remove_default_values(data, defaults):
         elif isinstance(current_value, list):
             for item in current_value:
                 if isinstance(item, dict):
-                    remove_default_values(item, defaults)
+                    # Pass True to indicate that items in the list are nested.
+                    remove_default_values(item, defaults, is_nested=True)
+
+
+def is_tts_object_folder(folder_name):
+    """
+    Checks if a folder name matches the TTS decomposed object pattern:
+    e.g., "ObjectName.GUID" (two parts separated by a dot, no spaces).
+    """
+    # Split the name by the dot.
+    parts = folder_name.split(".")
+
+    # Must have exactly two parts.
+    if len(parts) != 2:
+        return False
+
+    # Check that neither part contains a space, and both are non-empty.
+    # The TTS GUID part is typically a short hexadecimal string.
+    if " " in parts[0] or " " in parts[1] or not parts[0] or not parts[1]:
+        return False
+
+    return True
 
 
 def process_files_in_directory(directory, defaults):
@@ -169,6 +205,9 @@ def process_files_in_directory(directory, defaults):
 
         if ".vscode" in dirs:
             dirs.remove(".vscode")
+
+        # Determine if the *current file* should be treated as nested based on its containing folder.
+        is_folder_nested = is_tts_object_folder(os.path.basename(root))
 
         # Print a header for the subfolder if within depth limit
         if root != last_root:
@@ -212,7 +251,7 @@ def process_files_in_directory(directory, defaults):
                     original_data = copy.deepcopy(data)
 
                     # Remove the default values by modifying 'data' in place
-                    remove_default_values(data, defaults)
+                    remove_default_values(data, defaults, is_nested=is_folder_nested)
 
                     # We rewrite the file if data was changed OR if the original file
                     # contained Unicode escape sequences that need to be fixed.
