@@ -15,8 +15,9 @@ import math
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 
-DETAILED_PRINTING = True
+DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
+ANGLE_MULTIPLE = 5
 
 # Default key-value pairs to remove from the JSON files.
 # If a key's value in a file matches the default, the key will be removed.
@@ -66,11 +67,16 @@ DEFAULT_VALUES = {
 }
 
 
+def round_angle_and_normalize(angle, multiple):
+    """Rounds an angle to the nearest specified multiple and normalizes it to the 0-359 range."""
+    return int((angle + multiple / 2) // multiple) * multiple % 360
+
+
 def remove_default_values(data, defaults, is_nested=False):
     """
     Recursively removes keys from a dictionary if their values match the defaults.
     Also handles special cases for "Deck" objects and float precision.
-    Removes position keys from any 'Transform' dictionary found
+    Removes position/rotation keys from any 'Transform' dictionary found
     when is_nested is True (i.e., not the top-level object in the file).
     This function modifies the 'data' dictionary in place.
 
@@ -78,19 +84,29 @@ def remove_default_values(data, defaults, is_nested=False):
         data (dict): The dictionary to clean (from the JSON file).
         defaults (dict): The dictionary of default values.
         is_nested (bool, optional): True if the current data is nested
-                                    within the main file object. Defaults to False.
     """
     # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
 
-    # Remove position keys from 'Transform' if this object is nested (not top-level).
+    # Remove position/rotation from 'Transform' if this object is nested (not top-level).
     if is_nested and "Transform" in data:
         transform_data = data["Transform"]
         if isinstance(transform_data, dict):
+            # Remove positions
             for pos_key in ["posX", "posY", "posZ"]:
                 if pos_key in transform_data:
                     del transform_data[pos_key]
+
+            # Remove non-0 rotations and round remaining data
+            for rot_key in ["rotX", "rotY", "rotZ"]:
+                if rot_key in transform_data:
+                    angle = round_angle_and_normalize(transform_data[rot_key], ANGLE_MULTIPLE)
+
+                    if angle == 0:
+                        del transform_data[rot_key]
+                    else:
+                        transform_data[rot_key] = angle
 
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
@@ -202,6 +218,9 @@ def process_files_in_directory(directory, defaults):
     for root, dirs, files in os.walk(directory):
         if ".git" in dirs:
             dirs.remove(".git")
+
+        if ".github" in dirs:
+            dirs.remove(".github")
 
         if ".vscode" in dirs:
             dirs.remove(".vscode")
