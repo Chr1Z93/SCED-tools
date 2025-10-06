@@ -121,8 +121,13 @@ def remove_default_values(data, defaults, is_nested=False):
                 key == "ColorDiffuse"
                 and isinstance(current_value, dict)
                 and all(k in current_value for k in ("r", "g", "b"))
+                and "a" not in current_value
             ):
-                precision = 5  # Precision based on the default value
+                if data.get("Name") == "Card" or data.get("Name") == "CardCustom":
+                    precision = 1
+                else:
+                    precision = 5
+
                 # Using math.isclose is robust for float comparisons
                 if (
                     math.isclose(
