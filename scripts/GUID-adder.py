@@ -4,7 +4,7 @@ import json
 import random
 from pathlib import Path
 
-BASE_FOLDER = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Language Pack German - Player Cards.json"
+BASE_FOLDER = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Language Pack Simplified Chinese - Player Cards.json"
 
 
 def generate_unique_hex(existing_guids, length=6):
@@ -16,6 +16,11 @@ def generate_unique_hex(existing_guids, length=6):
 
 def replace_empty_guids(obj, existing_guids):
     if isinstance(obj, dict):
+        if "GUID" not in obj and "Nickname" in obj and "Name" in obj:
+            new_guid = generate_unique_hex(existing_guids)
+            obj["GUID"] = new_guid
+            existing_guids.add(new_guid)
+
         for key, value in obj.items():
             if key == "GUID" and value == "":
                 new_guid = generate_unique_hex(existing_guids)
