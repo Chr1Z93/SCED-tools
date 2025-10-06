@@ -18,6 +18,7 @@ TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
 ANGLE_MULTIPLE = 5
+REMOVE_SCRIPTING = False
 
 # Default key-value pairs to remove from the JSON files.
 # If a key's value in a file matches the default, the key will be removed.
@@ -89,6 +90,12 @@ def remove_default_values(data, defaults, is_nested=False):
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
 
+    # Maybe remove scripting (and XML)
+    if REMOVE_SCRIPTING:
+        for key in ["LuaScript", "LuaScriptState", "XmlUI"]:
+            if key in data:
+                del data[key]
+
     # Remove position/rotation from 'Transform' if this object is nested (not top-level).
     if is_nested and "Transform" in data:
         transform_data = data["Transform"]
@@ -101,7 +108,9 @@ def remove_default_values(data, defaults, is_nested=False):
             # Remove non-0 rotations and round remaining data
             for rot_key in ["rotX", "rotY", "rotZ"]:
                 if rot_key in transform_data:
-                    angle = round_angle_and_normalize(transform_data[rot_key], ANGLE_MULTIPLE)
+                    angle = round_angle_and_normalize(
+                        transform_data[rot_key], ANGLE_MULTIPLE
+                    )
 
                     if angle == 0:
                         del transform_data[rot_key]
