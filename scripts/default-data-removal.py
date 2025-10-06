@@ -92,7 +92,7 @@ def remove_default_values(data, defaults, is_nested=False):
 
     # Maybe remove scripting (and XML)
     if REMOVE_SCRIPTING:
-        for key in ["LuaScript", "LuaScriptState", "XmlUI"]:
+        for key in ["LuaScript", "LuaScriptState", "XmlUI", "CustomUIAssets"]:
             if key in data:
                 del data[key]
 
