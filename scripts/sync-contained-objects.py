@@ -1,11 +1,12 @@
 # This script rebuilds the ContainedObjects-order key in a JSON file from the accompanying folder.
 
 import json
+import os
 from pathlib import Path
 from typing import List, Dict, Any
 
-# Full path to the main JSON file
-JSON_FILE_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Campaigns\LanguagePackGerman-Campaigns.GermanC\DerPfadnachCarcosa.6ad5dd.json"
+# Full path to the main JSON file or folder (only top level is processed)
+FILE_OR_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Korean - Campaigns\LanguagePackKorean-Campaigns.KoreanC"
 
 
 def get_contained_file_names(folder_path: Path) -> List[str]:
@@ -71,5 +72,27 @@ def process_json_contained_objects(json_file_path: str):
 
 
 if __name__ == "__main__":
-    # Execute the main function with the configured path
-    process_json_contained_objects(JSON_FILE_PATH)
+    if os.path.isfile(FILE_OR_FOLDER_PATH):
+        # 1. It's a file path: call the function directly
+        print(f"'{FILE_OR_FOLDER_PATH}' is a file.")
+        process_json_contained_objects(FILE_OR_FOLDER_PATH)
+
+    elif os.path.isdir(FILE_OR_FOLDER_PATH):
+        # 2. It's a folder path: iterate over its files
+        print(f"'{FILE_OR_FOLDER_PATH}' is a folder. Checking contents...")
+        for entry in os.listdir(FILE_OR_FOLDER_PATH):
+            # Construct the full path for the current entry
+            full_path = os.path.join(FILE_OR_FOLDER_PATH, entry)
+
+            # Check if the entry is a file (and you might want to check for .json extension)
+            if os.path.isfile(full_path):
+                # Optional: Filter by extension, e.g., only process .json files
+                if full_path.lower().endswith(".json"):
+                    print(f"Found JSON file: {entry}")
+                    process_json_contained_objects(full_path)
+                else:
+                    print(f"Skipping non-JSON file: {entry}")
+
+    else:
+        # 3. Path does not exist or is a different type (e.g., a broken symlink)
+        print(f"Error: Path '{FILE_OR_FOLDER_PATH}' is invalid.")
