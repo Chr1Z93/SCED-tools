@@ -62,6 +62,7 @@ DEFAULT_VALUES = {
     "SidewaysCard": False,
     "Snap": True,
     "Sticky": True,
+    "Tags":[],
     "Tooltip": True,
     "Value": 0,
     "XmlUI": "",
@@ -92,7 +93,7 @@ def remove_default_values(data, defaults, is_nested=False):
 
     # Maybe remove scripting (and XML)
     if REMOVE_SCRIPTING:
-        for key in ["LuaScript", "LuaScriptState", "XmlUI", "CustomUIAssets"]:
+        for key in ["LuaScript", "LuaScript_path", "LuaScriptState", "LuaScriptState_path", "XmlUI", "CustomUIAssets"]:
             if key in data:
                 del data[key]
 
