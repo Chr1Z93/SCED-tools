@@ -3,9 +3,9 @@
 import os
 
 # Config
-SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577"
+SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Korean - Campaigns\LanguagePackKorean-Campaigns.KoreanC"
 EXCLUDED_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577\Grundspiel.3c77b5"
-FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/1833529903258581968/029B34E50FFF71F1AA6E4EBE4A451986E0B3A51B/"
+FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/2260310642906139495/3EB5D0C93B2343DC206FF062EE00894EBA269B57/"
 
 # Normalize excluded path for comparison
 EXCLUDED_FOLDER = os.path.normpath(EXCLUDED_FOLDER)
