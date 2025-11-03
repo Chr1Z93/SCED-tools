@@ -52,6 +52,9 @@ def load_translation_data():
             if "xp" in item and isinstance(item["xp"], int) and item["xp"] > 0:
                 key += " (" + str(item["xp"]) + ")"
 
+            # Use lower string for lookup
+            key = key.lower()
+
             translation_data[key] = item
 
     except requests.exceptions.HTTPError as e:
@@ -78,13 +81,11 @@ def update_json_files_in_folder(folder_path):
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        if "GMNotes" in data:
-            continue
 
         nickname = data["Nickname"]
 
-        if nickname in translation_data:
-            translation = translation_data[nickname]
+        if nickname.lower() in translation_data:
+            translation = translation_data[nickname.lower()]
         else:
             skipped_files.append(nickname)
             continue
@@ -96,7 +97,7 @@ def update_json_files_in_folder(folder_path):
             continue
 
         # maybe update description with subtitle
-        if "Description" not in data and "subname" in translation:
+        if "subname" in translation:
             data["Description"] = translation["subname"]
         data["GMNotes"] = '{"id": "' + adb_id + '"}'
 
