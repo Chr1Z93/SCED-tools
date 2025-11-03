@@ -81,6 +81,8 @@ def update_json_files_in_folder(folder_path):
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        if "GMNotes" in data:
+            return
 
         nickname = data["Nickname"]
 
