@@ -113,7 +113,8 @@ def remove_default_values(data, defaults, is_nested=False):
                         transform_data[rot_key], ANGLE_MULTIPLE
                     )
 
-                    if angle == 0:
+                    # Also remove values close to the default
+                    if angle <= 10 or angle >= 350:
                         del transform_data[rot_key]
                     else:
                         transform_data[rot_key] = angle
