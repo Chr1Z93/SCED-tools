@@ -91,6 +91,12 @@ def remove_default_values(data, defaults, is_nested=False):
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
 
+    # Special case: Maybe remove secondary URL for Tiles
+    if data.get("Name") == "Custom_Tile" and "CustomImage" in data:
+        image_data = data["CustomImage"]
+        if image_data["ImageURL"] == image_data["ImageSecondaryURL"]:
+            del image_data["ImageSecondaryURL"]
+
     # Maybe remove scripting (and XML)
     if REMOVE_SCRIPTING:
         for key in ["LuaScript", "LuaScript_path", "LuaScriptState", "LuaScriptState_path", "XmlUI", "CustomUIAssets"]:
