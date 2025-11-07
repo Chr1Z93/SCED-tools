@@ -6,31 +6,12 @@ import requests
 
 # CONFIGURATION
 LOCALE = "ES"
+TABOO_SUFFIX = " (Tabú)"
 INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI"
-
-# These cards are either double-sided and we only want the front-data
-# or they are for some other reason weirdly indexed in the data.
-REMOVE_SUFFIX = [
-    "09600",
-    "09606",
-    "09607",
-    "09615",
-    "09653",
-    "09654",
-    "09655",
-    "09674",
-    "09675",
-    "09676",
-    "09679",
-    "09747",
-    "09748",
-    "09749",
-]
 
 # Globals / Derived data
 arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/{LOCALE.lower()}"
 skipped_files = []
-
 
 def load_translation_data():
     global translation_data
@@ -45,7 +26,7 @@ def load_translation_data():
             if "name" in item:
                 key = item["name"]
             else:
-                print(f"{item["code"]} does not have a name.")
+                # print(f"{item["code"]} does not have a name.")
                 continue
 
             # Append (XP)
@@ -72,46 +53,71 @@ def update_json_files_in_folder(folder_path):
         print(f"Error: The directory {folder_path} was not found.")
         return
 
-    for filename in os.listdir(folder_path):
-        if not filename.endswith(".json"):
-            continue
+    for root, dirs, files in os.walk(folder_path):
+        if ".git" in dirs:
+            dirs.remove(".git")
 
-        file_path = os.path.join(folder_path, filename)
+        if ".github" in dirs:
+            dirs.remove(".github")
 
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        if ".vscode" in dirs:
+            dirs.remove(".vscode")
 
-        if "GMNotes" in data:
-            return
+        for filename in files:
+            if not filename.endswith(".json"):
+                continue
 
-        nickname = data["Nickname"]
+            file_path = os.path.join(root, filename)
 
-        if nickname.lower() in translation_data:
-            translation = translation_data[nickname.lower()]
-        else:
-            skipped_files.append(nickname)
-            continue
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
 
-        if "code" in translation:
-            adb_id = translation["code"]
-        else:
-            skipped_files.append(nickname)
-            continue
+            # Only process cards
+            if data["Name"] != "Card" and data["Name"] != "CardCustom":
+                continue
 
-        # maybe update description with subtitle
-        if "subname" in translation:
-            data["Description"] = translation["subname"]
-        data["GMNotes"] = '{"id": "' + adb_id + '"}'
+            # Skip cards with GMNotes
+            if "GMNotes" in data:
+                continue
 
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            f.write("\n")
+            nickname = data["Nickname"]
 
-        print(f"Processed file: {filename} ({adb_id})")
+            # Handle taboo cards
+            is_taboo = False
+            if nickname.endswith(TABOO_SUFFIX):
+                # Remove the suffix by slicing
+                nickname = nickname[:-len(TABOO_SUFFIX)]
+                is_taboo = True
+
+            # Attempt to find the ID based on nickname
+            if nickname.lower() in translation_data:
+                translation = translation_data[nickname.lower()]
+            else:
+                skipped_files.append(nickname)
+                continue
+
+            if "code" in translation:
+                adb_id = translation["code"]
+                if is_taboo:
+                    adb_id += "-t"
+            else:
+                skipped_files.append(nickname)
+                continue
+
+            # Maybe update description with subtitle
+            if "subname" in translation:
+                data["Description"] = translation["subname"]
+            data["GMNotes"] = '{"id": "' + adb_id + '"}'
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+
+            print(f"Processed file: {filename} ({adb_id})")
 
 
 def remove_characters(text):
-    # return re.sub(r"[^a-zA-Z0-9-]", "", text)
+    # Return re.sub(r"[^a-zA-Z0-9-]", "", text)
     chars_to_remove = [" ", ".", "(", ")", "?", '"', "“", "„", "”"]
     for char in chars_to_remove:
         text = text.replace(char, "")
