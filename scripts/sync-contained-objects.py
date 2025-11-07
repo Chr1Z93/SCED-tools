@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 # Full path to the main JSON file or folder (only top level is processed)
-FILE_OR_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Unofficial Return to The Scarlet Keys\UnofficialReturntoTheScarletKeys.300fcd.json"
+FILE_OR_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI\Investigators.1bc600.json"
 
 
 def get_contained_file_names(folder_path: Path) -> List[str]:
@@ -68,7 +68,7 @@ def process_json_contained_objects(json_file_path: str):
         json.dump(data, f, indent=2, ensure_ascii=False, sort_keys=True)
         f.write("\n")
 
-    print(f"\nSuccessfully updated 'ContainedObjects_order' in {json_file_path}")
+    print(f"Successfully updated 'ContainedObjects_order' in {json_file_path}")
 
 
 if __name__ == "__main__":
