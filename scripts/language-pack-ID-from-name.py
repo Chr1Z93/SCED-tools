@@ -10,8 +10,10 @@ TABOO_SUFFIX = " (Tabú)"
 INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI"
 
 # Globals / Derived data
+UPGRADESHEET_URL = "https://steamusercontent-a.akamaihd.net/ugc/1814412497119682452/BD224FCE1980DBA38E5A687FABFD146AA1A30D0E/"
 arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/{LOCALE.lower()}"
 skipped_files = []
+
 
 def load_translation_data():
     global translation_data
@@ -35,6 +37,11 @@ def load_translation_data():
 
             # Use lower string for lookup
             key = key.lower()
+
+            # If this already exists, keep the lower number
+            if key in translation_data:
+                if int(translation_data[key]["code"][:5]) < int(item["code"][:5]):
+                    continue
 
             translation_data[key] = item
 
@@ -82,11 +89,13 @@ def update_json_files_in_folder(folder_path):
 
             nickname = data["Nickname"]
 
-            # Handle taboo cards
             is_taboo = False
+            is_upgradesheet = False
+
+            # Handle taboo cards
             if nickname.endswith(TABOO_SUFFIX):
                 # Remove the suffix by slicing
-                nickname = nickname[:-len(TABOO_SUFFIX)]
+                nickname = nickname[: -len(TABOO_SUFFIX)]
                 is_taboo = True
 
             # Attempt to find the ID based on nickname
@@ -98,14 +107,25 @@ def update_json_files_in_folder(folder_path):
 
             if "code" in translation:
                 adb_id = translation["code"]
+
+                # Append "-t" for taboo cards
                 if is_taboo:
                     adb_id += "-t"
+
+                # Append "-c" for UpgradeSheets
+                if "customization_options" in translation:
+                    # Check for the URL
+                    custom_deck = data["CustomDeck"]
+                    deck_info = list(custom_deck.values())[0]
+                    if deck_info["BackURL"] == UPGRADESHEET_URL:
+                        is_upgradesheet = True
+                        adb_id += "-c"
             else:
                 skipped_files.append(nickname)
                 continue
 
             # Maybe update description with subtitle
-            if "subname" in translation:
+            if "subname" in translation and not is_upgradesheet:
                 data["Description"] = translation["subname"]
             data["GMNotes"] = '{"id": "' + adb_id + '"}'
 
