@@ -18,7 +18,10 @@ function onLoad()
 end
 
 function onPlayerPing(_, _, object)
-  if not object then return end
+  if not object then
+    broadcastToAll("Make sure to ping a container that is unlocked!", "Orange")
+    return
+  end
 
   local data = object.getData()
 
@@ -44,6 +47,7 @@ function addCards(result, objects)
     if objectData.Name == "Card" or objectData.Name == "CardCustom" then
       local key = generateKey(objectData)
       if not cardMap[key] then
+        fixWrongCardID(objectData)
         table.insert(result, objectData)
         cardMap[key] = true
       else
@@ -58,4 +62,10 @@ end
 function generateKey(cardData)
   local customDeckId, customDeckData = next(cardData["CustomDeck"])
   return (cardData["CardID"] % 100) .. "_" .. customDeckData["BackURL"] .. "_" .. customDeckData["FaceURL"]
+end
+
+function fixWrongCardID(cardData)
+  local customDeckId, customDeckData = next(cardData["CustomDeck"])
+  local lastTwoDigits = cardData["CardID"] % 100
+  cardData["CardID"] = tonumber(customDeckId) * 100 + lastTwoDigits
 end
