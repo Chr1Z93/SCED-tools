@@ -1,25 +1,61 @@
+local cardMap = {}
+local duplicateCount = 0
+local removeDuplicates = true
+
+function onLoad()
+  broadcastToAll("Ping a container to remove all non-cards and duplicate cards!", "Blue")
+  printToAll("Use the context menu to reset the 'duplicate card map' or to disable duplicate removing completely.")
+
+  self.addContextMenuItem("Reset card map", function() cardMap = {} end)
+  self.addContextMenuItem("Toggle duplicates", function()
+    removeDuplicates = not removeDuplicates
+    if removeDuplicates then
+      broadcastToAll("Enabled duplicate removing.")
+    else
+      broadcastToAll("Disabled duplicate removing.")
+    end
+  end)
+end
+
 function onPlayerPing(_, _, object)
   if not object then return end
 
   local data = object.getData()
 
+  if not data.ContainedObjects then return end
+
   local result = {}
-  if data.ContainedObjects then
-    addCards(result, data.ContainedObjects)
+  duplicateCount = 0
+  addCards(result, data.ContainedObjects)
+
+  if #result == 0 then
+    broadcastToAll("This would leave the container empty. Aborted!", "Red")
+    return
   end
 
   data.ContainedObjects = result
   object.destroy()
   spawnObjectData({ data = data })
+  broadcastToAll("Removed " .. duplicateCount .. " duplicate cards.")
 end
 
 function addCards(result, objects)
   for _, objectData in ipairs(objects) do
     if objectData.Name == "Card" or objectData.Name == "CardCustom" then
-      table.insert(result, objectData)
-    end
-    if objectData.ContainedObjects then
+      local key = generateKey(objectData)
+      if not cardMap[key] then
+        table.insert(result, objectData)
+        cardMap[key] = true
+      else
+        duplicateCount = duplicateCount + 1
+      end
+    elseif objectData.ContainedObjects then
       addCards(result, objectData.ContainedObjects)
     end
   end
+end
+
+function generateKey(cardData)
+  local customDeckId, customDeckData = next(cardData["CustomDeck"])
+  return (cardData["CardID"] % 100) .. "_" .. customDeckData["BackURL"] .. "_" .. customDeckData["FaceURL"]
 end
