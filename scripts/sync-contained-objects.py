@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 # Full path to the main JSON file or folder (only top level is processed)
-FILE_OR_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI\Investigators.1bc600.json"
+FILE_OR_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Campaigns\LanguagePackSpanish-Campaigns.SpanishC\NotZ.f85885.json"
 
 
 def get_contained_file_names(folder_path: Path) -> List[str]:
