@@ -1,4 +1,5 @@
 # Converts images to specified resolution, file format and file size (if JPG)
+# Updated: Handles CMYK and Removes top row if white
 
 import sys
 import os
@@ -53,8 +54,28 @@ def calculate_new_size(original_size, target_size):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
+            # Check middle pixel of top row and crop if white
+            width, height = img.size
+            if REMOVE_UPPER_EMPTY_LINE and height > 1:  # Ensure image is tall enough to crop
+                middle_pixel = img.getpixel((width // 2, 0))
+
+                is_white = False
+                if img.mode == "CMYK" and middle_pixel == (0, 0, 0, 0):
+                    is_white = True
+                elif img.mode == "RGB" and middle_pixel == (255, 255, 255):
+                    is_white = True
+                elif img.mode == "RGBA" and middle_pixel == (255, 255, 255, 255):
+                    is_white = True
+                elif img.mode == "L" and middle_pixel == 255:  # Grayscale
+                    is_white = True
+
+                if is_white:
+                    # Crop: (left, top, right, bottom)
+                    img = img.crop((0, 1, width, height))
+                    print("[INFO] Removed white top row")
+
             # Check the output format and convert to RGB if saving as JPEG
-            if OUTPUT_FORMAT == "JPEG"and (img.mode == "RGBA" or img.mode == "CMYK"):
+            if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
                 img = img.convert("RGB")
 
             original_size = img.size
