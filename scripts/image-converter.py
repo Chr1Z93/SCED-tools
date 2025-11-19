@@ -10,7 +10,9 @@ ROTATE_HORIZONTAL_IMAGES = False
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
-REMOVE_EMPTY_BORDERS = True
+REMOVE_WHITE_BORDERS = True
+ROW_CROP_THRESHOLD = 215
+
 
 # Data
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
@@ -18,17 +20,19 @@ OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
 
 
-def is_white(img_mode, pixel):
-    if img_mode == "CMYK" and pixel == (0, 0, 0, 0):
-        return True
-    elif img_mode == "RGB" and pixel == (255, 255, 255):
-        return True
-    elif img_mode == "RGBA" and pixel == (255, 255, 255, 255):
-        return True
-    elif img_mode == "L" and pixel == 255:  # Grayscale
-        return True
-    else:
-        return False
+def is_row_white(img, row_y):
+    """Returns True if the entire row at coordinate Y is white."""
+    width = img.width
+
+    # Crop out just that specific 1-pixel high row
+    row_img = img.crop((0, row_y, width, row_y + 1))
+    
+    # Convert to grayscale to make the check simple (0=black, 255=white)
+    grayscale = row_img.convert("L")
+    
+    # getextrema returns (min_pixel_value, max_pixel_value)
+    min_val, _ = grayscale.getextrema()
+    return min_val > ROW_CROP_THRESHOLD
 
 
 def get_unique_filename(base_path, base_name, extension):
@@ -67,25 +71,24 @@ def calculate_new_size(original_size, target_size):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
-            # Check middle pixel of top row & bottom row and crop if white
-            if REMOVE_EMPTY_BORDERS:
-                # Check top row
-                width, height = img.size
-                top_middle_pixel = img.getpixel((width // 2, 0))
+            # Check top row & bottom row and crop if white
+            if REMOVE_WHITE_BORDERS:
+                top_offset = 0
+                bottom_offset = 0
+                
+                # Check Top Row (Row 0)
+                if is_row_white(img, 0):
+                    top_offset = 1
+                    print("[INFO] Removing top white row")
 
-                if is_white(img.mode, top_middle_pixel):
+                # Check Bottom Row (Row height-1)
+                if is_row_white(img, img.height - 1):
+                    bottom_offset = 1
+                    print("[INFO] Removing bottom white row")
+
+                if top_offset > 0 or bottom_offset > 0 :
                     # Crop: (left, top, right, bottom)
-                    img = img.crop((0, 1, width, height))
-                    print("[INFO] Removed white top row")
-
-                # Check bottom row
-                width, height = img.size
-                bottom_middle_pixel = img.getpixel((width // 2, height))
-
-                if is_white(img.mode, bottom_middle_pixel):
-                    # Crop: (left, top, right, bottom)
-                    img = img.crop((0, 0, width, height - 1))
-                    print("[INFO] Removed white bottom row")
+                    img = img.crop((0, top_offset, img.width, img.height - bottom_offset))
 
             # Check the output format and convert to RGB if saving as JPEG
             if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
