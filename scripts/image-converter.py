@@ -52,8 +52,8 @@ def calculate_new_size(original_size, target_size):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
-            # Check the output format and convert if necessary
-            if OUTPUT_FORMAT == "JPEG" and img.mode == "RGBA":
+            # Check the output format and convert to RGB if saving as JPEG
+            if OUTPUT_FORMAT == "JPEG"and (img.mode == "RGBA" or img.mode == "CMYK"):
                 img = img.convert("RGB")
 
             original_size = img.size
