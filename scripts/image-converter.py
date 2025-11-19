@@ -10,12 +10,25 @@ ROTATE_HORIZONTAL_IMAGES = False
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
-REMOVE_UPPER_EMPTY_LINE = True
+REMOVE_EMPTY_BORDERS = True
 
 # Data
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
+
+
+def is_white(img_mode, pixel):
+    if img_mode == "CMYK" and pixel == (0, 0, 0, 0):
+        return True
+    elif img_mode == "RGB" and pixel == (255, 255, 255):
+        return True
+    elif img_mode == "RGBA" and pixel == (255, 255, 255, 255):
+        return True
+    elif img_mode == "L" and pixel == 255:  # Grayscale
+        return True
+    else:
+        return False
 
 
 def get_unique_filename(base_path, base_name, extension):
@@ -54,25 +67,25 @@ def calculate_new_size(original_size, target_size):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
-            # Check middle pixel of top row and crop if white
-            width, height = img.size
-            if REMOVE_UPPER_EMPTY_LINE and height > 1:  # Ensure image is tall enough to crop
-                middle_pixel = img.getpixel((width // 2, 0))
+            # Check middle pixel of top row & bottom row and crop if white
+            if REMOVE_EMPTY_BORDERS:
+                # Check top row
+                width, height = img.size
+                top_middle_pixel = img.getpixel((width // 2, 0))
 
-                is_white = False
-                if img.mode == "CMYK" and middle_pixel == (0, 0, 0, 0):
-                    is_white = True
-                elif img.mode == "RGB" and middle_pixel == (255, 255, 255):
-                    is_white = True
-                elif img.mode == "RGBA" and middle_pixel == (255, 255, 255, 255):
-                    is_white = True
-                elif img.mode == "L" and middle_pixel == 255:  # Grayscale
-                    is_white = True
-
-                if is_white:
+                if is_white(img.mode, top_middle_pixel):
                     # Crop: (left, top, right, bottom)
                     img = img.crop((0, 1, width, height))
                     print("[INFO] Removed white top row")
+
+                # Check bottom row
+                width, height = img.size
+                bottom_middle_pixel = img.getpixel((width // 2, height))
+
+                if is_white(img.mode, bottom_middle_pixel):
+                    # Crop: (left, top, right, bottom)
+                    img = img.crop((0, 0, width, height - 1))
+                    print("[INFO] Removed white bottom row")
 
             # Check the output format and convert to RGB if saving as JPEG
             if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
