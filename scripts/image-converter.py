@@ -1,9 +1,14 @@
 # Converts images to specified resolution, file format and file size (if JPG)
-# Updated: Handles CMYK and Removes top row if white
+# Handles CMYK and removes top row if white
+# Attempts to extract card number for file name 
 
-import sys
+import cv2
 import os
+import numpy as np
 from PIL import Image
+import pytesseract
+import re
+import sys
 
 # Configuration
 ROTATE_HORIZONTAL_IMAGES = False
@@ -13,12 +18,15 @@ OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 ROW_CROP_THRESHOLD = 215
 
+# TESSERACT PATH (Windows Only)
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Data
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
-
+CARD_NUMBER_AREA = {"h": 0.95, "w": 0.83}
+CARD_NUMBER_PREFIX = 12 # set to 0 to skip number extracting
 
 def is_row_white(img, row_y):
     """Returns True if the entire row at coordinate Y is white."""
@@ -66,6 +74,67 @@ def calculate_new_size(original_size, target_size):
 
     # If both are specified, just return the target size as-is
     return target_size
+
+def extract_card_number(image_path, base_name):
+    pil_img = Image.open(image_path).convert("RGB")
+    img = np.array(pil_img)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    h, w, _ = img.shape
+
+    # Define the coordinates
+    y_start = int(h * CARD_NUMBER_AREA["h"])
+    x_start = int(w * CARD_NUMBER_AREA["w"])
+
+    # Debug visualization
+    debug_img = img.copy()
+    cv2.rectangle(debug_img, (x_start, y_start), (w, h), (0, 255, 0), 2)
+
+    # Crop to ROI (Region of Interest)
+    img = img[y_start:h, x_start:w]
+
+    # Grayscale
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # SUPER Upscale (4x) - Tiny numbers need big pixels
+    img = cv2.resize(img, None, fx=4, fy=4, interpolation=cv2.INTER_CUBIC)
+
+    # Thresholding (Standard Binary often works better for high contrast text than Adaptive)
+    _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    # Dilation (makes the thin white text "fatter" for OCR)
+    img = cv2.dilate(img, np.ones((3, 3), np.uint8), iterations=1)
+
+    # Invert (Black text on white)
+    img = cv2.bitwise_not(img)
+
+    # OCR
+    config = "--psm 7 -c tessedit_char_whitelist=0123456789abcdefgh"
+    text = pytesseract.image_to_string(img, config=config)
+    cleaned_text = re.sub(r'[^a-z0-9]', '', text.lower())
+    match = re.search(r'(\d{1,3})([a-h]?)', cleaned_text)
+
+    if match:
+        # Separate the captured groups
+        number_part = match.group(1) 
+        suffix_part = match.group(2)
+        
+        # Pad the number part to 3 digits and combine
+        extracted_number = f"{CARD_NUMBER_PREFIX}{int(number_part):03d}{suffix_part}"
+    else:
+        extracted_number = cleaned_text # Fallback to the fully cleaned text
+
+    if len(extracted_number) > 0:
+        return extracted_number
+
+    # Save ROI visualization
+    roi_debug_filename = f"{base_name}_debug_roi.jpg"
+    cv2.imwrite(roi_debug_filename, debug_img)
+    print(f"Debug: No number detected. ROI image saved as '{roi_debug_filename}'")
+
+    # Save processed image
+    processed_debug_filename = f"{base_name}_debug_processed.jpg"
+    cv2.imwrite(processed_debug_filename, img)
+    print(f"Debug: Processed text image saved as '{processed_debug_filename}'")
 
 
 def resize_and_compress(image_path):
@@ -116,6 +185,14 @@ def resize_and_compress(image_path):
             # Define output path
             base_path = os.path.dirname(image_path)
             base_name = os.path.splitext(os.path.basename(image_path))[0]
+
+            # Attempt to extract card number
+            if CARD_NUMBER_PREFIX != 0:
+                card_number = extract_card_number(image_path, base_name)
+                if card_number:
+                    base_name = card_number
+
+            # Construct final output path
             ending = "." + FILE_ENDING[OUTPUT_FORMAT]
             output_path = get_unique_filename(base_path, base_name, ending)
 
