@@ -1,6 +1,6 @@
 # Converts images to specified resolution, file format and file size (if JPG)
 # Handles CMYK and removes top row if white
-# Attempts to extract card number for file name 
+# Attempts to extract card number for file name
 
 import cv2
 import os
@@ -25,8 +25,9 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
-CARD_NUMBER_AREA = {"h": 0.95, "w": 0.83}
-CARD_NUMBER_PREFIX = 12 # set to 0 to skip number extracting
+CARD_NUMBER_AREA = {"h_start": 0.96, "h_end": 0.99, "w_start": 0.84, "w_end": 0.96}
+CARD_NUMBER_PREFIX = 12  # set to 0 to skip number extracting
+
 
 def is_row_white(img, row_y):
     """Returns True if the entire row at coordinate Y is white."""
@@ -34,10 +35,10 @@ def is_row_white(img, row_y):
 
     # Crop out just that specific 1-pixel high row
     row_img = img.crop((0, row_y, width, row_y + 1))
-    
+
     # Convert to grayscale to make the check simple (0=black, 255=white)
     grayscale = row_img.convert("L")
-    
+
     # getextrema returns (min_pixel_value, max_pixel_value)
     min_val, _ = grayscale.getextrema()
     return min_val > ROW_CROP_THRESHOLD
@@ -75,6 +76,7 @@ def calculate_new_size(original_size, target_size):
     # If both are specified, just return the target size as-is
     return target_size
 
+
 def extract_card_number(image_path, base_name):
     pil_img = Image.open(image_path).convert("RGB")
     img = np.array(pil_img)
@@ -82,15 +84,17 @@ def extract_card_number(image_path, base_name):
     h, w, _ = img.shape
 
     # Define the coordinates
-    y_start = int(h * CARD_NUMBER_AREA["h"])
-    x_start = int(w * CARD_NUMBER_AREA["w"])
+    y_start = int(h * CARD_NUMBER_AREA["h_start"])
+    y_end = int(h * CARD_NUMBER_AREA["h_end"])
+    x_start = int(w * CARD_NUMBER_AREA["w_start"])
+    x_end = int(w * CARD_NUMBER_AREA["w_end"])
 
     # Debug visualization
     debug_img = img.copy()
-    cv2.rectangle(debug_img, (x_start, y_start), (w, h), (0, 255, 0), 2)
+    cv2.rectangle(debug_img, (x_start, y_start), (x_end, y_end), (0, 255, 0), 2)
 
     # Crop to ROI (Region of Interest)
-    img = img[y_start:h, x_start:w]
+    img = img[y_start:y_end, x_start:x_end]
 
     # Grayscale
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -110,18 +114,18 @@ def extract_card_number(image_path, base_name):
     # OCR
     config = "--psm 7 -c tessedit_char_whitelist=0123456789abcdefgh"
     text = pytesseract.image_to_string(img, config=config)
-    cleaned_text = re.sub(r'[^a-z0-9]', '', text.lower())
-    match = re.search(r'(\d{1,3})([a-h]?)', cleaned_text)
+    cleaned_text = re.sub(r"[^a-z0-9]", "", text.lower())
+    match = re.search(r"(\d{1,3})([a-h]?)", cleaned_text)
 
     if match:
         # Separate the captured groups
-        number_part = match.group(1) 
+        number_part = match.group(1)
         suffix_part = match.group(2)
-        
+
         # Pad the number part to 3 digits and combine
         extracted_number = f"{CARD_NUMBER_PREFIX}{int(number_part):03d}{suffix_part}"
     else:
-        extracted_number = cleaned_text # Fallback to the fully cleaned text
+        extracted_number = cleaned_text  # Fallback to the fully cleaned text
 
     if len(extracted_number) > 0:
         return extracted_number
@@ -144,7 +148,7 @@ def resize_and_compress(image_path):
             if REMOVE_WHITE_BORDERS:
                 top_offset = 0
                 bottom_offset = 0
-                
+
                 # Check Top Row (Row 0)
                 if is_row_white(img, 0):
                     top_offset = 1
@@ -155,9 +159,11 @@ def resize_and_compress(image_path):
                     bottom_offset = 1
                     print("[INFO] Removing bottom white row")
 
-                if top_offset > 0 or bottom_offset > 0 :
+                if top_offset > 0 or bottom_offset > 0:
                     # Crop: (left, top, right, bottom)
-                    img = img.crop((0, top_offset, img.width, img.height - bottom_offset))
+                    img = img.crop(
+                        (0, top_offset, img.width, img.height - bottom_offset)
+                    )
 
             # Check the output format and convert to RGB if saving as JPEG
             if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
