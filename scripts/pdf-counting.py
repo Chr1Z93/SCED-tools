@@ -31,5 +31,5 @@ def count_pdf_pages_in_folder(folder_path):
     print(f"Total pages across all PDF files: {total_pages}")
 
 # --- Example Usage ---
-folder_path = r'C:\Users\pulsc\OneDrive\Dateien\Brettspiele\Arkham Horror\2025-11-28 mbprint Order'
+folder_path = r'C:\Users\pulsc\OneDrive\Dateien\Brettspiele\Arkham Horror\2025-11-30 mbprint Order'
 count_pdf_pages_in_folder(folder_path)
