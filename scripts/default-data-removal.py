@@ -13,7 +13,7 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Campaigns"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
@@ -94,7 +94,7 @@ def remove_default_values(data, defaults, is_nested=False):
     # Special case: Maybe remove secondary URL for Tiles
     if data.get("Name") == "Custom_Tile" and "CustomImage" in data:
         image_data = data["CustomImage"]
-        if image_data["ImageURL"] == image_data["ImageSecondaryURL"]:
+        if "ImageSecondaryURL" in image_data and image_data["ImageURL"] == image_data["ImageSecondaryURL"]:
             del image_data["ImageSecondaryURL"]
 
     # Maybe remove scripting (and XML)
