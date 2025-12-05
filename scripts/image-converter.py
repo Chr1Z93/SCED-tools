@@ -11,12 +11,14 @@ import re
 import sys
 
 # Configuration
-ROTATE_HORIZONTAL_IMAGES = False
+ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 ROW_CROP_THRESHOLD = 215
+OVERRIDE = False
+CARD_NUMBER_PREFIX = 12  # set to 0 to skip number extracting
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -26,7 +28,6 @@ OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
 CARD_NUMBER_AREA = {"h_start": 0.96, "h_end": 0.99, "w_start": 0.84, "w_end": 0.96}
-CARD_NUMBER_PREFIX = 12  # set to 0 to skip number extracting
 
 
 def is_row_white(img, row_y):
@@ -193,14 +194,17 @@ def resize_and_compress(image_path):
             base_name = os.path.splitext(os.path.basename(image_path))[0]
 
             # Attempt to extract card number
-            if CARD_NUMBER_PREFIX != 0:
+            if OVERRIDE == False and CARD_NUMBER_PREFIX != 0:
                 card_number = extract_card_number(image_path, base_name)
                 if card_number:
                     base_name = card_number
 
             # Construct final output path
             ending = "." + FILE_ENDING[OUTPUT_FORMAT]
-            output_path = get_unique_filename(base_path, base_name, ending)
+            if OVERRIDE:
+                output_path = base_path + "\\" + base_name + ending
+            else:
+                output_path = get_unique_filename(base_path, base_name, ending)
 
             if OUTPUT_FORMAT.upper() == "PNG":
                 img.save(output_path, format=OUTPUT_FORMAT)
