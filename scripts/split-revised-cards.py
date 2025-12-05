@@ -22,11 +22,15 @@ def split_revised_cards(base_folder):
             if "alternate_ids" not in metadata:
                 continue
             
-            # get the alt_id
             alt_id = None
-
             for id in metadata["alternate_ids"]:
-                num = int(id)
+                num = 0
+                if "a" in id or "b" in id or "c" in id or "d" in id:
+                    num = int(id[:-1])
+                elif "-" in id:
+                    num = int(id.split("-")[0])
+                else:
+                    num = int(id)
 
                 # make sure this is from the revised core set
                 if num > 1500 and num < 2000:
@@ -37,17 +41,14 @@ def split_revised_cards(base_folder):
                 continue
 
             # name without file extension
-            base_name = os.path.splitext(file_name)[0]
-            
-            # generate a new GUID
+            old_name_with_guid = os.path.splitext(file_name)[0]
             new_guid = "rev" + alt_id
 
             # build the paths
-            initial_name = base_name.split(".")[0]
+            initial_name = old_name_with_guid.split(".")[0]
             name_with_guid = initial_name + "." + new_guid
             new_gmnotes_path = os.path.join(root, name_with_guid + ".gmnotes")
-
-            old_json_path = base_name + ".json"
+            old_json_path = os.path.join(root, old_name_with_guid + ".json")
             new_json_path = os.path.join(root, name_with_guid + ".json")
 
             # remove the "alternate_ids" field from the .gmnotes file
