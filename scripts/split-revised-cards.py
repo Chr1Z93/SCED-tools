@@ -55,7 +55,8 @@ def split_revised_cards(base_folder):
             del metadata["alternate_ids"]
 
             # update existing .gmnotes file
-            metadata["cycle"] = "Core Set"
+            if metadata["cycle"] == "Core":
+                metadata["cycle"] = "Core Set"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
