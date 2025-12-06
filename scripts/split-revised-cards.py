@@ -55,7 +55,10 @@ def split_revised_cards(base_folder):
             del metadata["alternate_ids"]
 
             # update existing .gmnotes file
-            if metadata["cycle"] == "Core":
+            if "cycle" not in metadata:
+                print(f"No cycle in {file_name}")
+                metadata["cycle"] = "Core Set"
+            elif metadata["cycle"] == "Core":
                 metadata["cycle"] = "Core Set"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
@@ -74,7 +77,7 @@ def split_revised_cards(base_folder):
 
             jsondata["GUID"] = new_guid
             jsondata["CardID"] = 100
-            jsondata["GMNotes_path"] = replace_guid(jsondata["GMNotes_path"], new_guid)
+            jsondata["GMNotes_path"] = replace_last_guid(jsondata["GMNotes_path"], new_guid)
             jsondata["CustomDeck"] = {
                 "1": {
                     "BackIsHidden": True,
@@ -93,13 +96,33 @@ def split_revised_cards(base_folder):
                 f.write("\n")
 
                 
-def replace_guid(original_string, new_guid):
-    # The pattern looks for:
-    # 1. A literal dot: '\.'
-    # 2. Six hexadecimal characters (0-9, a-f, A-F): '[0-9a-fA-F]{6}'
-    # 3. A lookahead ensuring the GUID is followed by either a dot or the end of the string: '(?=\.|\/|$)'
+def replace_last_guid(original_string, new_guid):
+    # Looks for a dot, followed by 6 hex chars, followed by a dot, slash, or end-of-string.
     pattern = r'\.([0-9a-fA-F]{6})(?=\.|\/|$)'
-    return re.sub(pattern, f".{new_guid}", original_string, count=1)
+    
+    # 1. Find ALL matches in the string
+    matches = list(re.finditer(pattern, original_string))
+    
+    # 2. Check if any matches were found
+    if not matches:
+        return original_string # Return the original string if no GUIDs were found
+
+    # 3. Get the last match object
+    last_match = matches[-1]
+    
+    # Get the start and end index of the portion we want to replace (the dot and the GUID)
+    start_index = last_match.start()
+    end_index = last_match.end()
+    
+    # 4. Construct the new string using slicing and the replacement value
+    # String = (Part before the match) + (New GUID with leading dot) + (Part after the match)
+    new_string = (
+        original_string[:start_index] + 
+        f".{new_guid}" + 
+        original_string[end_index:]
+    )
+    
+    return new_string
 
 if __name__ == "__main__":
     split_revised_cards(TARGET_DIRECTORY)
