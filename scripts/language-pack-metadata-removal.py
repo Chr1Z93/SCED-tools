@@ -1,4 +1,4 @@
-# Removes all metadata except ID from GMNotes. Should be used for localizations - only ID is needed to replace
+# Removes all metadata except IDs from GMNotes. Should be used for localizations - only IDs are needed to replace
 # the object, all other attributes are taken from the original object.
 # Tags are also removed.
 
@@ -17,7 +17,7 @@ TARGET_DIRECTORY = (
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
-KEYS_TO_KEEP = {"id"}
+KEYS_TO_KEEP = {"id", "alternate_ids"}
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
