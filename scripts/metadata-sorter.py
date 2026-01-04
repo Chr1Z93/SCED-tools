@@ -31,6 +31,9 @@ KEY_ORDER = [
     "wildIcons",
     "dynamicIcons",
     "negativeIcons",
+    "elderSignEffect",
+    "health",
+    "sanity",
     "bonded",
     "uses",
     "victory",
@@ -68,6 +71,8 @@ SUBTABLE_KEY_ORDER = [
     "Cultist",
     "Tablet",
     "Elder Thing",
+    "description",
+    "modifier",
 ]
 
 
