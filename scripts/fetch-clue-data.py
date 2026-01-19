@@ -29,24 +29,39 @@ def update_gmnotes_logic(notes, metadata):
         return False
 
     local_meta = metadata.get(card_id)
-    if not local_meta:
+    if not local_meta or "clues" not in local_meta:
         return False
 
-    if "clues" not in local_meta:
-        return False
+    changed = False
+    new_clue_value = local_meta["clues"]
 
+    # HANDLE ZERO CASE: Remove both keys if value is 0
+    if new_clue_value == 0:
+        for key in ["clueThreshold", "clueThresholdPerInvestigator"]:
+            if key in notes:
+                del notes[key]
+                changed = True
+        return changed
+
+    # HANDLE NON-ZERO CASE
     if "clues_fixed" in local_meta:
-        if notes.get("clueThreshold") == local_meta["clues"]:
-            return False
-        del notes["clueThresholdPerInvestigator"]
-        notes["clueThreshold"] = local_meta["clues"]
+        target_key = "clueThreshold"
+        other_key = "clueThresholdPerInvestigator"
     else:
-        if notes.get("clueThresholdPerInvestigator") == local_meta["clues"]:
-            return False
-        del notes["clueThreshold"]
-        notes["clueThresholdPerInvestigator"] = local_meta["clues"]
+        target_key = "clueThresholdPerInvestigator"
+        other_key = "clueThreshold"
 
-    return True
+    # Update the target key if it's missing or different
+    if notes.get(target_key) != new_clue_value:
+        notes[target_key] = new_clue_value
+        changed = True
+
+    # Ensure the 'other' key is removed to prevent conflicts
+    if other_key in notes:
+        del notes[other_key]
+        changed = True
+
+    return changed
 
 
 def process_recursive(root_folder, metadata):
