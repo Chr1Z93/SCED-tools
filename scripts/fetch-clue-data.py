@@ -38,10 +38,12 @@ def update_gmnotes_logic(notes, metadata):
     if "clues_fixed" in local_meta:
         if notes.get("clueThreshold") == local_meta["clues"]:
             return False
+        del notes["clueThresholdPerInvestigator"]
         notes["clueThreshold"] = local_meta["clues"]
     else:
         if notes.get("clueThresholdPerInvestigator") == local_meta["clues"]:
             return False
+        del notes["clueThreshold"]
         notes["clueThresholdPerInvestigator"] = local_meta["clues"]
 
     return True
