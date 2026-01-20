@@ -1,5 +1,5 @@
-local guidReferenceApi          = require("core/GUIDReferenceApi")
-local playermatApi              = require("playermat/PlayermatApi")
+local GuidReferenceApi          = require("core/GUIDReferenceApi")
+local PlayermatApi              = require("playermat/PlayermatApi")
 
 local state                     = {
   { 1, 1, 5, 5 },
@@ -19,7 +19,7 @@ local zOffset                   = 1.1
 function onLoad()
   for i, data in ipairs(state) do
     local funcName = "setState" .. i
-    self.setVar(funcName, function() setState(i) end)
+    self.setVar(funcName, function() getTracker().call("updateStats", state[i]) end)
     buttonParameters.click_function = funcName
     buttonParameters.position.z = buttonParameters.position.z + zOffset
     buttonParameters.label = concatTable(data)
@@ -27,16 +27,9 @@ function onLoad()
   end
 end
 
-function setState(num)
-  local tracker = getTracker()
-  local newStats = state[num]
-  tracker.call("updateStats", newStats)
-end
-
 function getTracker()
-  local matColor = playermatApi.getMatColorByPosition(self.getPosition())
-  local tracker = guidReferenceApi.getObjectByOwnerAndType(matColor, "InvestigatorSkillTracker")
-  return tracker
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  return GuidReferenceApi.getObjectByOwnerAndType(matColor, "InvestigatorSkillTracker")
 end
 
 function concatTable(tbl)

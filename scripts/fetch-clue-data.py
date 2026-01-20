@@ -1,3 +1,5 @@
+# Fetches the data for clue thresholds on act cards and updates the metdata
+
 import json
 import os
 import requests

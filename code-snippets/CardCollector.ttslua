@@ -9,11 +9,8 @@ function onLoad()
   self.addContextMenuItem("Reset card map", function() cardMap = {} end)
   self.addContextMenuItem("Toggle duplicates", function()
     removeDuplicates = not removeDuplicates
-    if removeDuplicates then
-      broadcastToAll("Enabled duplicate removing.")
-    else
-      broadcastToAll("Disabled duplicate removing.")
-    end
+    local stateStr = removeDuplicates and "Enabled" or "Disabled"
+    broadcastToAll(stateStr .. " duplicate removing.")
   end)
 end
 

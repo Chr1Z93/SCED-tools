@@ -1,3 +1,5 @@
+# Checks the embedded metadata for validity
+
 import os
 import json
 from pathlib import Path

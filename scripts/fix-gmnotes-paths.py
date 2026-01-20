@@ -1,3 +1,5 @@
+# Correctly sets the GMNotes_path for all files in a project folder
+
 import json
 import os
 from pathlib import Path

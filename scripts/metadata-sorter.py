@@ -1,4 +1,4 @@
-# Sorts the metadata based on the specified order
+# Sorts the metadata (*.gmnotes files) based on the specified order
 
 import json
 import os
@@ -153,7 +153,4 @@ def main():
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+    main()

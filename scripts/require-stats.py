@@ -66,11 +66,9 @@ def analyze_requires(base_folder):
                                         counts[match.group(1)] += 1
 
                 except PermissionError:
-                    print(f"Warning: No permission to read file, skipping: {file_path}")
+                    print(f"Warning: No permission to read file: {file_path}")
                 except FileNotFoundError:
-                    print(
-                        f"Warning: File not found (e.g. broken symlink), skipping: {file_path}"
-                    )
+                    print(f"Warning: File not found (e.g. broken symlink): {file_path}")
                 except OSError as e:
                     print(f"Warning: OS error reading file {file_path}: {e}")
                 except Exception as e:

@@ -18,7 +18,7 @@ TARGET_DIRECTORY = r"C:\git\SCED-downloads"
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
 ANGLE_MULTIPLE = 5
-REMOVE_SCRIPTING = False
+REMOVE_TAGS_AND_SCRIPTING = False
 
 # Default key-value pairs to remove from the JSON files.
 # If a key's value in a file matches the default, the key will be removed.
@@ -98,8 +98,8 @@ def remove_default_values(data, defaults, is_nested=False):
             del image_data["ImageSecondaryURL"]
 
     # Maybe remove scripting (and XML)
-    if REMOVE_SCRIPTING:
-        for key in ["LuaScript", "LuaScript_path", "LuaScriptState", "LuaScriptState_path", "XmlUI", "CustomUIAssets"]:
+    if REMOVE_TAGS_AND_SCRIPTING:
+        for key in ["Tags", "LuaScript", "LuaScript_path", "LuaScriptState", "LuaScriptState_path", "XmlUI", "CustomUIAssets"]:
             if key in data:
                 del data[key]
 
