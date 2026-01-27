@@ -49,7 +49,6 @@ DEFAULT_VALUES = {
     "Grid": True,
     "GridProjection": False,
     "Hands": True,
-    "HideWhenFaceDown": True,
     "IgnoreFoW": False,
     "LayoutGroupSortIndex": 0,
     "Locked": False,
@@ -62,7 +61,7 @@ DEFAULT_VALUES = {
     "SidewaysCard": False,
     "Snap": True,
     "Sticky": True,
-    "Tags":[],
+    "Tags": [],
     "Tooltip": True,
     "Value": 0,
     "XmlUI": "",
@@ -91,15 +90,59 @@ def remove_default_values(data, defaults, is_nested=False):
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
         del data["HideWhenFaceDown"]
 
+    # Special case: Handle "UniqueBack"
+    if "CustomDeck" in data and isinstance(data["CustomDeck"], dict):
+        custom_deck = data["CustomDeck"]
+        for deck_id in list(custom_deck.keys()):
+            deck_data = custom_deck[deck_id]
+
+            if isinstance(deck_data, dict) and "UniqueBack" in deck_data:
+                # Condition 1: UniqueBack is False (this is the default behaviour)
+                # Condition 2: Both NumWidth and NumHeight are 1
+                is_single_card = (
+                    deck_data.get("NumWidth") == 1 and deck_data.get("NumHeight") == 1
+                )
+
+                if deck_data["UniqueBack"] is False or is_single_card:
+                    del deck_data["UniqueBack"]
+
+    # Special case: Conditional HideWhenFaceDown for Cards
+    if data.get("Name") in ["Card", "CardCustom"] and "HideWhenFaceDown" in data:
+        # Get the Card's DeckID (TTS DeckIDs have the last two digits for card index)
+        card_id_str = str(data.get("CardID", ""))
+        deck_id_prefix = card_id_str[:-2]
+        custom_deck = data.get("CustomDeck", {})
+        deck_settings = custom_deck.get(deck_id_prefix)
+
+        if isinstance(deck_settings, dict):
+            unique_back = deck_settings.get("UniqueBack", False)
+
+            # Logic:
+            # If UniqueBack is False, default HideWhenFaceDown is True
+            # If UniqueBack is True, default HideWhenFaceDown is False
+            if unique_back != data["HideWhenFaceDown"]:
+                del data["HideWhenFaceDown"]
+
     # Special case: Maybe remove secondary URL for Tiles
     if data.get("Name") == "Custom_Tile" and "CustomImage" in data:
         image_data = data["CustomImage"]
-        if "ImageSecondaryURL" in image_data and image_data["ImageURL"] == image_data["ImageSecondaryURL"]:
+        if (
+            "ImageSecondaryURL" in image_data
+            and image_data["ImageURL"] == image_data["ImageSecondaryURL"]
+        ):
             del image_data["ImageSecondaryURL"]
 
     # Maybe remove scripting (and XML)
     if REMOVE_TAGS_AND_SCRIPTING:
-        for key in ["Tags", "LuaScript", "LuaScript_path", "LuaScriptState", "LuaScriptState_path", "XmlUI", "CustomUIAssets"]:
+        for key in [
+            "Tags",
+            "LuaScript",
+            "LuaScript_path",
+            "LuaScriptState",
+            "LuaScriptState_path",
+            "XmlUI",
+            "CustomUIAssets",
+        ]:
             if key in data:
                 del data[key]
 
