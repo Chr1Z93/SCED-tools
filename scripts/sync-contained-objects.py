@@ -26,8 +26,8 @@ def get_contained_file_names(folder_path: Path) -> List[str]:
         if item.is_file() and item.suffix == ".json":
             file_names.append(item.stem)
 
-    # Sort the list alphabetically
-    file_names.sort()
+    # Sort the list in reverse alphabetical order
+    file_names.sort(reverse=True)
     return file_names
 
 
