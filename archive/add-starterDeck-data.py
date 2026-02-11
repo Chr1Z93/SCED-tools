@@ -62,10 +62,6 @@ def collect_starter_deck_data():
     return starter_deck_data
 
 
-def main():
+if __name__ == "__main__":
     starter_deck_data = collect_starter_deck_data()
     update_metadata(starter_deck_data)
-
-
-if __name__ == "__main__":
-    main()

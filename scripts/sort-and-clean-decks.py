@@ -59,9 +59,9 @@ def clean_and_sort_deck(
         deck_id_to_objects.setdefault(deck_id, []).append(obj)
 
     discarded_files: Set[str] = set()
-    keeper_mapping: Dict[str, str] = (
-        {}
-    )  # Map from discarded filename to keeper filename
+
+    # Map from discarded filename to keeper filename
+    keeper_mapping: Dict[str, str] = {}
 
     # Identify keepers and discards
     for deck_id, files in deck_id_to_objects.items():
