@@ -5,7 +5,7 @@ import json
 import os
 
 # CONFIGURATION
-INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI"
+INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed"
 
 
 def update_json_files_in_folder(folder_path):
@@ -36,6 +36,14 @@ def update_json_files_in_folder(folder_path):
 
             # Only process cards
             if data["Name"] != "Card" and data["Name"] != "CardCustom":
+                continue
+
+            if "CustomDeck" not in data:
+                print(f"Missing CustomDeck for {file_path}")
+                continue
+
+            if "CardID" not in data:
+                print(f"Missing CardID for {file_path}")
                 continue
 
             card_id = data["CardID"]
