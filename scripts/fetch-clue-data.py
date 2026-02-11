@@ -1,4 +1,4 @@
-# Fetches the data for clue thresholds on act cards and updates the metdata
+# Fetches the data for clue thresholds on act cards and updates the metadata
 
 import json
 import os
@@ -113,7 +113,7 @@ def process_recursive(root_folder, metadata):
                 print(f"✅ Updated: {rel_path}")
 
 
-def main():
+if __name__ == "__main__":
     metadata = load_metadata()
     if metadata:
         print("Metadata loaded. Starting recursive scan...")
@@ -121,7 +121,3 @@ def main():
         print("Done!")
     else:
         print("Aborting: No metadata available.")
-
-
-if __name__ == "__main__":
-    main()

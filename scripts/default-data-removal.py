@@ -86,10 +86,6 @@ def remove_default_values(data, defaults, is_nested=False):
         defaults (dict): The dictionary of default values.
         is_nested (bool, optional): True if the current data is nested
     """
-    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
-    if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
-        del data["HideWhenFaceDown"]
-
     # Special case: Handle "UniqueBack"
     if "CustomDeck" in data and isinstance(data["CustomDeck"], dict):
         custom_deck = data["CustomDeck"]
@@ -105,6 +101,10 @@ def remove_default_values(data, defaults, is_nested=False):
 
                 if deck_data["UniqueBack"] is False or is_single_card:
                     del deck_data["UniqueBack"]
+
+    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
+    if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
+        del data["HideWhenFaceDown"]
 
     # Special case: Conditional HideWhenFaceDown for Cards
     if data.get("Name") in ["Card", "CardCustom"] and "HideWhenFaceDown" in data:
