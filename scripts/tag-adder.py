@@ -102,7 +102,10 @@ def main():
     all_managed_tags.add("Asset")
     all_managed_tags.add("Location")
 
-    for root, _, files in os.walk(SEARCH_FOLDER):
+    for root, dirs, files in os.walk(SEARCH_FOLDER):
+        if "language-pack" in dirs:
+            dirs.remove("language-pack")
+
         for file_name in files:
             if file_name.endswith(".json"):
                 json_file_path = Path(root) / file_name
