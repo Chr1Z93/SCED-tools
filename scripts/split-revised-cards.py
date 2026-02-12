@@ -6,6 +6,7 @@ import re
 # --- Configuration ---
 TARGET_DIRECTORY = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
 
+
 def split_revised_cards(base_folder):
     for root, _, files in os.walk(base_folder):
         for file_name in files:
@@ -21,8 +22,9 @@ def split_revised_cards(base_folder):
             # skip already split cards
             if "alternate_ids" not in metadata:
                 continue
-            
+
             alt_id = None
+
             for id in metadata["alternate_ids"]:
                 num = 0
                 if "a" in id or "b" in id or "c" in id or "d" in id:
@@ -40,6 +42,9 @@ def split_revised_cards(base_folder):
             if alt_id == None:
                 continue
 
+            if len(metadata["alternate_ids"]) > 1:
+                print(f"{file_name}: more than 1 alternate id!")
+
             # name without file extension
             old_name_with_guid = os.path.splitext(file_name)[0]
             new_guid = "rev" + alt_id
@@ -56,26 +61,28 @@ def split_revised_cards(base_folder):
 
             # update existing .gmnotes file
             if "cycle" not in metadata:
-                print(f"No cycle in {file_name}")
+                print(f"{file_name}: No cycle")
                 metadata["cycle"] = "Core"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
-    
+
             # save the .gmnotes file with the new GUID
             metadata["id"] = alt_id
             metadata["cycle"] = "Revised Core"
             with open(new_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
-            
-            # load the .json file with the same name 
+
+            # load the .json file with the same name
             with open(old_json_path, "r", encoding="utf-8") as f:
                 json_data = json.load(f)
 
             json_data["GUID"] = new_guid
             json_data["CardID"] = 100
-            json_data["GMNotes_path"] = replace_last_guid(json_data["GMNotes_path"], new_guid)
+            json_data["GMNotes_path"] = replace_last_guid(
+                json_data["GMNotes_path"], new_guid
+            )
             json_data["CustomDeck"] = {
                 "1": {
                     "BackIsHidden": True,
@@ -84,7 +91,7 @@ def split_revised_cards(base_folder):
                     "NumHeight": 1,
                     "NumWidth": 1,
                     "Type": 0,
-                    "UniqueBack": True
+                    "UniqueBack": True,
                 }
             }
 
@@ -93,34 +100,33 @@ def split_revised_cards(base_folder):
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
-                
+
 def replace_last_guid(original_string, new_guid):
     # Looks for a dot, followed by 6 hex chars, followed by a dot, slash, or end-of-string.
-    pattern = r'\.([0-9a-fA-F]{6})(?=\.|\/|$)'
-    
+    pattern = r"\.([0-9a-fA-F]{6})(?=\.|\/|$)"
+
     # 1. Find ALL matches in the string
     matches = list(re.finditer(pattern, original_string))
-    
+
     # 2. Check if any matches were found
     if not matches:
-        return original_string # Return the original string if no GUIDs were found
+        return original_string  # Return the original string if no GUIDs were found
 
     # 3. Get the last match object
     last_match = matches[-1]
-    
+
     # Get the start and end index of the portion we want to replace (the dot and the GUID)
     start_index = last_match.start()
     end_index = last_match.end()
-    
+
     # 4. Construct the new string using slicing and the replacement value
     # String = (Part before the match) + (New GUID with leading dot) + (Part after the match)
     new_string = (
-        original_string[:start_index] + 
-        f".{new_guid}" + 
-        original_string[end_index:]
+        original_string[:start_index] + f".{new_guid}" + original_string[end_index:]
     )
-    
+
     return new_string
+
 
 if __name__ == "__main__":
     split_revised_cards(TARGET_DIRECTORY)
