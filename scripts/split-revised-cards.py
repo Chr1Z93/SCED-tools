@@ -67,7 +67,9 @@ def split_revised_cards(base_folder):
             del metadata["alternate_ids"]
 
             # update existing .gmnotes file
-            metadata["cycle"] = "Core"
+            if "cycle" not in metadata:
+                print(f"{old_gmnotes_path}: No cycle")
+                metadata["cycle"] = "Core"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
@@ -91,8 +93,8 @@ def split_revised_cards(base_folder):
             json_data["CustomDeck"] = {
                 "1": {
                     "BackIsHidden": True,
-                    "BackURL": "",
-                    "FaceURL": "",
+                    "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/",
+                    "FaceURL": f"{alt_id}.jpg",
                     "NumHeight": 1,
                     "NumWidth": 1,
                     "Type": 0,
