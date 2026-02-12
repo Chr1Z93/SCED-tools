@@ -8,7 +8,7 @@ TARGET_DIRECTORY = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
 
 
 def split_revised_cards(base_folder):
-    created_count = 0  # Initialize counter
+    created_count = 0  # initialize counter
 
     for root, _, files in os.walk(base_folder):
         for file_name in files:
@@ -49,7 +49,8 @@ def split_revised_cards(base_folder):
                 continue
 
             if len(metadata["alternate_ids"]) > 1:
-                print(f"{file_name}: more than 1 alternate id!")
+                print(f"[Skip] More than 1 alternate ID in: {old_gmnotes_path}")
+                continue
 
             # name without file extension
             old_name_with_guid = os.path.splitext(file_name)[0]
@@ -66,9 +67,7 @@ def split_revised_cards(base_folder):
             del metadata["alternate_ids"]
 
             # update existing .gmnotes file
-            if "cycle" not in metadata:
-                print(f"{file_name}: No cycle")
-                metadata["cycle"] = "Core"
+            metadata["cycle"] = "Core"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
@@ -106,12 +105,11 @@ def split_revised_cards(base_folder):
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
-            # Increment counter by 2 (one .gmnotes and one .json)
-            created_count += 2
-            print(f"Created: {new_name_with_guid} (.json & .gmnotes)")
+            # increment counter
+            created_count += 1
 
     print("---")
-    print(f"Process complete. Total new files created: {created_count}")
+    print(f"Process complete. Total new card objects created: {created_count}")
 
 
 def replace_last_guid(original_string, new_guid):
