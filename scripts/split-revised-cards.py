@@ -8,6 +8,8 @@ TARGET_DIRECTORY = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
 
 
 def split_revised_cards(base_folder):
+    created_count = 0  # Initialize counter
+
     for root, _, files in os.walk(base_folder):
         for file_name in files:
             if not file_name.endswith((".gmnotes")):
@@ -21,6 +23,10 @@ def split_revised_cards(base_folder):
 
             # skip already split cards
             if "alternate_ids" not in metadata:
+                continue
+
+            # skip investigators / minicards
+            if metadata.get("type") in ["Investigator", "Minicard"]:
                 continue
 
             alt_id = None
@@ -99,6 +105,13 @@ def split_revised_cards(base_folder):
             with open(new_json_path, "w", encoding="utf-8") as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
+
+            # Increment counter by 2 (one .gmnotes and one .json)
+            created_count += 2
+            print(f"Created: {new_name_with_guid} (.json & .gmnotes)")
+
+    print("---")
+    print(f"Process complete. Total new files created: {created_count}")
 
 
 def replace_last_guid(original_string, new_guid):
