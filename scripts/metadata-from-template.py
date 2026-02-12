@@ -7,24 +7,23 @@ from collections import OrderedDict
 
 # --- Configuration ---
 SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed")
-TEMPLATE_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot")
-
-# Set TEMPLATE_FILE to a specific path if you want to process only one template.
-TEMPLATE_FILE = Path(r"")
+TEMPLATE_FILE_OR_FOLDER = Path(
+    r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot"
+)
 
 
 # --- Helper Functions ---
 def get_template_data(template_gmnotes_path: Path) -> dict | None:
-    current_new_gmnotes_content = None
-    current_filter_string_gmnotes = None
-    current_target_card_name = None
+    gmnotes_content = None
+    filter_string_gmnotes = None
+    target_card_name = None
 
     # Read and parse the template .gmnotes content as JSON
     with open(template_gmnotes_path, "r", encoding="utf-8") as f_template_gmnotes:
-        current_new_gmnotes_content = f_template_gmnotes.read()
+        gmnotes_content = f_template_gmnotes.read()
 
         # Attempt to load the .gmnotes content as JSON
-        gmnotes_json_data = json.loads(current_new_gmnotes_content)
+        gmnotes_json_data = json.loads(gmnotes_content)
 
         # Check 'type' for Assets, Treacheries and Enemies
         template_type = gmnotes_json_data.get("type")
@@ -44,15 +43,15 @@ def get_template_data(template_gmnotes_path: Path) -> dict | None:
             print(f"Warning: {template_gmnotes_path} has no 'id'. Skipping.")
             return None
 
-        current_filter_string_gmnotes = f'"id": "{template_id}"'
+        filter_string_gmnotes = f'"id": "{template_id}"'
 
     # Derive the corresponding JSON file and get its Nickname
     template_json_path = template_gmnotes_path.with_suffix(".json")
     if template_json_path.exists():
         with open(template_json_path, "r", encoding="utf-8") as f_json_template:
             template_json_data = json.load(f_json_template)
-            current_target_card_name = template_json_data.get("Nickname")
-            if not current_target_card_name:
+            target_card_name = template_json_data.get("Nickname")
+            if not target_card_name:
                 print(f"Warning: {template_json_path} has no 'Nickname'. Skipping.")
                 return None  # Skip if no Nickname in template JSON
     else:
@@ -60,9 +59,9 @@ def get_template_data(template_gmnotes_path: Path) -> dict | None:
         return None  # Skip if no corresponding JSON
 
     return {
-        "filter_string_gmnotes": current_filter_string_gmnotes,
-        "new_gmnotes_content": current_new_gmnotes_content,
-        "target_card_name": current_target_card_name,
+        "filter_string_gmnotes": filter_string_gmnotes,
+        "new_gmnotes_content": gmnotes_content,
+        "target_card_name": target_card_name,
     }
 
 
@@ -82,19 +81,19 @@ def get_relative_gmnotes_path(absolute_path: Path) -> str:
 
 
 def process_target_file(file_path: Path, template_data: dict):
-    current_filter_string_gmnotes = template_data["filter_string_gmnotes"]
-    current_new_gmnotes_content = template_data["new_gmnotes_content"]
-    current_target_card_name = template_data["target_card_name"]
+    filter_string_gmnotes = template_data["filter_string_gmnotes"]
+    new_gmnotes_content = template_data["new_gmnotes_content"]
+    target_card_name = template_data["target_card_name"]
 
     # Scenario 1: Update existing .gmnotes files
     if file_path.suffix == ".gmnotes":
         with open(file_path, "r", encoding="utf-8") as f_target:
             content = f_target.read()
 
-        if current_filter_string_gmnotes in content:
-            if current_new_gmnotes_content != content:
+        if filter_string_gmnotes in content:
+            if new_gmnotes_content != content:
                 with open(file_path, "w", encoding="utf-8") as f_target:
-                    f_target.write(current_new_gmnotes_content)
+                    f_target.write(new_gmnotes_content)
                 print(f"Updated .gmnotes:   {get_relative_gmnotes_path(file_path)}")
 
     # Scenario 2: Add .gmnotes to .json files without metadata
@@ -107,7 +106,7 @@ def process_target_file(file_path: Path, template_data: dict):
             return  # Skip if metadata already exists
 
         # Check for exact match of the 'Nickname' field
-        if json_data.get("Nickname") != current_target_card_name:
+        if json_data.get("Nickname") != target_card_name:
             return  # Skip if Nickname doesn't match
 
         # Get the relative path for the new .gmnotes file
@@ -119,7 +118,7 @@ def process_target_file(file_path: Path, template_data: dict):
 
         # Write the template content to the new .gmnotes file
         with open(new_gmnotes_path_full, "w", encoding="utf-8") as f_new_gmnotes:
-            f_new_gmnotes.write(current_new_gmnotes_content)
+            f_new_gmnotes.write(new_gmnotes_content)
 
         json_data["GMNotes_path"] = relative_gmnotes_path
 
@@ -137,18 +136,18 @@ def process_target_file(file_path: Path, template_data: dict):
 def main():
     templates_to_process = []
 
-    # Decide whether to use a single TEMPLATE_FILE or scan TEMPLATE_FOLDER
-    if TEMPLATE_FILE.is_file():  # Check if TEMPLATE_FILE is a valid existing file
-        print(f"Using single template file: {TEMPLATE_FILE}")
-        template_data = get_template_data(TEMPLATE_FILE)
+    # Decide whether to use a single template file or scan the folder
+    if TEMPLATE_FILE_OR_FOLDER.is_file():
+        print(f"Using single template file: {TEMPLATE_FILE_OR_FOLDER}")
+        template_data = get_template_data(TEMPLATE_FILE_OR_FOLDER)
         if template_data:
             templates_to_process.append(template_data)
         else:
             print(f"Error: Could not prepare data for single template file. Exiting.")
             return  # Exit main if single template fails
     else:
-        print(f"Scanning template folder: {TEMPLATE_FOLDER}")
-        for template_root, _, template_files in os.walk(TEMPLATE_FOLDER):
+        print(f"Scanning template folder: {TEMPLATE_FILE_OR_FOLDER}")
+        for template_root, _, template_files in os.walk(TEMPLATE_FILE_OR_FOLDER):
             for template_file_name in template_files:
                 if not template_file_name.endswith(".gmnotes"):
                     continue

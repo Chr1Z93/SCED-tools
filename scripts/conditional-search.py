@@ -1,26 +1,23 @@
-# Filters files with a FILTER_STRING and a NOT_FILTER_STRING
-
 import os
 
 # Config
 SEARCH_FOLDER = r"C:\git\SCED"
 
-# must be part of file
-FILTER_STRING = '"startsInPlay": true'
+# All of these must be present in the file
+INCLUDE_FILTERS = ['"alternate_ids":', '"cycle": "Core"']
 
-# must not be part of file
-NOT_FILTER_STRING = '"permanent": true,'
+# None of these can be present in the file (leave empty [] if none)
+EXCLUDE_FILTERS = []
+
+# Folders to skip during the walk
+SKIP_DIRS = {".git", ".github", ".vscode"}
+
+# Initialize counter
+match_count = 0
 
 # Loop through files
 for root, dirs, files in os.walk(SEARCH_FOLDER):
-    if ".git" in dirs:
-        dirs.remove(".git")
-
-    if ".github" in dirs:
-        dirs.remove(".github")
-
-    if ".vscode" in dirs:
-        dirs.remove(".vscode")
+    dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
 
     for file in files:
         file_path = os.path.join(root, file)
@@ -29,8 +26,16 @@ for root, dirs, files in os.walk(SEARCH_FOLDER):
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            if FILTER_STRING in content and NOT_FILTER_STRING not in content:
+            must_have = all(s in content for s in INCLUDE_FILTERS)
+            must_not_have = any(s in content for s in EXCLUDE_FILTERS)
+
+            if must_have and not must_not_have:
                 print(f"Matched: {file_path}")
+                match_count += 1  # Increment the counter
 
         except Exception as e:
             print(f"Error at {file_path}: {e}")
+
+# Final Summary
+print("-" * 30)
+print(f"Done! Matched {match_count} files.")

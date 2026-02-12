@@ -46,10 +46,10 @@ def split_revised_cards(base_folder):
 
             # build the paths
             initial_name = old_name_with_guid.split(".")[0]
-            name_with_guid = initial_name + "." + new_guid
-            new_gmnotes_path = os.path.join(root, name_with_guid + ".gmnotes")
+            new_name_with_guid = initial_name + "." + new_guid
+            new_gmnotes_path = os.path.join(root, new_name_with_guid + ".gmnotes")
             old_json_path = os.path.join(root, old_name_with_guid + ".json")
-            new_json_path = os.path.join(root, name_with_guid + ".json")
+            new_json_path = os.path.join(root, new_name_with_guid + ".json")
 
             # remove the "alternate_ids" field from the .gmnotes file
             del metadata["alternate_ids"]
@@ -57,28 +57,26 @@ def split_revised_cards(base_folder):
             # update existing .gmnotes file
             if "cycle" not in metadata:
                 print(f"No cycle in {file_name}")
-                metadata["cycle"] = "Core Set"
-            elif metadata["cycle"] == "Core":
-                metadata["cycle"] = "Core Set"
+                metadata["cycle"] = "Core"
             with open(old_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
     
             # save the .gmnotes file with the new GUID
             metadata["id"] = alt_id
-            metadata["cycle"] = "Revised Core Set"
+            metadata["cycle"] = "Revised Core"
             with open(new_gmnotes_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
             
             # load the .json file with the same name 
             with open(old_json_path, "r", encoding="utf-8") as f:
-                jsondata = json.load(f)
+                json_data = json.load(f)
 
-            jsondata["GUID"] = new_guid
-            jsondata["CardID"] = 100
-            jsondata["GMNotes_path"] = replace_last_guid(jsondata["GMNotes_path"], new_guid)
-            jsondata["CustomDeck"] = {
+            json_data["GUID"] = new_guid
+            json_data["CardID"] = 100
+            json_data["GMNotes_path"] = replace_last_guid(json_data["GMNotes_path"], new_guid)
+            json_data["CustomDeck"] = {
                 "1": {
                     "BackIsHidden": True,
                     "BackURL": "",
@@ -92,7 +90,7 @@ def split_revised_cards(base_folder):
 
             # save the .json file with the new GUID
             with open(new_json_path, "w", encoding="utf-8") as f:
-                json.dump(jsondata, f, indent=2, ensure_ascii=False)
+                json.dump(json_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
                 
