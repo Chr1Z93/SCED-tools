@@ -67,6 +67,11 @@ DEFAULT_VALUES = {
     "XmlUI": "",
 }
 
+NON_UNIQUE_BACKS = {
+    "encounter": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/",
+    "player": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/",
+}
+
 
 def round_angle_and_normalize(angle, multiple):
     """Rounds an angle to the nearest specified multiple and normalizes it to the 0-359 range."""
@@ -92,14 +97,15 @@ def remove_default_values(data, defaults, is_nested=False):
         for deck_id in list(custom_deck.keys()):
             deck_data = custom_deck[deck_id]
 
-            if isinstance(deck_data, dict) and "UniqueBack" in deck_data:
-                # Condition 1: UniqueBack is False (this is the default behaviour)
-                # Condition 2: Both NumWidth and NumHeight are 1
-                is_single_card = (
-                    deck_data.get("NumWidth") == 1 and deck_data.get("NumHeight") == 1
-                )
-
-                if deck_data["UniqueBack"] is False or is_single_card:
+            if isinstance(deck_data, dict):
+                if deck_data.get("BackURL") in NON_UNIQUE_BACKS:
+                    # This has a regular back (= non unique)
+                    del deck_data["UniqueBack"]
+                elif deck_data.get("NumWidth") == 1 and deck_data.get("NumHeight") == 1:
+                    # This is a single card
+                    deck_data["UniqueBack"] = True
+                elif deck_data.get("UniqueBack") is False:
+                    # UniqueBack is False and can be removed (this is the default behaviour)
                     del deck_data["UniqueBack"]
 
     # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field

@@ -5,7 +5,7 @@ import os
 import requests
 
 # CONFIGURATION
-INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Campaigns"
+INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns\Polish-Campaigns.PolishC\NightoftheZealot.5b3bc8"
 
 # Globals / Derived data
 arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/"
@@ -39,8 +39,6 @@ def load_translation_data():
 
 
 def update_json_files_in_folder(folder_path):
-    """Updates the 'GMNotes' field."""
-
     if not os.path.isdir(folder_path):
         print(f"Error: The directory {folder_path} was not found.")
         return
