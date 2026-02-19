@@ -1,4 +1,4 @@
-# This converts a localized project with names cards to GMNotes with IDs
+# This converts a localized project with named cards to GMNotes with IDs
 
 import json
 import os
@@ -7,7 +7,7 @@ import requests
 # CONFIGURATION
 LOCALE = "ES"
 TABOO_SUFFIX = " (Tabú)"
-INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Spanish - Player Cards\LanguagePackSpanish-PlayerCards.SpanishI"
+INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\Spanish - Campaigns\Spanish-Campaigns.SpanishC"
 
 # Globals / Derived data
 UPGRADESHEET_URL = "https://steamusercontent-a.akamaihd.net/ugc/1814412497119682452/BD224FCE1980DBA38E5A687FABFD146AA1A30D0E/"
