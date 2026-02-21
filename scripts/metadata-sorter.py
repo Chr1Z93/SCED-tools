@@ -9,6 +9,7 @@ BASE_DIR = r"C:\git\SCED-downloads\decomposed"
 KEY_ORDER = [
     "id",
     "alternate_ids",
+    "TtsZoopGuid",
     "type",
     "slot",
     "class",
@@ -45,7 +46,6 @@ KEY_ORDER = [
     "signatures",
     "locationFront",
     "locationBack",
-    "TtsZoopGuid",
 ]
 
 # Define the order of keys specifically for subtables (nested dictionaries)
