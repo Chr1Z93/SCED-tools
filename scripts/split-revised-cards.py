@@ -12,7 +12,7 @@ def split_revised_cards(base_folder):
 
     for root, _, files in os.walk(base_folder):
         for file_name in files:
-            if not file_name.endswith((".gmnotes")):
+            if not file_name.endswith(".gmnotes"):
                 continue
 
             old_gmnotes_path = os.path.join(root, file_name)
@@ -29,44 +29,46 @@ def split_revised_cards(base_folder):
             if metadata.get("type") in ["Investigator", "Minicard"]:
                 continue
 
-            alt_id = None
+            # Identify the Revised Core ID
+            rev_id = None
+            remaining_ids = []
 
-            for id in metadata["alternate_ids"]:
-                num = 0
-                if "a" in id or "b" in id or "c" in id or "d" in id:
-                    num = int(id[:-1])
-                elif "-" in id:
-                    num = int(id.split("-")[0])
+            for alt_id in metadata["alternate_ids"]:
+                # Logic to extract the numeric part
+                if any(char in alt_id for char in "abcd"):
+                    num = int(alt_id[:-1])
+                elif "-" in alt_id:
+                    num = int(alt_id.split("-")[0])
                 else:
-                    num = int(id)
+                    num = int(alt_id)
 
-                # make sure this is from the revised core set
-                if num > 1500 and num < 2000:
-                    alt_id = id
-                    break
+                # Check if it belongs to Revised Core (1501-1999)
+                if 1500 < num < 2000:
+                    rev_id = alt_id
+                else:
+                    remaining_ids.append(alt_id)
 
-            if alt_id == None:
+            # If no Revised ID found, we don't need to split this file
+            if rev_id is None:
                 continue
 
-            if len(metadata["alternate_ids"]) > 1:
-                print(f"[Skip] More than 1 alternate ID in: {old_gmnotes_path}")
-                continue
+            # Update the original file's alternate_ids
+            if remaining_ids:
+                metadata["alternate_ids"] = remaining_ids
+            else:
+                del metadata["alternate_ids"]
 
-            # name without file extension
+            # Prepare path names
             old_name_with_guid = os.path.splitext(file_name)[0]
-            new_guid = "rev" + alt_id
-
-            # build the paths
+            new_guid = "rev" + rev_id
             initial_name = old_name_with_guid.split(".")[0]
-            new_name_with_guid = initial_name + "." + new_guid
+            new_name_with_guid = f"{initial_name}.{new_guid}"
+
             new_gmnotes_path = os.path.join(root, new_name_with_guid + ".gmnotes")
             old_json_path = os.path.join(root, old_name_with_guid + ".json")
             new_json_path = os.path.join(root, new_name_with_guid + ".json")
 
-            # remove the "alternate_ids" field from the .gmnotes file
-            del metadata["alternate_ids"]
-
-            # update existing .gmnotes file
+            # Update and save existing (Original) .gmnotes file
             if "cycle" not in metadata:
                 print(f"{old_gmnotes_path}: No cycle")
                 metadata["cycle"] = "Core"
@@ -74,14 +76,21 @@ def split_revised_cards(base_folder):
                 json.dump(metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
-            # save the .gmnotes file with the new GUID
-            metadata["id"] = alt_id
-            metadata["cycle"] = "Revised Core"
+            # Prepare and save NEW .gmnotes file (Revised)
+            # We create a deep copy or temporary dict so we don't include
+            # the 'remaining_ids' in the Revised file
+            revised_metadata = metadata.copy()
+            if "alternate_ids" in revised_metadata:
+                del revised_metadata["alternate_ids"]
+
+            revised_metadata["id"] = rev_id
+            revised_metadata["cycle"] = "Revised Core"
+
             with open(new_gmnotes_path, "w", encoding="utf-8") as f:
-                json.dump(metadata, f, indent=2, ensure_ascii=False)
+                json.dump(revised_metadata, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
-            # load the .json file with the same name
+            # Load and update the .json file
             with open(old_json_path, "r", encoding="utf-8") as f:
                 json_data = json.load(f)
 
@@ -94,7 +103,7 @@ def split_revised_cards(base_folder):
                 "1": {
                     "BackIsHidden": True,
                     "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/",
-                    "FaceURL": f"{alt_id}.jpg",
+                    "FaceURL": f"{rev_id}.jpg",
                     "NumHeight": 1,
                     "NumWidth": 1,
                     "Type": 0,
@@ -102,12 +111,12 @@ def split_revised_cards(base_folder):
                 }
             }
 
-            # save the .json file with the new GUID
+            # Save the .json file with the new GUID
             with open(new_json_path, "w", encoding="utf-8") as f:
                 json.dump(json_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
-            # increment counter
+            # Increment counter
             created_count += 1
 
     print("---")
