@@ -1,5 +1,5 @@
-local cardMap = {}
-local duplicateCount = 0
+local cardMap          = {}
+local duplicateCount   = 0
 local removeDuplicates = true
 
 function onLoad()
@@ -24,9 +24,9 @@ function onPlayerPing(_, _, object)
 
   if not data.ContainedObjects then return end
 
-  local result = {}
+  local result   = {}
   duplicateCount = 0
-  addCards(result, data.ContainedObjects)
+  parseContainer(result, data.ContainedObjects)
 
   if #result == 0 then
     broadcastToAll("This would leave the container empty. Aborted!", "Red")
@@ -39,7 +39,7 @@ function onPlayerPing(_, _, object)
   broadcastToAll("Removed " .. duplicateCount .. " duplicate cards.")
 end
 
-function addCards(result, objects)
+function parseContainer(result, objects)
   for _, objectData in ipairs(objects) do
     if objectData.Name == "Card" or objectData.Name == "CardCustom" then
       local key = generateKey(objectData)
@@ -51,7 +51,7 @@ function addCards(result, objects)
         duplicateCount = duplicateCount + 1
       end
     elseif objectData.ContainedObjects then
-      addCards(result, objectData.ContainedObjects)
+      parseContainer(result, objectData.ContainedObjects)
     end
   end
 end

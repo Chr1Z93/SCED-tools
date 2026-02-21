@@ -13,7 +13,7 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = (
-    r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Player Cards"
+    r"C:\git\SCED-downloads\decomposed\language-pack\Korean - Campaigns"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
@@ -84,6 +84,8 @@ def process_files_in_directory(directory, keys_to_keep):
 
                         if "GMNotes" in data:
                             gmnotes = json.loads(data["GMNotes"])
+                            if "TtsZoopGuid" in gmnotes and "id" not in gmnotes:
+                                gmnotes["id"] = gmnotes["TtsZoopGuid"]
                             for key in list(gmnotes.keys()):
                                 if key not in keys_to_keep:
                                     del gmnotes[key]
@@ -91,6 +93,8 @@ def process_files_in_directory(directory, keys_to_keep):
 
                     # Get GMNotes object from file and modify it in-place
                     if filename.endswith(".gmnotes"):
+                        if "TtsZoopGuid" in data and "id" not in data:
+                            data["id"] = data["TtsZoopGuid"]
                         for key in list(data.keys()):
                             if key not in keys_to_keep:
                                 del data[key]
