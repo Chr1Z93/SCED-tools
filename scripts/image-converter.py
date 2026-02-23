@@ -18,7 +18,7 @@ OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 ROW_CROP_THRESHOLD = 215
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_PREFIX = 0  # set to 0 to skip number extracting
+CARD_NUMBER_START = 0  # set to 0 to skip number extracting
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -124,7 +124,7 @@ def extract_card_number(image_path, base_name):
         suffix_part = match.group(2)
 
         # Pad the number part to 3 digits and combine
-        extracted_number = f"{CARD_NUMBER_PREFIX}{int(number_part):03d}{suffix_part}"
+        extracted_number = f"{CARD_NUMBER_START - 1 + int(number_part)}{suffix_part}"
     else:
         extracted_number = cleaned_text  # Fallback to the fully cleaned text
 
@@ -194,7 +194,7 @@ def resize_and_compress(image_path):
             base_name = os.path.splitext(os.path.basename(image_path))[0]
 
             # Attempt to extract card number
-            if OVERRIDE_EXISTING_FILES == False and CARD_NUMBER_PREFIX != 0:
+            if OVERRIDE_EXISTING_FILES == False and CARD_NUMBER_START != 0:
                 card_number = extract_card_number(image_path, base_name)
                 if card_number:
                     base_name = card_number
