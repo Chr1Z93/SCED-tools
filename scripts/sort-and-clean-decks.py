@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Forgotten Age\TheForgottenAge.0bcf19\2TheDoomofEztli.065ce1"
+ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Return to The Circle Undone"
 
 # If set to True, the key order in the resulting JSON file will be preserved
 PRESERVE_KEY_ORDER = False
@@ -113,8 +113,6 @@ def delete_discarded_files(discarded_files: Set[str], associated_folder_path: Pa
 
 def process_folder_for_cleanup(root_folder_path: str):
     """Main function to iterate through the root folder, validate files, and run the cleanup and sorting logic."""
-    print(f"Starting deck cleanup process in folder: {root_folder_path}\n")
-
     root_path = Path(root_folder_path)
     if not root_path.is_dir():
         print(f"Error: Root folder not found at {root_folder_path}")
@@ -122,8 +120,6 @@ def process_folder_for_cleanup(root_folder_path: str):
 
     # Loop through all .json files in that folder
     for main_json_path in root_path.glob("*.json"):
-        print(f"Processing {main_json_path.name}")
-
         # Check for accompanying folder
         folder_name = main_json_path.stem
         associated_folder_path = root_path / folder_name
@@ -188,6 +184,14 @@ def process_folder_for_cleanup(root_folder_path: str):
         print("-" * 30)
 
 
+def cleanup_everything(root_path):
+    path = Path(root_path)
+    # Iterate through every directory in the tree
+    for folder in path.rglob("*"):
+        if folder.is_dir():
+            process_folder_for_cleanup(str(folder))
+
+
 if __name__ == "__main__":
     # Execute the main function with the configured path
-    process_folder_for_cleanup(ROOT_FOLDER_PATH)
+    cleanup_everything(ROOT_FOLDER_PATH)
