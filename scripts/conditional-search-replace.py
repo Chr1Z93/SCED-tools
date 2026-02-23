@@ -3,12 +3,13 @@
 import os
 
 # Config
-SEARCH_FOLDER = r"C:\git\SCED-downloads"
-ORIGINAL_STRING = '"PlayerCard"'
-REPLACEMENT_STRING = '"ScenarioCard"'
-FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/"  # must be part of file
+SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Edge of the Earth\EdgeoftheEarth.895eaa"
+ORIGINAL_STRING = ',\n    "PlayerCard"'
+REPLACEMENT_STRING = ',\n    "CleanUpHelper_ignore",\n    "PlayerCard"'
+FILTER_STRING = '"Nickname": "Dr. Mala Sinha",'  # must be part of file
 
 # Loop through files
+count = 0
 for root, dirs, files in os.walk(SEARCH_FOLDER):
     if ".git" in dirs:
         dirs.remove(".git")
@@ -30,6 +31,9 @@ for root, dirs, files in os.walk(SEARCH_FOLDER):
                     with open(file_path, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     print(f"Replaced in: {file_path}")
+                    count += 1
 
         except Exception as e:
             print(f"Error at {file_path}: {e}")
+
+print(f"Updated {count} files.")

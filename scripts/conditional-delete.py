@@ -11,6 +11,7 @@ FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/2260310642906139495
 EXCLUDED_FOLDER = os.path.normpath(EXCLUDED_FOLDER)
 
 # Loop through files
+count = 0
 for root, dirs, files in os.walk(SEARCH_FOLDER):
     if ".git" in dirs:
         dirs.remove(".git")
@@ -32,6 +33,9 @@ for root, dirs, files in os.walk(SEARCH_FOLDER):
             if FILTER_STRING in content:
                 print(f"Deleting: {file_path}")
                 os.remove(file_path)
+                count += 1
 
         except Exception as e:
             print(f"Error at {file_path}: {e}")
+
+print(f"Deleted {count} files.")
