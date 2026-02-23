@@ -124,7 +124,7 @@ def extract_card_number(image_path, base_name):
         suffix_part = match.group(2)
 
         # Pad the number part to 3 digits and combine
-        extracted_number = f"{CARD_NUMBER_START - 1 + int(number_part)}{suffix_part}"
+        extracted_number = f"{CARD_NUMBER_START - 1 + int(number_part):05d}{suffix_part}"
     else:
         extracted_number = cleaned_text  # Fallback to the fully cleaned text
 
