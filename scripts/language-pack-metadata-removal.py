@@ -13,7 +13,7 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = (
-    r"C:\git\SCED-downloads\decomposed\language-pack\Korean - Campaigns"
+    r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted

@@ -13,7 +13,7 @@ import math
 # r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 # r"C:\git\SCED-downloads\decomposed"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED-downloads"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns"
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2

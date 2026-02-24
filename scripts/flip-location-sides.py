@@ -5,7 +5,7 @@ import os
 import requests
 
 # CONFIGURATION
-INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns\Polish-Campaigns.PolishC\NightoftheZealot.5b3bc8"
+INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns\Polish-Campaigns.PolishC\TheDunwichLegacy.401f9f"
 
 # Globals / Derived data
 arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/"

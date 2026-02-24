@@ -6,7 +6,7 @@ from pathlib import Path
 from collections import OrderedDict
 
 # --- Configuration ---
-SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\language-pack")
+SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Player Cards")
 MAX_CHARACTERS = 80  # The maximum character count for the GMNotes content
 
 
