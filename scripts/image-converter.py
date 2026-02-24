@@ -18,7 +18,7 @@ OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 ROW_CROP_THRESHOLD = 215
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 0  # set to 0 to skip number extracting
+CARD_NUMBER_START = 60151  # set to 0 to skip number extracting
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
