@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Tuple, Set
 # Set the root folder path containing the JSON files
 ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Return to The Circle Undone"
 
-# If set to True, the key order in the resulting JSON file will be preserved
+# If set to True, the card order in the resulting JSON file will be preserved
 PRESERVE_CARD_ORDER = True
 
 
