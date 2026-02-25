@@ -7,10 +7,47 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Return to The Circle Undone"
+ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Dunwich Legacy"
 
 # If set to True, the key order in the resulting JSON file will be preserved
-PRESERVE_KEY_ORDER = False
+PRESERVE_CARD_ORDER = True
+
+
+def rebuild_deck_data(
+    data: Dict[str, Any], associated_folder_path: Path
+) -> Dict[str, Any]:
+    """Generates a fresh table for 'CustomDeck' and 'DeckIDs' fields."""
+    new_deck_ids = []
+    new_custom_deck = {}
+
+    contained_objects = data.get("ContainedObjects_order", [])
+
+    for filename_stem in contained_objects:
+        card_json_path = associated_folder_path / f"{filename_stem}.json"
+
+        if card_json_path.exists():
+            with open(card_json_path, "r", encoding="utf-8") as f:
+                card_data = json.load(f)
+
+            # Extract CardID for DeckIDs list
+            card_id = card_data.get("CardID")
+            if card_id is not None:
+                new_deck_ids.append(card_id)
+
+            # Merge CustomDeck entries
+            card_custom_deck = card_data.get("CustomDeck", {})
+            for deck_key, deck_info in card_custom_deck.items():
+                if deck_key not in new_custom_deck:
+                    new_custom_deck[deck_key] = deck_info
+                elif new_custom_deck[deck_key] != deck_info:
+                    print(
+                        f"Deck data conflict in {data.get('Nickname')} / {data.get('GUID')}"
+                    )
+
+    data["DeckIDs"] = new_deck_ids
+    data["CustomDeck"] = new_custom_deck
+
+    return data
 
 
 def clean_and_sort_deck(
@@ -18,7 +55,7 @@ def clean_and_sort_deck(
 ) -> Tuple[Dict[str, Any], Set[str]]:
     """
     1. Creates a DeckID <-> ContainedObject link map.
-    2. Conditionally sorts the ContainedObjects list (unless PRESERVE_KEY_ORDER is True).
+    2. Conditionally sorts the ContainedObjects list (unless PRESERVE_CARD_ORDER is True).
     3. Reorders the DeckIDs list to match the new ContainedObjects order.
     4. Deduplicates DeckIDs: keeps the alphabetically FIRST filename for duplicates
        and identifies the files (ContainedObjects) that need to be discarded.
@@ -40,7 +77,7 @@ def clean_and_sort_deck(
     }
 
     # --- Conditional List Sorting ---
-    if PRESERVE_KEY_ORDER:
+    if PRESERVE_CARD_ORDER:
         # If preserving list order, use original lists directly.
         new_contained_objects = contained_objects
         new_deck_ids = deck_ids
@@ -111,18 +148,17 @@ def delete_discarded_files(discarded_files: Set[str], associated_folder_path: Pa
             print(f"  -> Deleted: {gmnotes_file.name}")
 
 
-def process_folder_for_cleanup(root_folder_path: str):
+def process_folder_for_cleanup(root_folder_path: Path):
     """Main function to iterate through the root folder, validate files, and run the cleanup and sorting logic."""
-    root_path = Path(root_folder_path)
-    if not root_path.is_dir():
+    if not root_folder_path.is_dir():
         print(f"Error: Root folder not found at {root_folder_path}")
         return
 
     # Loop through all .json files in that folder
-    for main_json_path in root_path.glob("*.json"):
+    for main_json_path in root_folder_path.glob("*.json"):
         # Check for accompanying folder
         folder_name = main_json_path.stem
-        associated_folder_path = root_path / folder_name
+        associated_folder_path = root_folder_path / folder_name
 
         if not associated_folder_path.is_dir():
             continue
@@ -151,10 +187,17 @@ def process_folder_for_cleanup(root_folder_path: str):
         # Perform the sorting and deduplication
         updated_data, discarded_files = clean_and_sort_deck(data)
 
+        # Ensure correct deck data by rebuilding it
+        updated_data = rebuild_deck_data(updated_data, associated_folder_path)
+
         # Delete the discarded files
         delete_discarded_files(discarded_files, associated_folder_path)
 
         # Save the updated JSON file (preserving top-level keys in the original order)
+        # We ensure 'CustomDeck' is included in the output even if it wasn't there originally
+        if "CustomDeck" not in original_keys:
+            original_keys.append("CustomDeck")
+
         ordered_data = {
             key: updated_data[key] for key in original_keys if key in updated_data
         }
@@ -176,7 +219,7 @@ def process_folder_for_cleanup(root_folder_path: str):
         with open(main_json_path, "w", encoding="utf-8") as f:
             f.write(json_output)
 
-        if PRESERVE_KEY_ORDER:
+        if PRESERVE_CARD_ORDER:
             print(f"  Saved {main_json_path.name}: Kept card order.")
         else:
             print(f"  Saved {main_json_path.name}: Sorted cards alphabetically.")
@@ -186,10 +229,13 @@ def process_folder_for_cleanup(root_folder_path: str):
 
 def cleanup_everything(root_path):
     path = Path(root_path)
-    # Iterate through every directory in the tree
-    for folder in path.rglob("*"):
-        if folder.is_dir():
-            process_folder_for_cleanup(str(folder))
+
+    # Process the root folder itself
+    process_folder_for_cleanup(path)
+
+    # Iterate through every sub-directory in the tree
+    for folder in path.rglob("**/"):
+        process_folder_for_cleanup(folder)
 
 
 if __name__ == "__main__":
