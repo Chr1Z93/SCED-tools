@@ -7,52 +7,117 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Circle Undone"
+ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\Return to The Circle Undone"
 
 # If set to True, the key order in the resulting JSON file will be preserved
 PRESERVE_CARD_ORDER = True
 
 
+def global_shallow_fix(root_path: Path):
+    """
+    Iterates through EVERY json file in the tree.
+    Ensures CardID matches the first key in CustomDeck.
+    """
+    for file_path in root_path.rglob("*.json"):
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Only process Card objects
+            if data.get("Name") not in ["Card", "CardCustom"]:
+                continue
+
+            custom_deck = data.get("CustomDeck")
+            if not custom_deck or "CardID" not in data:
+                continue
+
+            current_deck_id = list(custom_deck.keys())[0]
+            current_card_id = data["CardID"]
+
+            # Use zfill to ensure the index is always two digits (e.g., 05 instead of 5)
+            suffix = str(current_card_id).zfill(2)[-2:]
+            proper_card_id = int(f"{current_deck_id}{suffix}")
+
+            if current_card_id != proper_card_id:
+                data["CardID"] = proper_card_id
+                with open(file_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2, ensure_ascii=False)
+                    f.write("\n")
+                print(f"  -> Fixed CardID: {file_path.name}")
+
+        except (json.JSONDecodeError, KeyError, IndexError):
+            continue
+
+
 def rebuild_deck_data(
     data: Dict[str, Any], associated_folder_path: Path
 ) -> Dict[str, Any]:
-    """Generates a fresh table for 'CustomDeck' and 'DeckIDs' fields."""
+    """Handles remapping and deduplication for decks."""
     new_deck_ids = []
-    new_custom_deck = {}
+    canonical_custom_decks = {}  # (FaceURL, BackURL) -> canonical_id_str
+    id_redirection_map = {}  # original_id_str -> canonical_id_str
 
     contained_objects = data.get("ContainedObjects_order", [])
 
+    # Pass 1: Build the redirection map from current card states
     for filename_stem in contained_objects:
-        card_json_path = associated_folder_path / f"{filename_stem}.json"
+        card_path = associated_folder_path / f"{filename_stem}.json"
+        if not card_path.exists():
+            continue
 
-        if card_json_path.exists():
-            with open(card_json_path, "r", encoding="utf-8") as f:
-                card_data = json.load(f)
+        with open(card_path, "r", encoding="utf-8") as f:
+            card_json = json.load(f)
 
-            # Extract CardID for DeckIDs list
-            card_id = card_data.get("CardID")
-            if card_id is not None:
-                new_deck_ids.append(card_id)
+        custom_deck = card_json.get("CustomDeck", {})
+        if not custom_deck:
+            continue
 
-            # Merge CustomDeck entries
-            card_custom_deck = card_data.get("CustomDeck", {})
-            for deck_key, deck_info in card_custom_deck.items():
-                if deck_key not in new_custom_deck:
-                    new_custom_deck[deck_key] = deck_info
-                elif new_custom_deck[deck_key] != deck_info:
-                    print(
-                        f"Deck data conflict in {data.get('Nickname')} / {data.get('GUID')}"
-                    )
+        current_deck_id = list(custom_deck.keys())[0]
+        deck_info = custom_deck[current_deck_id]
+        fingerprint = (deck_info.get("FaceURL"), deck_info.get("BackURL"))
 
-    # Sort the CustomDeck by ID (numerically)
-    sorted_custom_deck = {
-        key: new_custom_deck[key] 
-        for key in sorted(new_custom_deck.keys(), key=int)
-    }
+        if fingerprint not in canonical_custom_decks:
+            canonical_custom_decks[fingerprint] = current_deck_id
+            id_redirection_map[current_deck_id] = current_deck_id
+        else:
+            id_redirection_map[current_deck_id] = canonical_custom_decks[fingerprint]
+
+    # Pass 2: Consolidate card files and rebuild master Deck object
+    final_custom_deck_registry = {}
+
+    for filename_stem in contained_objects:
+        card_path = associated_folder_path / f"{filename_stem}.json"
+        if not card_path.exists():
+            continue
+
+        with open(card_path, "r", encoding="utf-8") as f:
+            card_json = json.load(f)
+
+        custom_deck = card_json.get("CustomDeck", {})
+        current_deck_id = list(custom_deck.keys())[0]
+        canonical_id = id_redirection_map.get(current_deck_id, current_deck_id)
+
+        # Apply remapping if this is a duplicate deck
+        if canonical_id != current_deck_id:
+            suffix = str(card_json["CardID"]).zfill(2)[-2:]
+            card_json["CardID"] = int(f"{canonical_id}{suffix}")
+            card_json["CustomDeck"] = {canonical_id: custom_deck[current_deck_id]}
+
+            with open(card_path, "w", encoding="utf-8") as f:
+                json.dump(card_json, f, indent=2, ensure_ascii=False)
+                f.write("\n")
+
+        new_deck_ids.append(card_json["CardID"])
+        if canonical_id not in final_custom_deck_registry:
+            final_custom_deck_registry[canonical_id] = card_json["CustomDeck"][
+                canonical_id
+            ]
 
     data["DeckIDs"] = new_deck_ids
-    data["CustomDeck"] = sorted_custom_deck
-
+    data["CustomDeck"] = {
+        k: final_custom_deck_registry[k]
+        for k in sorted(final_custom_deck_registry.keys(), key=int)
+    }
     return data
 
 
@@ -231,6 +296,8 @@ def process_folder_for_cleanup(root_folder_path: Path):
 
 def cleanup_everything(root_path):
     path = Path(root_path)
+
+    global_shallow_fix(path)
 
     # Process the root folder itself
     process_folder_for_cleanup(path)
