@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Dunwich Legacy\TheDunwichLegacy.2898f6\4BloodontheAltar.30684d"
+ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Circle Undone"
 
 # If set to True, the key order in the resulting JSON file will be preserved
 PRESERVE_CARD_ORDER = True
@@ -44,8 +44,14 @@ def rebuild_deck_data(
                         f"Deck data conflict in {data.get('Nickname')} / {data.get('GUID')}"
                     )
 
+    # Sort the CustomDeck by ID (numerically)
+    sorted_custom_deck = {
+        key: new_custom_deck[key] 
+        for key in sorted(new_custom_deck.keys(), key=int)
+    }
+
     data["DeckIDs"] = new_deck_ids
-    data["CustomDeck"] = new_custom_deck
+    data["CustomDeck"] = sorted_custom_deck
 
     return data
 
