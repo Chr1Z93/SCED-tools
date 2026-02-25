@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Dunwich Legacy"
+ROOT_FOLDER_PATH = r"C:\git\SCED-downloads\decomposed\campaign\The Dunwich Legacy\TheDunwichLegacy.2898f6\4BloodontheAltar.30684d"
 
 # If set to True, the key order in the resulting JSON file will be preserved
 PRESERVE_CARD_ORDER = True
@@ -176,10 +176,7 @@ def process_folder_for_cleanup(root_folder_path: Path):
             "act deck" in data["Nickname"].lower()
             or "agenda deck" in data["Nickname"].lower()
         ):
-            print("  Skipping: Detected as Act/Agenda deck.")
             continue
-
-        print("  Required keys found. Performing sort and deduplication.")
 
         # Capture the original key order before any modification to data
         original_keys = list(data.keys())
@@ -212,7 +209,6 @@ def process_folder_for_cleanup(root_folder_path: Path):
 
         if current_content == json_output:
             # Content is identical, skip writing to avoid file modification date changes
-            print(f"  Skipped saving {main_json_path.name}: No changes detected.")
             continue
 
         # Content has changed, proceed with saving
@@ -220,9 +216,9 @@ def process_folder_for_cleanup(root_folder_path: Path):
             f.write(json_output)
 
         if PRESERVE_CARD_ORDER:
-            print(f"  Saved {main_json_path.name}: Kept card order.")
+            print(f"  Updated {main_json_path.name}: Kept card order.")
         else:
-            print(f"  Saved {main_json_path.name}: Sorted cards alphabetically.")
+            print(f"  Updated {main_json_path.name}: Sorted cards alphabetically.")
 
         print("-" * 30)
 
