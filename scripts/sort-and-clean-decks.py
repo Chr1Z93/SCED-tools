@@ -61,7 +61,7 @@ def rebuild_deck_data(
 
     contained_objects = data.get("ContainedObjects_order", [])
 
-    # Phase 1: Scan all cards to build the Redirection Map (Deduplicate URLs)
+    # Scan all cards to build the Redirection Map (Deduplicate URLs)
     for filename_stem in contained_objects:
         card_path = associated_folder_path / f"{filename_stem}.json"
         if not card_path.exists():
@@ -84,7 +84,7 @@ def rebuild_deck_data(
         else:
             id_redirection_map[orig_id] = canonical_custom_decks[fingerprint]
 
-    # Phase 2: Update Card Files and Build Deck Lists
+    # Update Card Files and Build Deck Lists
     for filename_stem in contained_objects:
         card_json_path = associated_folder_path / f"{filename_stem}.json"
         if not card_json_path.exists():
@@ -112,7 +112,7 @@ def rebuild_deck_data(
         if canon_id not in final_custom_deck_registry:
             final_custom_deck_registry[canon_id] = card_data["CustomDeck"][canon_id]
 
-    # --- FINAL SORTING ---
+    # Perform sorting
     if not PRESERVE_CARD_ORDER:
         if SORT_BY_ID:
             temp_card_list.sort(key=lambda x: x[1], reverse=True)
@@ -172,7 +172,6 @@ def clean_deck(
                     keeper_mapping[file] = keeper_file
 
     # Apply keeper mapping to the new ContainedObjects list
-    # The 'DeckIDs' list remains unchanged, as we only update the file pointers.
     final_contained_objects = []
     for obj in contained_objects:
         # If the filename is a discarded file, use its keeper instead
@@ -189,20 +188,14 @@ def delete_discarded_files(discarded_files: Set[str], associated_folder_path: Pa
     if not discarded_files:
         return
 
-    print(f"Cleaning up {len(discarded_files)} discarded files...")
+    print(f"Cleaning up {len(discarded_files)} discarded card objects...")
 
-    for filename_stem in discarded_files:
-        # 1. Delete the .json file
-        json_file = associated_folder_path / f"{filename_stem}.json"
-        if json_file.exists():
-            json_file.unlink()
-            print(f"  -> Deleted: {json_file.name}")
-
-        # 2. Delete the .gmnotes file if it exists
-        gmnotes_file = associated_folder_path / f"{filename_stem}.gmnotes"
-        if gmnotes_file.exists():
-            gmnotes_file.unlink()
-            print(f"  -> Deleted: {gmnotes_file.name}")
+    for stem in discarded_files:
+        for ext in [".json", ".gmnotes", ".ttslua", ".luascriptstate"]:
+            f = associated_folder_path / f"{stem}{ext}"
+            if f.exists():
+                f.unlink()
+            print(f"  -> Deleted: {f.name}")
 
 
 def process_folder_for_cleanup(root_folder_path: Path):
