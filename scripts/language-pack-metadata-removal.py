@@ -13,11 +13,11 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = (
-    r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns"
+    r"C:\git\SCED-downloads\decomposed\language-pack"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
-KEYS_TO_KEEP = {"id"}
+KEYS_TO_KEEP = {"id"} # Move the Zoop GUID to the ID field
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
@@ -90,6 +90,11 @@ def process_files_in_directory(directory, keys_to_keep):
                                 if key not in keys_to_keep:
                                     del gmnotes[key]
                             data["GMNotes"] = json.dumps(gmnotes, indent=2)
+
+                        if "Transform" in data:
+                            for key in ["posX", "posY", "posZ", "rotX", "rotY", "rotZ"]:
+                                if key in data["Transform"]:
+                                    del data["Transform"][key]
 
                     # Get GMNotes object from file and modify it in-place
                     if filename.endswith(".gmnotes"):
