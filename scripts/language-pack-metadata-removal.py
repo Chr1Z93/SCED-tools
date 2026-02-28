@@ -13,7 +13,7 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = (
-    r"C:\git\SCED-downloads\decomposed\language-pack"
+    r"C:\git\SCED-downloads\decomposed\language-pack\Korean - Fan Campaigns"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
@@ -21,6 +21,10 @@ KEYS_TO_KEEP = {"id"} # Move the Zoop GUID to the ID field
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
+
+# Global registry to track CustomDeck ID conflicts
+# Format: { "ID_STR": (FaceURL, BackURL) }
+ID_TO_FINGERPRINT = {}
 
 
 def process_files_in_directory(directory, keys_to_keep):
@@ -93,10 +97,39 @@ def process_files_in_directory(directory, keys_to_keep):
 
                         if "Transform" in data:
                             for key in ["posX", "posY", "posZ", "rotX", "rotY", "rotZ"]:
-                                if key in data["Transform"]:
-                                    del data["Transform"][key]
+                                data["Transform"].pop(key, None)
 
-                    # Get GMNotes object from file and modify it in-place
+                        # Fix CustomDeck Conflicts
+                        custom_deck = data.get("CustomDeck")
+                        if (
+                            custom_deck
+                            and isinstance(custom_deck, dict)
+                            and len(custom_deck) > 0
+                        ):
+                            orig_id = list(custom_deck.keys())[0]
+                            info = custom_deck[orig_id]
+                            fingerprint = (info.get("FaceURL"), info.get("BackURL"))
+
+                            # Find a valid ID for this fingerprint
+                            target_id = orig_id
+                            while (
+                                target_id in ID_TO_FINGERPRINT
+                                and ID_TO_FINGERPRINT[target_id] != fingerprint
+                            ):
+                                # Conflict detected: increment ID
+                                target_id = str(int(target_id) + 1)
+
+                            ID_TO_FINGERPRINT[target_id] = fingerprint
+
+                            # If the ID changed, update CustomDeck key and CardID
+                            if target_id != orig_id:
+                                # Rename CustomDeck Key
+                                data["CustomDeck"] = {target_id: custom_deck[orig_id]}
+                                # Update CardID suffix (preserving the last 2 digits)
+                                if "CardID" in data:
+                                    suffix = str(data["CardID"]).zfill(2)[-2:]
+                                    data["CardID"] = int(f"{target_id}{suffix}")
+
                     if filename.endswith(".gmnotes"):
                         if "TtsZoopGuid" in data and "id" not in data:
                             data["id"] = data["TtsZoopGuid"]
