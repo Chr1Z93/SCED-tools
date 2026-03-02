@@ -20,6 +20,7 @@ KEY_ORDER = [
     "startsInHand",
     "startsInPlay",
     "permanent",
+    "starting",
     "weakness",
     "basicWeaknessCount",
     "classRestriction",
