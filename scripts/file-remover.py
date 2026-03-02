@@ -1,3 +1,4 @@
+# Removes all files with " copy" in the name
 import os
 
 
