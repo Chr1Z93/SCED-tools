@@ -16,7 +16,8 @@ OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
-ROW_CROP_THRESHOLD = 215
+WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
+MAX_CROP_LIMIT = 20
 OVERRIDE_EXISTING_FILES = False
 CARD_NUMBER_START = 60351  # set to 0 to skip number extracting
 
@@ -30,19 +31,35 @@ FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
 CARD_NUMBER_AREA = {"h_start": 0.96, "h_end": 0.99, "w_start": 0.84, "w_end": 0.96}
 
 
-def is_row_white(img, row_y):
-    """Returns True if the entire row at coordinate Y is white."""
-    width = img.width
+def get_content_box(img):
+    """
+    Scans from all sides to find the first non-white content.
+    Returns (left, top, right, bottom) and the offsets.
+    """
+    # Convert to grayscale to find 'white' more accurately
+    gray = img.convert("L")
+    np_img = np.array(gray)
 
-    # Crop out just that specific 1-pixel high row
-    row_img = img.crop((0, row_y, width, row_y + 1))
+    # Mask of pixels that are NOT white
+    mask = np_img < WHITE_THRESHOLD
+    coords = np.argwhere(mask)
 
-    # Convert to grayscale to make the check simple (0=black, 255=white)
-    grayscale = row_img.convert("L")
+    if coords.size == 0:
+        return None, None
 
-    # getextrema returns (min_pixel_value, max_pixel_value)
-    min_val, _ = grayscale.getextrema()
-    return min_val > ROW_CROP_THRESHOLD
+    # Find the bounding box of the content
+    y0, x0 = coords.min(axis=0)
+    y1, x1 = coords.max(axis=0) + 1
+
+    # Calculate how many pixels we are removing from each side
+    offsets = {
+        "left": x0,
+        "top": y0,
+        "right": img.width - x1,
+        "bottom": img.height - y1,
+    }
+
+    return (x0, y0, x1, y1), offsets
 
 
 def get_unique_filename(base_path, base_name, extension):
@@ -124,7 +141,8 @@ def extract_card_number(image_path, base_name):
         suffix_part = match.group(2)
 
         # Pad the number part to 3 digits and combine
-        extracted_number = f"{CARD_NUMBER_START - 1 + int(number_part):05d}{suffix_part}"
+        combined_number = CARD_NUMBER_START - 1 + int(number_part)
+        extracted_number = f"{combined_number:05d}{suffix_part}"
     else:
         extracted_number = cleaned_text  # Fallback to the fully cleaned text
 
@@ -145,30 +163,29 @@ def extract_card_number(image_path, base_name):
 def resize_and_compress(image_path):
     try:
         with Image.open(image_path) as img:
-            # Check top row & bottom row and crop if white
-            if REMOVE_WHITE_BORDERS:
-                top_offset = 0
-                bottom_offset = 0
-
-                # Check Top Row (Row 0)
-                if is_row_white(img, 0):
-                    top_offset = 1
-                    print("[INFO] Removing top white row")
-
-                # Check Bottom Row (Row height-1)
-                if is_row_white(img, img.height - 1):
-                    bottom_offset = 1
-                    print("[INFO] Removing bottom white row")
-
-                if top_offset > 0 or bottom_offset > 0:
-                    # Crop: (left, top, right, bottom)
-                    img = img.crop(
-                        (0, top_offset, img.width, img.height - bottom_offset)
-                    )
-
             # Check the output format and convert to RGB if saving as JPEG
             if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
                 img = img.convert("RGB")
+
+            # Check top row & bottom row and crop if white
+            if REMOVE_WHITE_BORDERS:
+                box, offsets = get_content_box(img)
+                # Check if any side exceeds the skip limit
+                if box and offsets:
+                    if any(val > MAX_CROP_LIMIT for val in offsets.values()):
+                        print(
+                            f"[SKIP] {os.path.basename(image_path)}: Border too large"
+                            f"(L:{offsets['left']} T:{offsets['top']} R:{offsets['right']} B:{offsets['bottom']})"
+                        )
+                        return  # Exit the function for this file
+
+                    if any(val > 0 for val in offsets.values()):
+                        # Apply crop
+                        img = img.crop(box)
+
+                        # Output Message
+                        crop_info = f"L:{offsets['left']}px, T:{offsets['top']}px, R:{offsets['right']}px, B:{offsets['bottom']}px"
+                        print(f"[INFO] Cropped {os.path.basename(image_path)}: {crop_info}")
 
             original_size = img.size
 
