@@ -1,11 +1,12 @@
 # Converts images to specified resolution, file format and file size (if JPG)
-# Handles CMYK and removes top row if white
+# Handles CMYK and removes borders if white
 # Attempts to extract card number for file name
 
 import cv2
 import os
 import numpy as np
 from PIL import Image
+import platform
 import pytesseract
 import re
 import sys
@@ -16,7 +17,7 @@ OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
-WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
+WHITE_THRESHOLD = 80  # How "white" a row/column must be to be cropped (0-255)
 MAX_CROP_LIMIT = 20
 OVERRIDE_EXISTING_FILES = False
 CARD_NUMBER_START = 60351  # set to 0 to skip number extracting
@@ -28,7 +29,8 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
-CARD_NUMBER_AREA = {"h_start": 0.96, "h_end": 0.99, "w_start": 0.84, "w_end": 0.96}
+CARD_NUMBER_AREA = {"h_start": 0.97, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
+PLATFORM = platform.system()
 
 
 def get_content_box(img):
@@ -65,9 +67,9 @@ def get_content_box(img):
 def get_unique_filename(base_path, base_name, extension):
     """Generate a unique filename by adding a numeric suffix if the file already exists."""
     counter = 1
-    output_path = f"{base_path}\\{base_name}{extension}"
+    output_path = os.path.join(base_path, f"{base_name}{extension}")
     while os.path.exists(output_path):
-        output_path = f"{base_path}\\{base_name}_{counter}{extension}"
+        output_path = os.path.join(base_path, f"{base_name}_{counter}{extension}")
         counter += 1
     return output_path
 
@@ -95,9 +97,8 @@ def calculate_new_size(original_size, target_size):
     return target_size
 
 
-def extract_card_number(image_path, base_name):
-    pil_img = Image.open(image_path).convert("RGB")
-    img = np.array(pil_img)
+def extract_card_number(img, image_path):
+    img = np.array(img.copy().convert("RGB"))
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     h, w, _ = img.shape
 
@@ -149,18 +150,44 @@ def extract_card_number(image_path, base_name):
     if len(extracted_number) > 0:
         return extracted_number
 
+    # Path manipulation
+    base_path = os.path.dirname(image_path)
+    name_start = os.path.basename(image_path)[0]
+
     # Save ROI visualization
-    roi_debug_filename = f"{base_name}_debug_roi.jpg"
-    cv2.imwrite(roi_debug_filename, debug_img)
+    roi_debug_filename = f"{name_start}_debug_roi.jpg"
+    cv2.imwrite(os.path.join(base_path, roi_debug_filename), debug_img)
     print(f"Debug: No number detected. ROI image saved as '{roi_debug_filename}'")
 
     # Save processed image
-    processed_debug_filename = f"{base_name}_debug_processed.jpg"
-    cv2.imwrite(processed_debug_filename, img)
+    processed_debug_filename = f"{name_start}_debug_processed.jpg"
+    cv2.imwrite(os.path.join(base_path, processed_debug_filename), img)
     print(f"Debug: Processed text image saved as '{processed_debug_filename}'")
 
 
+def crop_to_content(img, base_name):
+    box, offsets = get_content_box(img)
+    # Check if any side exceeds the skip limit
+    if box and offsets:
+        if any(val > MAX_CROP_LIMIT for val in offsets.values()):
+            print(
+                f"[SKIP] {base_name}: Border too large"
+                f"(L:{offsets['left']} T:{offsets['top']} R:{offsets['right']} B:{offsets['bottom']})"
+            )
+            return None  # Exit the function for this file
+
+        if any(val > 0 for val in offsets.values()):
+            # Apply crop
+            img = img.crop(box)
+
+            # Output Message
+            crop_info = f"L:{offsets['left']}px, T:{offsets['top']}px, R:{offsets['right']}px, B:{offsets['bottom']}px"
+            print(f"[INFO] Cropped {base_name}: {crop_info}")
+    return img
+
+
 def resize_and_compress(image_path):
+    base_name = os.path.basename(image_path)
     try:
         with Image.open(image_path) as img:
             # Check the output format and convert to RGB if saving as JPEG
@@ -169,23 +196,9 @@ def resize_and_compress(image_path):
 
             # Check top row & bottom row and crop if white
             if REMOVE_WHITE_BORDERS:
-                box, offsets = get_content_box(img)
-                # Check if any side exceeds the skip limit
-                if box and offsets:
-                    if any(val > MAX_CROP_LIMIT for val in offsets.values()):
-                        print(
-                            f"[SKIP] {os.path.basename(image_path)}: Border too large"
-                            f"(L:{offsets['left']} T:{offsets['top']} R:{offsets['right']} B:{offsets['bottom']})"
-                        )
-                        return  # Exit the function for this file
-
-                    if any(val > 0 for val in offsets.values()):
-                        # Apply crop
-                        img = img.crop(box)
-
-                        # Output Message
-                        crop_info = f"L:{offsets['left']}px, T:{offsets['top']}px, R:{offsets['right']}px, B:{offsets['bottom']}px"
-                        print(f"[INFO] Cropped {os.path.basename(image_path)}: {crop_info}")
+                img = crop_to_content(img, base_name)
+                if img == None:
+                    return  # skip this file if the content wasn't properly detected
 
             original_size = img.size
 
@@ -208,20 +221,24 @@ def resize_and_compress(image_path):
 
             # Define output path
             base_path = os.path.dirname(image_path)
-            base_name = os.path.splitext(os.path.basename(image_path))[0]
+            base_name_no_ext = os.path.splitext(base_name)[0]
 
-            # Attempt to extract card number
-            if OVERRIDE_EXISTING_FILES == False and CARD_NUMBER_START != 0:
-                card_number = extract_card_number(image_path, base_name)
+            # Attempt to extract card number (Windows only)
+            if (
+                PLATFORM == "Windows"
+                and OVERRIDE_EXISTING_FILES == False
+                and CARD_NUMBER_START != 0
+            ):
+                card_number = extract_card_number(img, image_path)
                 if card_number:
-                    base_name = card_number
+                    base_name_no_ext = card_number
 
             # Construct final output path
             ending = "." + FILE_ENDING[OUTPUT_FORMAT]
             if OVERRIDE_EXISTING_FILES:
-                output_path = base_path + "\\" + base_name + ending
+                output_path = os.path.join(base_path, f"{base_name_no_ext}{ending}")
             else:
-                output_path = get_unique_filename(base_path, base_name, ending)
+                output_path = get_unique_filename(base_path, base_name_no_ext, ending)
 
             if OUTPUT_FORMAT.upper() == "PNG":
                 img.save(output_path, format=OUTPUT_FORMAT)
