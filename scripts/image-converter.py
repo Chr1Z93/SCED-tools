@@ -29,7 +29,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
-CARD_NUMBER_AREA = {"h_start": 0.97, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
+CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.992, "w_start": 0.85, "w_end": 0.95}
 PLATFORM = platform.system()
 
 
