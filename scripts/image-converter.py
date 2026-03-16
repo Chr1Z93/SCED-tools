@@ -17,10 +17,10 @@ OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
 OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
-WHITE_THRESHOLD = 80  # How "white" a row/column must be to be cropped (0-255)
-MAX_CROP_LIMIT = 20
+WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
+MAX_CROP_LIMIT = 25
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 60351  # set to 0 to skip number extracting
+CARD_NUMBER_START = 60451  # set to 0 to skip number extracting
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -157,12 +157,13 @@ def extract_card_number(img, image_path):
     # Save ROI visualization
     roi_debug_filename = f"{name_start}_debug_roi.jpg"
     cv2.imwrite(os.path.join(base_path, roi_debug_filename), debug_img)
-    print(f"Debug: No number detected. ROI image saved as '{roi_debug_filename}'")
 
     # Save processed image
     processed_debug_filename = f"{name_start}_debug_processed.jpg"
     cv2.imwrite(os.path.join(base_path, processed_debug_filename), img)
-    print(f"Debug: Processed text image saved as '{processed_debug_filename}'")
+    print(
+        f"[INFO] No number detected. Saved debug images {roi_debug_filename} and '{processed_debug_filename}'"
+    )
 
 
 def crop_to_content(img, base_name):
@@ -181,8 +182,8 @@ def crop_to_content(img, base_name):
             img = img.crop(box)
 
             # Output Message
-            crop_info = f"L:{offsets['left']}px, T:{offsets['top']}px, R:{offsets['right']}px, B:{offsets['bottom']}px"
-            print(f"[INFO] Cropped {base_name}: {crop_info}")
+            # crop_info = f"L:{offsets['left']}px, T:{offsets['top']}px, R:{offsets['right']}px, B:{offsets['bottom']}px"
+            # print(f"[INFO] Cropped {base_name}: {crop_info}")
     return img
 
 
