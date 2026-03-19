@@ -1,4 +1,4 @@
-# This script will process deck objects and make sure duplicate cards are only stored once.
+# This script will process deck objects and ensure that duplicate cards are only stored once.
 # It will optionally sort the deck in reverse alphabetical order too.
 # Act / Agenda deck will be skipped.
 
