@@ -66,6 +66,22 @@ UPDATE_MAP = {
         "face": "https://steamusercontent-a.akamaihd.net/ugc/10039895077102366513/A4B27CFD64422A1055CA9DBE662A366D9FCA200F/",
         "back": "https://steamusercontent-a.akamaihd.net/ugc/15002012580281891917/C1B2C0FA4360007F36DC99707E3A240D9BE4666E/",
     },
+    "50027": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12391068993312609883/794726CEC5B3756D1B5D3E3BE0E7F25561A47D16/",
+        "back": "https://steamusercontent-a.akamaihd.net/ugc/17069649008338435964/62635A48E20471D3F643787FED8A13FC85424980/",
+    },
+    "50028": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12936548610804325764/97E6DA0BEC90BAD15DB3CCFF01526E4F4E887877/",
+        "back": "https://steamusercontent-a.akamaihd.net/ugc/9745034279007361672/459F057696808F21E9474113821517EC9FF8DC87/",
+    },
+    "50029": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12423702360779241744/AE927954BF806B09116745640249DC9D7D2F1402/",
+        "back": "https://steamusercontent-a.akamaihd.net/ugc/15799085821702995561/F6005C0A61F01E4039D2EDC7C65F88C09780FB69/",
+    },
+    "50030": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/15880137107443680826/1D59B455D33AE69AC93E14AEE419016C86FE4392/",
+        "back": "https://steamusercontent-a.akamaihd.net/ugc/16152432624879908203/F566F89A2D5DCF56928C5B12C7A110934140E4E2/",
+    },
     "50033": {
         "face": "https://steamusercontent-a.akamaihd.net/ugc/10039895077102366513/A4B27CFD64422A1055CA9DBE662A366D9FCA200F/",
         "back": "https://steamusercontent-a.akamaihd.net/ugc/16544115579536030550/DE91DA7472ECDD7656AA5831D4C42D15D2986FB3/",
@@ -89,22 +105,6 @@ UPDATE_MAP = {
     "54022": {
         "face": "https://steamusercontent-a.akamaihd.net/ugc/10039895077102366513/A4B27CFD64422A1055CA9DBE662A366D9FCA200F/",
         "back": "https://steamusercontent-a.akamaihd.net/ugc/9466813440081341621/3FAFA2163E3E2005F32D14262AB1DAFD22B5295C/",
-    },
-    "50027": {
-        "face": "https://steamusercontent-a.akamaihd.net/ugc/12391068993312609883/794726CEC5B3756D1B5D3E3BE0E7F25561A47D16/",
-        "back": "",
-    },
-    "50028": {
-        "face": "https://steamusercontent-a.akamaihd.net/ugc/12936548610804325764/97E6DA0BEC90BAD15DB3CCFF01526E4F4E887877/",
-        "back": "",
-    },
-    "50029": {
-        "face": "https://steamusercontent-a.akamaihd.net/ugc/12423702360779241744/AE927954BF806B09116745640249DC9D7D2F1402/",
-        "back": "",
-    },
-    "50030": {
-        "face": "https://steamusercontent-a.akamaihd.net/ugc/15880137107443680826/1D59B455D33AE69AC93E14AEE419016C86FE4392/",
-        "back": "",
     },
 }
 
