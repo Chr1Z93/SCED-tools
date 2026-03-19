@@ -108,23 +108,23 @@ def process_json_files():
                 # If it's not a valid JSON string, we skip it
                 continue
 
-            # Check for the "id" field in the inner GMNotes
-            inner_id = gm_notes_data.get("id")
+            # Check for the "id" field in the GMNotes
+            id = gm_notes_data.get("id")
 
-            if inner_id not in id_map:
+            if id not in id_map:
                 continue
 
             match_count += 1
 
             # Perform the Update
-            current_index = id_map[inner_id]
+            current_index = id_map[id]
             updated_data = update_json_data(data, current_index)
 
             # Save the file back
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(updated_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
-            # print(f"Successfully updated: {file} (ID: {inner_id})")
+            # print(f"Successfully updated: {file} (ID: {id})")
 
     print(f"Done! Scanned {processed_count} files, updated {match_count} files.")
 
