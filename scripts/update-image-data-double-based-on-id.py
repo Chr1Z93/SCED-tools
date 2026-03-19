@@ -2,7 +2,8 @@ import os
 import json
 
 # --- CONFIGURATION ---
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed"
+# don't touch language packs!
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\scenario"
 
 # --- MAPPING DATA ---
 UPDATE_MAP = {
