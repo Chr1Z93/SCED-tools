@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Set
 
 # Set the root folder path containing the JSON files
-ROOT_FOLDER_PATH = Path(r"C:\git\SCED-downloads\decomposed\scenario")
+ROOT_FOLDER_PATH = Path(r"C:\git\SCED-downloads\decomposed")
 
 # If set to True, the card order in the resulting JSON file will be preserved
 PRESERVE_CARD_ORDER = True

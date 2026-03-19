@@ -2,7 +2,7 @@ import os
 import json
 
 # --- CONFIGURATION ---
-TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot"
+TARGET_DIRECTORY = r"C:\git\SCED-downloads\decomposed"
 IDS_DIRECTORY = r"C:\Users\pulsc\Downloads\core encounter sets\single sided"
 NEW_FACE_URL = "https://steamusercontent-a.akamaihd.net/ugc/13243700374285212184/EA0A1926B70F720CDBC4EDC375FE76BD22E17389/"
 NEW_BACK_URL = "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/"
@@ -19,7 +19,7 @@ def get_valid_ids(folder_path):
         if name_only:
             valid_ids.append(name_only)
 
-    print(f"Loaded {len(valid_ids)} IDs.")
+    # print(f"Loaded {len(valid_ids)} IDs.")
 
     # Sorting ensures that 'id_a' always gets 00 and 'id_b' always gets 01
     return sorted(valid_ids)
@@ -58,6 +58,7 @@ def process_json_files():
     id_map = {name: i for i, name in enumerate(valid_ids)}
 
     processed_count = 0
+    last_output_count = 0
     match_count = 0
 
     for root, dirs, files in os.walk(TARGET_DIRECTORY):
@@ -66,6 +67,13 @@ def process_json_files():
                 continue
 
             processed_count += 1
+
+            if processed_count > (last_output_count + 500):
+                last_output_count = processed_count
+                print(
+                    f"Progress: Scanned {processed_count} files, updated {match_count} files."
+                )
+
             file_path = os.path.join(root, file)
 
             try:
@@ -116,7 +124,7 @@ def process_json_files():
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(updated_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
-            print(f"Successfully updated: {file} (ID: {inner_id})")
+            # print(f"Successfully updated: {file} (ID: {inner_id})")
 
     print(f"Done! Scanned {processed_count} files, updated {match_count} files.")
 
