@@ -90,6 +90,22 @@ UPDATE_MAP = {
         "face": "https://steamusercontent-a.akamaihd.net/ugc/10039895077102366513/A4B27CFD64422A1055CA9DBE662A366D9FCA200F/",
         "back": "https://steamusercontent-a.akamaihd.net/ugc/9466813440081341621/3FAFA2163E3E2005F32D14262AB1DAFD22B5295C/",
     },
+    "50027": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12391068993312609883/794726CEC5B3756D1B5D3E3BE0E7F25561A47D16/",
+        "back": "",
+    },
+    "50028": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12936548610804325764/97E6DA0BEC90BAD15DB3CCFF01526E4F4E887877/",
+        "back": "",
+    },
+    "50029": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/12423702360779241744/AE927954BF806B09116745640249DC9D7D2F1402/",
+        "back": "",
+    },
+    "50030": {
+        "face": "https://steamusercontent-a.akamaihd.net/ugc/15880137107443680826/1D59B455D33AE69AC93E14AEE419016C86FE4392/",
+        "back": "",
+    },
 }
 
 
@@ -99,8 +115,8 @@ def update_json_data(data, index):
     data["CustomDeck"] = {
         prefix: {
             "BackIsHidden": True,
-            "BackURL": UPDATE_MAP["back"],
-            "FaceURL": UPDATE_MAP["face"],
+            "BackURL": UPDATE_MAP[index]["back"],
+            "FaceURL": UPDATE_MAP[index]["face"],
             "NumHeight": 1,
             "NumWidth": 1,
             "Type": 0,
