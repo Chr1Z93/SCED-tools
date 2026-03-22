@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 # --- CONFIGURATION ---
-PATH = r"C:\Users\pulsc\Downloads\Brethren of Ash\TTS ready\double sided back"
+PATH = r"C:\Users\pulsc\Downloads\Brethren of Ash\TTS ready\double sided front"
 COLUMNS = 10
 ROWS = 4
 
