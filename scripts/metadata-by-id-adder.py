@@ -1,4 +1,5 @@
 # Updates objects with metadata (requires the name to be the ID)
+# Note: BoA required a 500 ID offset
 
 import json
 import pandas as pd
@@ -7,7 +8,7 @@ import re
 # Set the path to the TTS savegame JSON file
 SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Brethren of Ash.json"
 METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-boa.xlsx"
-CYCLE_NAME = "Brethren of Ash"
+CYCLE_NAME = "Core 2026"
 
 
 # Function to clean up trailing commas in JSON strings
@@ -15,6 +16,9 @@ def clean_json(json_str):
     json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
     return json_str
 
+
+def offset_id(id):
+    return str(int(id)-500)
 
 # Load metadata from Excel and validate JSON
 def load_metadata(file):
@@ -29,7 +33,7 @@ def load_metadata(file):
             if pd.notna(row["Card Description"])
             else ""
         )
-        id = row["ID"].strip()
+        id = offset_id(row["ID"].strip())
         metadata = clean_json(row["Metadata"].strip())
 
         try:
@@ -84,6 +88,9 @@ def set_metadata(obj, md_value):
 
     # Force correct type data
     metadata_dict["type"] = md_value["Type"]
+
+    # Correct ID by offset
+    metadata_dict["id"] = offset_id(metadata_dict["id"])
 
     obj["GMNotes"] = json.dumps(metadata_dict)
 
