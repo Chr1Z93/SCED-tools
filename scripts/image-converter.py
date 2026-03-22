@@ -19,8 +19,12 @@ OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
 MAX_CROP_LIMIT = 25
+
+# (left, top, right, bottom) pixels to remove from each side (after rotation)
+FIXED_CROP_OFFSETS = None
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 60451  # set to 0 to skip number extracting
+CARD_NUMBER_START = 60551  # set to 0 to skip number extracting
+OUTPUT_FOLDER = ""  # Use "" (empty string) to save in the same folder as the source
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -198,7 +202,7 @@ def resize_and_compress(image_path):
             # Check top row & bottom row and crop if white
             if REMOVE_WHITE_BORDERS:
                 img = crop_to_content(img, base_name)
-                if img == None:
+                if img is None:
                     return  # skip this file if the content wasn't properly detected
 
             original_size = img.size
@@ -217,17 +221,37 @@ def resize_and_compress(image_path):
                 else:
                     output_size = calculate_new_size(original_size, OUTPUT_PORTRAIT)
 
+            # Maybe crop image with preference
+            if FIXED_CROP_OFFSETS:
+                left, top, right, bottom = FIXED_CROP_OFFSETS # type: ignore
+                # Calculate the crop box: (left, top, width-right, height-bottom)
+                width, height = img.size
+                img = img.crop((left, top, width - right, height - bottom))
+
             # Resize image to exact dimensions (without keeping aspect ratio)
             img = img.resize(output_size, Image.Resampling.LANCZOS)
 
-            # Define output path
-            base_path = os.path.dirname(image_path)
+            # Determine which folder to use
+            if OUTPUT_FOLDER:
+                # If it's a relative path, put it inside the source image's directory
+                if not os.path.isabs(OUTPUT_FOLDER):
+                    target_dir = os.path.join(
+                        os.path.dirname(image_path), OUTPUT_FOLDER
+                    )
+                else:
+                    target_dir = OUTPUT_FOLDER
+
+                if not os.path.exists(target_dir):
+                    os.makedirs(target_dir)
+            else:
+                target_dir = os.path.dirname(image_path)
+
             base_name_no_ext = os.path.splitext(base_name)[0]
 
             # Attempt to extract card number (Windows only)
             if (
                 PLATFORM == "Windows"
-                and OVERRIDE_EXISTING_FILES == False
+                and not OVERRIDE_EXISTING_FILES
                 and CARD_NUMBER_START != 0
             ):
                 card_number = extract_card_number(img, image_path)
@@ -237,9 +261,9 @@ def resize_and_compress(image_path):
             # Construct final output path
             ending = "." + FILE_ENDING[OUTPUT_FORMAT]
             if OVERRIDE_EXISTING_FILES:
-                output_path = os.path.join(base_path, f"{base_name_no_ext}{ending}")
+                output_path = os.path.join(target_dir, f"{base_name_no_ext}{ending}")
             else:
-                output_path = get_unique_filename(base_path, base_name_no_ext, ending)
+                output_path = get_unique_filename(target_dir, base_name_no_ext, ending)
 
             if OUTPUT_FORMAT.upper() == "PNG":
                 img.save(output_path, format=OUTPUT_FORMAT)
@@ -272,6 +296,10 @@ def process_folder(folder_path):
     supported_extensions = (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff")
 
     for root, _, files in os.walk(folder_path):
+        # Prevent processing the output folder if it's inside the source folder
+        if OUTPUT_FOLDER and OUTPUT_FOLDER in root:
+            continue
+
         for file_name in files:
             if file_name.lower().endswith(supported_extensions):
                 file_path = os.path.join(root, file_name)
