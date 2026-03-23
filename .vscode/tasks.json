@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TTS: Update Scripts",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "${workspaceFolder}/.vscode/update-scripts.py",
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
