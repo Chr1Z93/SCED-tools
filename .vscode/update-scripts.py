@@ -50,7 +50,7 @@ def recompile_script(bundled_code):
 
         source_path = find_source_file(module_name)
         if source_path:
-            print(f"  -> Refreshing: {module_name}")
+            # print(f"  -> Refreshing: {module_name}")
             with open(source_path, "r", encoding="utf-8") as f:
                 fresh_content = f.read()
 
@@ -103,7 +103,7 @@ def communicate_with_tts():
 
     # Push updates back to TTS
     if updated_states:
-        print(f"\nPushing updates for {len(updated_states)} objects...")
+        print(f"Pushing updates for {len(updated_states)} object{'s' if len(updated_states) != 1 else ''}...")
         update_msg = {"messageID": 1, "scriptStates": updated_states}
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, TTS_LISTEN_PORT))
