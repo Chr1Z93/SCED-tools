@@ -156,7 +156,7 @@ def extract_card_number(img, image_path):
 
     # Path manipulation
     base_path = os.path.dirname(image_path)
-    name_start = os.path.basename(image_path)[0]
+    name_start = os.path.basename(image_path)
 
     # Save ROI visualization
     roi_debug_filename = f"{name_start}_debug_roi.jpg"
