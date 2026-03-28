@@ -10,12 +10,14 @@ import platform
 import pytesseract
 import re
 import sys
+from PIL import Image, ImageCms
+
 
 # Configuration
 ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # only used for JPEGs
-OUTPUT_FORMAT = "JPEG"  # e.g. PNG or JPEG
+OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG
 REMOVE_WHITE_BORDERS = True
 WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
 MAX_CROP_LIMIT = 25
@@ -23,7 +25,7 @@ MAX_CROP_LIMIT = 25
 # (left, top, right, bottom) pixels to remove from each side (after rotation)
 FIXED_CROP_OFFSETS = None
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 60551  # set to 0 to skip number extracting
+CARD_NUMBER_START = 12001  # set to 0 to skip number extracting
 OUTPUT_FOLDER = ""  # Use "" (empty string) to save in the same folder as the source
 
 # TESSERACT PATH (Windows Only)
@@ -32,9 +34,33 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 # Data
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
-FILE_ENDING = {"PNG": "png", "JPEG": "jpg"}
+FILE_ENDING = {"PNG": "png", "JPEG": "jpg", "WEBP": "webp"}
 CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.992, "w_start": 0.85, "w_end": 0.95}
 PLATFORM = platform.system()
+
+
+def safe_convert_to_rgb(img):
+    if img.mode == "CMYK":
+        try:
+            cmyk_profile = "CGATS21_CRPC7.icc"
+            srgb_profile = "sRGB_ICC_v4_Appearance.icc"
+            
+            # Attempt the high-quality conversion
+            converted = ImageCms.profileToProfile(
+                img, cmyk_profile, srgb_profile, outputMode="RGB"
+            )
+            
+            # If the tool returned something valid, use it
+            if converted:
+                return converted
+                
+        except Exception as e:
+            print(f"[INFO] ICC Profile conversion failed, using basic conversion: {e}")
+            # If it fails (e.g. profile files not found), it falls through to the line below
+    
+    # This is the "Safety Net": it handles non-CMYK images 
+    # AND CMYK images where the profile conversion failed.
+    return img.convert("RGB")
 
 
 def get_content_box(img):
@@ -195,9 +221,7 @@ def resize_and_compress(image_path):
     base_name = os.path.basename(image_path)
     try:
         with Image.open(image_path) as img:
-            # Check the output format and convert to RGB if saving as JPEG
-            if OUTPUT_FORMAT == "JPEG" and (img.mode == "RGBA" or img.mode == "CMYK"):
-                img = img.convert("RGB")
+            img = safe_convert_to_rgb(img)
 
             # Check top row & bottom row and crop if white
             if REMOVE_WHITE_BORDERS:
@@ -223,7 +247,7 @@ def resize_and_compress(image_path):
 
             # Maybe crop image with preference
             if FIXED_CROP_OFFSETS:
-                left, top, right, bottom = FIXED_CROP_OFFSETS # type: ignore
+                left, top, right, bottom = FIXED_CROP_OFFSETS  # type: ignore
                 # Calculate the crop box: (left, top, width-right, height-bottom)
                 width, height = img.size
                 img = img.crop((left, top, width - right, height - bottom))
@@ -269,9 +293,12 @@ def resize_and_compress(image_path):
                 img.save(output_path, format=OUTPUT_FORMAT)
             else:
                 # Save with compression to ensure file size is under MAX_FILE_SIZE_KB
+                # WebP and JPEG both use the 'quality' parameter
                 quality = 100
                 while quality > 50:
-                    img.save(output_path, format=OUTPUT_FORMAT, quality=quality)
+                    img.save(
+                        output_path, format=OUTPUT_FORMAT, quality=quality, method=6
+                    )
                     file_size_kb = os.path.getsize(output_path) / 1024
                     if file_size_kb <= MAX_FILE_SIZE_KB:
                         break
