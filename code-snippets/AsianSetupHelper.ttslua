@@ -1,5 +1,3 @@
-local PlayAreaApi = require("playarea/PlayAreaApi")
-
 SOURCE_DECK_GUID  = "3d5b6e"
 
 -- play area positions, defined via "grid"
@@ -28,6 +26,9 @@ function onLoad()
 end
 
 function setup()
+  local PlayArea = getObjectFromGUID("721ba2")
+  if not PlayArea then printToAll("Playarea not found!", "Red") return end
+
   local deck = getObjectFromGUID(SOURCE_DECK_GUID)
   if not deck then printToAll("Source deck not found!", "Red") return end
 
@@ -36,7 +37,7 @@ function setup()
   for i = 8, 1, -1 do
     deck.takeObject({
       index    = i,
-      position = PlayAreaApi.gridToWorld(TARGET_GRIDS[i]),
+      position = PlayArea.call("gridToWorld",TARGET_GRIDS[i]),
       smooth   = true
     })
   end
