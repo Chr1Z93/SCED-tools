@@ -1,0 +1,43 @@
+local PlayAreaApi = require("playarea/PlayAreaApi")
+
+SOURCE_DECK_GUID  = "3d5b6e"
+
+-- play area positions, defined via "grid"
+TARGET_GRIDS      = {
+  [1] = { x = 0, y = 1 },
+  [2] = { x = 1, y = 1 },
+  [3] = { x = 1, y = 0 },
+  [4] = { x = 1, y = -1 },
+  [5] = { x = 0, y = -1 },
+  [6] = { x = -1, y = -1 },
+  [7] = { x = -1, y = 0 },
+  [8] = { x = -1, y = -1 },
+}
+
+function onLoad()
+  self.createButton({
+    label          = "Set Up",
+    click_function = "setup",
+    function_owner = self,
+    position       = { 0, 0.1, 0 },
+    height         = 120,
+    width          = 400,
+    scale          = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size      = 100
+  })
+end
+
+function setup()
+  local deck = getObjectFromGUID(SOURCE_DECK_GUID)
+  if not deck then printToAll("Source deck not found!", "Red") return end
+
+  deck.shuffle()
+
+  for i = 8, 1, -1 do
+    deck.takeObject({
+      index    = i,
+      position = PlayAreaApi.gridToWorld(TARGET_GRIDS[i]),
+      smooth   = true
+    })
+  end
+end
