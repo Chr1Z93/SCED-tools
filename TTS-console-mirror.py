@@ -25,10 +25,39 @@ def listener():
                 if data:
                     try:
                         msg = json.loads(data.decode("utf-8"))
-                        if msg.get("messageID") == 2:
+                        m_id = msg.get("messageID")
+
+                        # Debugging
+                        # print(f"messageID: {m_id}")
+
+                        # Print/Debug (ID 2)
+                        if m_id == 2:
                             print(f"\r[TTS]: {msg.get('message')}\n> ", end="")
-                        elif msg.get("messageID") == 3:
+
+                        # Errors (ID 3)
+                        elif m_id == 3:
                             print(f"\r[ERR]: {msg.get('error')}\n> ", end="")
+
+                        # Custom Messages (ID 4)
+                        elif m_id == 4:
+                            custom = msg.get("customMessage")
+                            print(f"\r[CUSTOM]: {custom}\n> ", end="")
+
+                        # Return Values (ID 5)
+                        elif m_id == 5:
+                            print(f"\r[RETURN]: {msg.get('returnValue')}\n> ", end="")
+
+                        # Game Saved (ID 6)
+                        elif m_id == 6:
+                            print(f"\r[EVENT]: Game Saved\n> ", end="")
+
+                        # Object Created (ID 7)
+                        elif m_id == 7:
+                            print(
+                                f"\r[NEW]: Object Created (GUID: {msg.get('guid')})\n> ",
+                                end="",
+                            )
+
                     except:
                         pass
 
@@ -42,11 +71,6 @@ def send_command(script_code):
             s.sendall(json.dumps(payload).encode("utf-8"))
     except ConnectionRefusedError:
         print(f"\r[!] Connection failed. Is TTS running?\n> ", end="")
-
-
-def end_session():
-    print("\nExiting...")
-    sys.exit(0)
 
 
 if __name__ == "__main__":
@@ -68,7 +92,7 @@ if __name__ == "__main__":
 
             # --- Internal Commands ---
             if user_input == "exit":
-                end_session()
+                sys.exit(0)
 
             elif user_input == "help":
                 print("\nInternal Commands:")
@@ -90,4 +114,4 @@ if __name__ == "__main__":
                 send_command(user_input)
 
     except KeyboardInterrupt:
-        end_session()
+        sys.exit(0)
