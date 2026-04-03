@@ -47,8 +47,16 @@ def listener():
                         msg = json.loads(data.decode("utf-8"))
                         m_id = msg.get("messageID")
 
-                        # ID 0 & 1: Script Data
-                        if m_id in [0, 1]:
+                        if m_id == 0:
+                            states = msg.get("scriptStates", [])
+                            obj = states[0]
+                            sync_file(
+                                obj["name"],
+                                obj["script"],
+                                obj["guid"],
+                                silent=False,
+                            )
+                        elif m_id == 1:
                             states = msg.get("scriptStates", [])
                             found_target = False
 
@@ -66,9 +74,8 @@ def listener():
                             state["waiting_for_pull"] = False
                             if not found_target:
                                 print(
-                                    f"[ERR] Received {len(states)} scripts, but didn't find target."
+                                    f"[ERR] Couldn't find target (received{len(states)} scripts)"
                                 )
-
                         elif m_id == 2:
                             print(f"[TTS] {msg.get('message')}")
                         elif m_id == 3:
@@ -76,7 +83,7 @@ def listener():
                         elif m_id == 5:
                             print(f"[RET] {msg.get('returnValue')}")
                         elif m_id == 7:
-                            print(f"[NEW] Object Created ({msg.get('guid')})")
+                            print(f"[NEW] Object created ({msg.get('guid')})")
                     except:
                         pass
 
@@ -90,14 +97,14 @@ def get_script_path(name, guid):
 def sync_file(name, content, guid, silent=True):
     """Writes the script to disk and returns the path."""
     file_path = get_script_path(name, guid)
-    with open(file_path, "w", encoding="utf-8") as f:
+    with open(file_path, "w", encoding="utf-8", newline="") as f:
         f.write(content)
 
     if not silent:
         state["temp_file"] = file_path
         state["temp_guid"] = guid
         open_file(file_path)
-        print(f"[SYS] Received script, file ready at: {file_path}")
+        print(f"[SYS] Script for {name} ({guid}) loaded.")
 
     return file_path
 
@@ -190,7 +197,7 @@ def send_help():
     print("  exit          - Clean up temp files and close.")
 
     print("\n WORKFLOW:")
-    print("  1. In TTS: Right-click object -> Scripting Editor.")
+    print("  1. In TTS:  Right-click object -> Scripting Editor.")
     print("  2. In Code: Edit the file that just opened.")
     print("  3. In Tool: Type 'push' to live-reload the object.")
 
