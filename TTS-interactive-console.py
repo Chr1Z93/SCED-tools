@@ -8,9 +8,6 @@ import sys
 import tempfile
 import threading
 
-from prompt_toolkit import PromptSession
-from prompt_toolkit.patch_stdout import patch_stdout
-
 # Configuration
 HOST = "127.0.0.1"
 TTS_LISTEN_PORT = 39999
@@ -19,7 +16,12 @@ TEMP_DIR = tempfile.gettempdir()
 PLATFORM = platform.system()
 
 # State Management
-state = {"target_guid": "-1", "temp_file": None, "temp_guid": None}
+state = {
+    "target_guid": "-1",
+    "temp_file": None,
+    "temp_guid": None,
+    "waiting_for_pull": False,
+}
 
 
 def listener():
@@ -57,10 +59,11 @@ def listener():
                                         obj["name"],
                                         obj["script"],
                                         obj["guid"],
-                                        silent=False,
+                                        silent=not state["waiting_for_pull"],
                                     )
                                     found_target = True
 
+                            state["waiting_for_pull"] = False
                             if not found_target:
                                 print(
                                     f"[ERR] Received {len(states)} scripts, but didn't find target."
@@ -94,9 +97,7 @@ def sync_file(name, content, guid, silent=True):
         state["temp_file"] = file_path
         state["temp_guid"] = guid
         open_file(file_path)
-        print(f"[EDIT] Received script for '{name}' ({guid})")
-        print(f"[EDIT] File ready at: {file_path}")
-        print(f"[EDIT] Type 'push' to send changes back to TTS.")
+        print(f"[SYS] Received script, file ready at: {file_path}")
 
     return file_path
 
@@ -128,7 +129,7 @@ def send_reload(global_script=None):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, TTS_LISTEN_PORT))
             s.sendall(json.dumps(payload).encode("utf-8"))
-        print("[SYSTEM] Reload command sent to TTS (Save & Play)")
+        print("[SYS] Reload command sent to TTS (Save & Play)")
     except Exception as e:
         print(f"[ERR] Reload failed: {e}")
 
@@ -138,13 +139,14 @@ def send_pull():
     Sends Message ID 0 to TTS.
     TTS will respond by sending ALL scripts (ID 1) to our listener.
     """
-    payload = {"messageID": 0}
+    state["waiting_for_pull"] = True
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, TTS_LISTEN_PORT))
-            s.sendall(json.dumps(payload).encode("utf-8"))
-        print("[SYSTEM] Requesting script from TTS...")
+            s.sendall(json.dumps({"messageID": 0}).encode("utf-8"))
+        print("[SYS] Requesting script from TTS...")
     except Exception as e:
+        state["waiting_for_pull"] = False
         print(f"[ERR] Pull failed: {e}")
 
 
@@ -217,7 +219,7 @@ def send_push():
                 f"end"
             )
             send_command(reload_cmd, target_override="-1")
-            print(f"[SYSTEM] Pushed updates to {state['temp_guid']}.")
+            print(f"[SYS] Pushed updates to {state['temp_guid']}.")
     else:
         print("[ERR] No temp file found. Pull a script first.")
 
@@ -227,54 +229,45 @@ def remove_temp_file():
         os.remove(state["temp_file"])
 
 
-def get_toolbar():
-    file_name = os.path.basename(state["temp_file"]) if state["temp_file"] else "None"
-    return f" [TARGET: '{state["target_guid"]}'] | [ACTIVE: {file_name}] | 'exit' to quit"
-
-
 if __name__ == "__main__":
-    session = PromptSession(erase_when_done=True)
-
     # Start the listener in the background
     threading.Thread(target=listener, daemon=True).start()
 
     print("=" * 50)
     print("           TTS INTERACTIVE CONSOLE")
     print("-" * 50)
-    print("Type 'help' for commands, 'exit' to close")
+    print("Type 'help' for info, 'exit' to close")
     print("or enter Lua code to execute in TTS.")
     print("=" * 50)
 
-    with patch_stdout():
+    try:
         while True:
-            try:
-                user_input = session.prompt("", bottom_toolbar=get_toolbar).strip()
-                if not user_input:
-                    continue
+            user_input = input().strip()
+            if not user_input:
+                continue
 
-                parts = user_input.lower().split()
+            parts = user_input.lower().split()
 
-                # --- Internal Commands ---
-                if user_input == "exit":
-                    remove_temp_file()
-                    sys.exit(0)
-                elif user_input == "reload":
-                    send_reload()
-                elif user_input == "help":
-                    send_help()
-                elif user_input == "pull":
-                    send_pull()
-                elif user_input == "push":
-                    send_push()
-                elif parts[0] == "target":
-                    state["target_guid"] = (
-                        "-1" if len(parts) < 2 or parts[1] == "global" else parts[1]
-                    )
-                    print(f"[SYSTEM] Target: {state['target_guid']}")
-
-                # --- Send to TTS ---
-                else:
-                    send_command(user_input)
-
-            except KeyboardInterrupt:
+            if user_input == "exit":
+                remove_temp_file()
                 sys.exit(0)
+            elif user_input == "reload":
+                send_reload()
+            elif user_input == "help":
+                send_help()
+            elif user_input == "pull":
+                send_pull()
+            elif user_input == "push":
+                send_push()
+            elif parts[0] == "target":
+                state["target_guid"] = (
+                    "-1" if len(parts) < 2 or parts[1] == "global" else parts[1]
+                )
+                print(f"[SYS] Target: {state['target_guid']}")
+
+            # --- Send to TTS ---
+            else:
+                send_command(user_input)
+
+    except KeyboardInterrupt:
+        sys.exit(0)
