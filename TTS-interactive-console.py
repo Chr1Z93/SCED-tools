@@ -8,6 +8,9 @@ import sys
 import tempfile
 import threading
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.patch_stdout import patch_stdout
+
 # Configuration
 HOST = "127.0.0.1"
 TTS_LISTEN_PORT = 39999
@@ -195,7 +198,43 @@ def send_help():
     print("=" * 50 + "\n")
 
 
+def send_push():
+    if state["temp_file"] and os.path.exists(state["temp_file"]):
+        with open(state["temp_file"], "r", encoding="utf-8") as f:
+            updated_script = f.read()
+
+        if state["temp_guid"] == "-1":
+            send_reload(updated_script)
+        else:
+            # Use [====[ to avoid collisions with scripts containing [[ or ]]
+            reload_cmd = (
+                f"local obj = getObjectFromGUID('{state['temp_guid']}') "
+                f"if obj then "
+                f"  obj.setLuaScript([====[{updated_script}]====]) "
+                f"  obj.reload() "
+                f"else "
+                f"  print('Push failed: Object {state['temp_guid']} no longer exists') "
+                f"end"
+            )
+            send_command(reload_cmd, target_override="-1")
+            print(f"[SYSTEM] Pushed updates to {state['temp_guid']}.")
+    else:
+        print("[ERR] No temp file found. Pull a script first.")
+
+
+def remove_temp_file():
+    if state["temp_file"] and os.path.exists(state["temp_file"]):
+        os.remove(state["temp_file"])
+
+
+def get_toolbar():
+    file_name = os.path.basename(state["temp_file"]) if state["temp_file"] else "None"
+    return f" [TARGET: '{state["target_guid"]}'] | [ACTIVE: {file_name}] | 'exit' to quit"
+
+
 if __name__ == "__main__":
+    session = PromptSession(erase_when_done=True)
+
     # Start the listener in the background
     threading.Thread(target=listener, daemon=True).start()
 
@@ -206,58 +245,36 @@ if __name__ == "__main__":
     print("or enter Lua code to execute in TTS.")
     print("=" * 50)
 
-    try:
+    with patch_stdout():
         while True:
-            user_input = input("> ").strip()
-            if not user_input:
-                continue
+            try:
+                user_input = session.prompt("", bottom_toolbar=get_toolbar).strip()
+                if not user_input:
+                    continue
 
-            parts = user_input.lower().split()
+                parts = user_input.lower().split()
 
-            # --- Internal Commands ---
-            if user_input == "exit":
-                # Clean up temp file on exit
-                if state["temp_file"] and os.path.exists(state["temp_file"]):
-                    os.remove(state["temp_file"])
-                sys.exit(0)
-            elif user_input == "reload":
-                send_reload()
-            elif user_input == "help":
-                send_help()
-            elif user_input == "pull":
-                send_pull()
-            elif user_input == "push":
-                if state["temp_file"] and os.path.exists(state["temp_file"]):
-                    with open(state["temp_file"], "r", encoding="utf-8") as f:
-                        updated_script = f.read()
+                # --- Internal Commands ---
+                if user_input == "exit":
+                    remove_temp_file()
+                    sys.exit(0)
+                elif user_input == "reload":
+                    send_reload()
+                elif user_input == "help":
+                    send_help()
+                elif user_input == "pull":
+                    send_pull()
+                elif user_input == "push":
+                    send_push()
+                elif parts[0] == "target":
+                    state["target_guid"] = (
+                        "-1" if len(parts) < 2 or parts[1] == "global" else parts[1]
+                    )
+                    print(f"[SYSTEM] Target: {state['target_guid']}")
 
-                    if state["temp_guid"] == "-1":
-                        send_reload(updated_script)
-                    else:
-                        # Use [====[ to avoid collisions with scripts containing [[ or ]]
-                        reload_cmd = (
-                            f"local obj = getObjectFromGUID('{state['temp_guid']}') "
-                            f"if obj then "
-                            f"  obj.setLuaScript([====[{updated_script}]====]) "
-                            f"  obj.reload() "
-                            f"else "
-                            f"  print('Push failed: Object {state['temp_guid']} no longer exists') "
-                            f"end"
-                        )
-                        send_command(reload_cmd, target_override="-1")
-                        print(f"[SYSTEM] Pushed updates to {state['temp_guid']}.")
+                # --- Send to TTS ---
                 else:
-                    print("[ERR] No temp file found. Pull a script first.")
+                    send_command(user_input)
 
-            elif parts[0] == "target":
-                state["target_guid"] = (
-                    "-1" if len(parts) < 2 or parts[1] == "global" else parts[1]
-                )
-                print(f"[SYSTEM] Target: {state['target_guid']}")
-
-            # --- Send to TTS ---
-            else:
-                send_command(user_input)
-
-    except KeyboardInterrupt:
-        sys.exit(0)
+            except KeyboardInterrupt:
+                sys.exit(0)
