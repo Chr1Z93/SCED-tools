@@ -16,6 +16,55 @@ PRESERVE_CARD_ORDER = True
 SORT_BY_ID = True
 
 
+def get_metadata_obj(file_path: Path) -> Dict[str, Any]:
+    """Helper to load .gmnotes metadata if it exists."""
+    gmnotes_file = file_path.with_suffix(".gmnotes")
+
+    if gmnotes_file.exists():
+        with open(gmnotes_file, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return {}
+
+    if file_path.exists():
+        with open(file_path, "r", encoding="utf-8") as f:
+            try:
+                data = json.load(f)
+                raw_notes = data.get("GMNotes", "")
+                if isinstance(raw_notes, str) and (
+                    raw_notes.startswith("{") or raw_notes.startswith("[")
+                ):
+                    return json.loads(raw_notes)
+                return {"type": raw_notes}
+            except (json.JSONDecodeError, TypeError):
+                return {}
+    return {}
+
+
+def is_act_or_agenda(data: Dict[str, Any], json_path: Path) -> bool:
+    """Checks if the deck is an Act or Agenda deck"""
+    # Check Deck Nickname
+    name = data.get("Nickname", "").lower()
+    if "act deck" in name or "agenda deck" in name:
+        return True
+
+    # Check Metadata of contained objects
+    associated_folder = json_path.parent / json_path.stem
+
+    if associated_folder.is_dir():
+        contained_names = data.get("ContainedObjects_order", [])
+        for card_stem in contained_names:
+            # Construct path to the card data: folder/cardname.json
+            card_path = associated_folder / f"{card_stem}.json"
+            card_meta = get_metadata_obj(card_path)
+
+            if str(card_meta.get("type", "")) in ["Act", "Agenda"]:
+                return True
+
+    return False
+
+
 def global_shallow_fix(root_path: Path):
     """Ensures every card's CardID matches its first CustomDeck key."""
     print(f"Running global shallow fix on: {root_path}")
@@ -51,7 +100,7 @@ def global_shallow_fix(root_path: Path):
 
 
 def rebuild_deck_data(
-    data: Dict[str, Any], associated_folder_path: Path
+    data: Dict[str, Any], associated_folder_path: Path, skip_sort: bool = False
 ) -> Dict[str, Any]:
     """Generates a fresh table for 'CustomDeck' and 'DeckIDs' fields."""
     canonical_custom_decks = {}  # (FaceURL, BackURL) -> canonical_id_str
@@ -112,8 +161,8 @@ def rebuild_deck_data(
         if canon_id not in final_custom_deck_registry:
             final_custom_deck_registry[canon_id] = card_data["CustomDeck"][canon_id]
 
-    # Perform sorting
-    if not PRESERVE_CARD_ORDER:
+    # Skip sorting if the deck is Act/Agenda or global flag is set
+    if not (PRESERVE_CARD_ORDER or skip_sort):
         if SORT_BY_ID:
             temp_card_list.sort(key=lambda x: x[1], reverse=True)
         else:
@@ -217,12 +266,8 @@ def process_folder_for_cleanup(root_folder_path: Path):
         if "ContainedObjects_order" not in data or not "DeckIDs" in data:
             continue
 
-        # Skip Act / Agenda based on Nickname
-        if "Nickname" in data and (
-            "act deck" in data["Nickname"].lower()
-            or "agenda deck" in data["Nickname"].lower()
-        ):
-            continue
+        # Skip sorting for Act / Agenda decks
+        skip_sorting_for_this_file = is_act_or_agenda(data, main_json_path)
 
         # Capture the original key order before any modification to data
         original_keys = list(data.keys())
@@ -231,7 +276,11 @@ def process_folder_for_cleanup(root_folder_path: Path):
         updated_data, discarded_files = clean_deck(data)
 
         # Ensure correct deck data by rebuilding it (handles consolidation and final sort)
-        updated_data = rebuild_deck_data(updated_data, associated_folder_path)
+        updated_data = rebuild_deck_data(
+            updated_data,
+            associated_folder_path,
+            skip_sorting_for_this_file,
+        )
 
         # Delete the discarded files
         delete_discarded_files(discarded_files, associated_folder_path)
@@ -261,15 +310,14 @@ def process_folder_for_cleanup(root_folder_path: Path):
         with open(main_json_path, "w", encoding="utf-8") as f:
             f.write(json_output)
 
-        if PRESERVE_CARD_ORDER:
-            print(f"  Updated {main_json_path.name}: Kept card order.")
+        feedbackStr = f"  Updated {main_json_path.name}: "
+        if PRESERVE_CARD_ORDER or skip_sorting_for_this_file:
+            print(f"{feedbackStr}Kept card order.")
         else:
             if SORT_BY_ID:
-                print(
-                    f"  Updated {main_json_path.name}: Sorted cards by internal CardID."
-                )
+                print(f"{feedbackStr}Sorted cards by internal CardID.")
             else:
-                print(f"  Updated {main_json_path.name}: Sorted cards alphabetically.")
+                print(f"{feedbackStr}Sorted cards alphabetically.")
 
         print("-" * 30)
 
