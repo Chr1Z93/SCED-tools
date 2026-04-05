@@ -1,6 +1,5 @@
 # This script will process deck objects and ensure that duplicate cards are only stored once.
 # It will optionally sort the deck in reverse alphabetical order too.
-# Act / Agenda deck will be skipped.
 
 import json
 from pathlib import Path
@@ -103,14 +102,14 @@ def rebuild_deck_data(
     data: Dict[str, Any], associated_folder_path: Path, skip_sort: bool = False
 ) -> Dict[str, Any]:
     """Generates a fresh table for 'CustomDeck' and 'DeckIDs' fields."""
-    canonical_custom_decks = {}  # (FaceURL, BackURL) -> canonical_id_str
-    id_redirection_map = {}  # original_id_str -> canonical_id_str
+    url_to_canon_id = {} # Maps (FaceURL, BackURL) -> canonical_id_str
+    id_redirection_map = {} # Maps filename_stem -> canonical_id_str
     temp_card_list = []  # List of (filename, card_id)
     final_custom_deck_registry = {}
 
     contained_objects = data.get("ContainedObjects_order", [])
 
-    # Scan all cards to build the Redirection Map (Deduplicate URLs)
+    # Build the Redirection Map based on URLs
     for filename_stem in contained_objects:
         card_path = associated_folder_path / f"{filename_stem}.json"
         if not card_path.exists():
@@ -123,15 +122,28 @@ def rebuild_deck_data(
         if not card_custom_deck:
             continue
 
+        # Get the first ID and its data
         orig_id = list(card_custom_deck.keys())[0]
         info = card_custom_deck[orig_id]
         fingerprint = (info.get("FaceURL"), info.get("BackURL"))
 
-        if fingerprint not in canonical_custom_decks:
-            canonical_custom_decks[fingerprint] = orig_id
-            id_redirection_map[orig_id] = orig_id
+        if fingerprint not in url_to_canon_id:
+            # If this URL pair is new, check if the original ID is already taken
+            if orig_id in final_custom_deck_registry:
+                # Collision! Generate a new ID (highest current ID + 1)
+                existing_ids = [int(k) for k in final_custom_deck_registry.keys()]
+                new_id = str(max(existing_ids) + 1) if existing_ids else orig_id
+                canon_id = new_id
+            else:
+                canon_id = orig_id
+
+            url_to_canon_id[fingerprint] = canon_id
+            final_custom_deck_registry[canon_id] = info
         else:
-            id_redirection_map[orig_id] = canonical_custom_decks[fingerprint]
+            # We've seen this art before, use the ID assigned to it
+            canon_id = url_to_canon_id[fingerprint]
+
+        id_redirection_map[filename_stem] = canon_id
 
     # Update Card Files and Build Deck Lists
     for filename_stem in contained_objects:
@@ -142,24 +154,31 @@ def rebuild_deck_data(
         with open(card_json_path, "r", encoding="utf-8") as f:
             card_data = json.load(f)
 
-        orig_id = list(card_data["CustomDeck"].keys())[0]
-        canon_id = id_redirection_map[orig_id]
+        canon_id = id_redirection_map[filename_stem]
 
         # Update the card's internal ID if it redirected to a canonical deck
-        suffix = str(card_data["CardID"]).zfill(2)[-2:]
+        suffix = str(card_data.get("CardID", "00")).zfill(2)[-2:]
         new_card_id = int(f"{canon_id}{suffix}")
 
-        if card_data["CardID"] != new_card_id:
+        # Update the card file if necessary
+        needs_write = False
+        if card_data.get("CardID") != new_card_id:
             card_data["CardID"] = new_card_id
-            card_data["CustomDeck"] = {canon_id: card_data["CustomDeck"][orig_id]}
+            needs_write = True
+
+        # Ensure CustomDeck only contains the canonical entry
+        new_custom_deck = {canon_id: final_custom_deck_registry[canon_id]}
+        if card_data.get("CustomDeck") != new_custom_deck:
+            card_data["CustomDeck"] = new_custom_deck
+            needs_write = True
+
+        if needs_write:
             with open(card_json_path, "w", encoding="utf-8") as f:
                 json.dump(card_data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
 
         # Track for sorting and final deck data
         temp_card_list.append((filename_stem, new_card_id))
-        if canon_id not in final_custom_deck_registry:
-            final_custom_deck_registry[canon_id] = card_data["CustomDeck"][canon_id]
 
     # Skip sorting if the deck is Act/Agenda or global flag is set
     if not (PRESERVE_CARD_ORDER or skip_sort):
@@ -272,15 +291,15 @@ def process_folder_for_cleanup(root_folder_path: Path):
         # Capture the original key order before any modification to data
         original_keys = list(data.keys())
 
-        # Perform the deduplication
-        updated_data, discarded_files = clean_deck(data)
-
         # Ensure correct deck data by rebuilding it (handles consolidation and final sort)
         updated_data = rebuild_deck_data(
-            updated_data,
+            data,
             associated_folder_path,
             skip_sorting_for_this_file,
         )
+
+        # Perform the deduplication
+        updated_data, discarded_files = clean_deck(updated_data)
 
         # Delete the discarded files
         delete_discarded_files(discarded_files, associated_folder_path)
