@@ -6,6 +6,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 import threading
 
 # Configuration
@@ -21,6 +22,7 @@ state = {
     "temp_file": None,
     "temp_guid": None,
     "waiting_for_pull": False,
+    "last_errors": {},  # Stores { "error_text": timestamp }
 }
 
 
@@ -79,13 +81,24 @@ def listener():
                         elif m_id == 2:
                             print(f"[TTS] {msg.get('message')}")
                         elif m_id == 3:
-                            print(f"[ERR] {msg.get('error')}")
+                            error_text = msg.get("error", "Unknown Error")
+                            log_error_throttled(error_text, window=2)
                         elif m_id == 5:
                             print(f"[RET] {msg.get('returnValue')}")
                         elif m_id == 7:
                             print(f"[NEW] Object created ({msg.get('guid')})")
                     except:
                         pass
+
+
+def log_error_throttled(error_msg, window=5):
+    """Prints an error only if it hasn't been printed in the last 'window' seconds."""
+    current_time = time.time()
+    last_seen = state["last_errors"].get(error_msg, 0)
+
+    if current_time - last_seen > window:
+        print(f"[ERR] {error_msg}")
+        state["last_errors"][error_msg] = current_time
 
 
 def get_script_path(name, guid):
