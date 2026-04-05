@@ -10,23 +10,30 @@ import platform
 import pytesseract
 import re
 import sys
-from PIL import Image, ImageCms
-
+from PIL import Image, ImageCms, ImageEnhance, ImageOps
 
 # Configuration
 ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
-MAX_FILE_SIZE_KB = 450  # only used for JPEGs
-OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG
+MAX_FILE_SIZE_KB = 450  # used for JPEG and WEBP
+OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG or WEBP
+OVERRIDE_EXISTING_FILES = False
+CARD_NUMBER_START = 0  # set to 0 to skip number extracting
+OUTPUT_FOLDER = r""  # Use "" (empty string) to save in the same folder as the source
+
+# Image cropping
 REMOVE_WHITE_BORDERS = True
 WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
 MAX_CROP_LIMIT = 25
 
 # (left, top, right, bottom) pixels to remove from each side (after rotation)
-FIXED_CROP_OFFSETS = None
-OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 12001  # set to 0 to skip number extracting
-OUTPUT_FOLDER = ""  # Use "" (empty string) to save in the same folder as the source
+FIXED_CROP_OFFSETS = None  # Example: (8, 8, 8, 8)
+
+# Image enhancing
+COLOR_BOOST = 1.0  # Default 1.0
+CONTRAST_BOOST = 1.0  # Default 1.0
+BRIGHTNESS_BOOST = 1.0  # Default 1.0
+AUTO_CONTRAST = False
 
 # TESSERACT PATH (Windows Only)
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -35,7 +42,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg", "WEBP": "webp"}
-CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.992, "w_start": 0.85, "w_end": 0.95}
+CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
 PLATFORM = platform.system()
 
 
@@ -44,22 +51,24 @@ def safe_convert_to_rgb(img):
         try:
             cmyk_profile = "CGATS21_CRPC7.icc"
             srgb_profile = "sRGB_ICC_v4_Appearance.icc"
-            
+
             # Attempt the high-quality conversion
             converted = ImageCms.profileToProfile(
-                img, cmyk_profile, srgb_profile, outputMode="RGB"
+                img,
+                cmyk_profile,
+                srgb_profile,
+                outputMode="RGB",
             )
-            
+
             # If the tool returned something valid, use it
             if converted:
                 return converted
-                
+
         except Exception as e:
             print(f"[INFO] ICC Profile conversion failed, using basic conversion: {e}")
             # If it fails (e.g. profile files not found), it falls through to the line below
-    
-    # This is the "Safety Net": it handles non-CMYK images 
-    # AND CMYK images where the profile conversion failed.
+
+    # Handles non-CMYK images and CMYK images where the profile conversion failed.
     return img.convert("RGB")
 
 
@@ -127,7 +136,7 @@ def calculate_new_size(original_size, target_size):
     return target_size
 
 
-def extract_card_number(img, image_path):
+def extract_card_number(img, image_path, debug_save_path):
     img = np.array(img.copy().convert("RGB"))
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     h, w, _ = img.shape
@@ -180,20 +189,17 @@ def extract_card_number(img, image_path):
     if len(extracted_number) > 0:
         return extracted_number
 
-    # Path manipulation
-    base_path = os.path.dirname(image_path)
+    # If OCR fails, save debug images to the designated output folder
     name_start = os.path.basename(image_path)
 
     # Save ROI visualization
     roi_debug_filename = f"{name_start}_debug_roi.jpg"
-    cv2.imwrite(os.path.join(base_path, roi_debug_filename), debug_img)
+    cv2.imwrite(os.path.join(debug_save_path, roi_debug_filename), debug_img)
 
     # Save processed image
     processed_debug_filename = f"{name_start}_debug_processed.jpg"
-    cv2.imwrite(os.path.join(base_path, processed_debug_filename), img)
-    print(
-        f"[INFO] No number detected. Saved debug images {roi_debug_filename} and '{processed_debug_filename}'"
-    )
+    cv2.imwrite(os.path.join(debug_save_path, processed_debug_filename), img)
+    print(f"[INFO] No number detected for {name_start} (see debug images)")
 
 
 def crop_to_content(img, base_name):
@@ -255,6 +261,25 @@ def resize_and_compress(image_path):
             # Resize image to exact dimensions (without keeping aspect ratio)
             img = img.resize(output_size, Image.Resampling.LANCZOS)
 
+            # Maybe boost colors
+            if COLOR_BOOST != 1.0:
+                converter = ImageEnhance.Color(img)
+                img = converter.enhance(COLOR_BOOST)
+
+            # Maybe boost contrast
+            if CONTRAST_BOOST != 1.0:
+                contrast_converter = ImageEnhance.Contrast(img)
+                img = contrast_converter.enhance(CONTRAST_BOOST)
+
+            # Maybe boost brightness
+            if BRIGHTNESS_BOOST != 1.0:
+                brightener = ImageEnhance.Brightness(img)
+                img = brightener.enhance(BRIGHTNESS_BOOST)
+
+            # Cuts off 1% of extreme pixels to normalize
+            if AUTO_CONTRAST:
+                img = ImageOps.autocontrast(img, cutoff=1)
+
             # Determine which folder to use
             if OUTPUT_FOLDER:
                 # If it's a relative path, put it inside the source image's directory
@@ -278,7 +303,7 @@ def resize_and_compress(image_path):
                 and not OVERRIDE_EXISTING_FILES
                 and CARD_NUMBER_START != 0
             ):
-                card_number = extract_card_number(img, image_path)
+                card_number = extract_card_number(img, image_path, target_dir)
                 if card_number:
                     base_name_no_ext = card_number
 
@@ -297,7 +322,10 @@ def resize_and_compress(image_path):
                 quality = 100
                 while quality > 50:
                     img.save(
-                        output_path, format=OUTPUT_FORMAT, quality=quality, method=6
+                        output_path,
+                        format=OUTPUT_FORMAT,
+                        quality=quality,
+                        method=6,
                     )
                     file_size_kb = os.path.getsize(output_path) / 1024
                     if file_size_kb <= MAX_FILE_SIZE_KB:
