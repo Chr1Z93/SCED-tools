@@ -19,7 +19,9 @@ PLATFORM = platform.system()
 # State Management
 state = {
     "target_guid": "-1",
-    "temp_file": None,
+    "temp_lua": None,
+    "temp_xml": None,
+    "temp_name": None,
     "temp_guid": None,
     "waiting_for_pull": False,
     "last_errors": {},  # Stores { "error_text": timestamp }
@@ -52,9 +54,10 @@ def listener():
                         if m_id == 0:
                             states = msg.get("scriptStates", [])
                             obj = states[0]
-                            sync_file(
+                            sync_files(
                                 obj["name"],
-                                obj["script"],
+                                obj.get("script", ""),
+                                obj.get("ui", ""),
                                 obj["guid"],
                                 silent=False,
                             )
@@ -65,9 +68,10 @@ def listener():
                             for obj in states:
                                 # Open editor only if it matches current target
                                 if obj["guid"] == state["target_guid"]:
-                                    sync_file(
+                                    sync_files(
                                         obj["name"],
-                                        obj["script"],
+                                        obj.get("script", ""),
+                                        obj.get("ui", ""),
                                         obj["guid"],
                                         silent=not state["waiting_for_pull"],
                                     )
@@ -76,7 +80,7 @@ def listener():
                             state["waiting_for_pull"] = False
                             if not found_target:
                                 print(
-                                    f"[ERR] Couldn't find target (received{len(states)} scripts)"
+                                    f"[ERR] Couldn't find target (received {len(states)} scripts)"
                                 )
                         elif m_id == 2:
                             print(f"[TTS] {msg.get('message')}")
@@ -101,25 +105,37 @@ def log_error_throttled(error_msg, window=5):
         state["last_errors"][error_msg] = current_time
 
 
-def get_script_path(name, guid):
-    """Generates a standardized path for a script file."""
+def get_script_paths(name, guid):
+    """Generates standardized paths for Lua and XML files."""
     clean_name = re.sub(r"[^a-zA-Z0-9]", "", name)
-    return os.path.join(TEMP_DIR, f"{clean_name}.{guid}.ttslua")
+    lua_path = os.path.join(TEMP_DIR, f"{clean_name}.{guid}.ttslua")
+    xml_path = os.path.join(TEMP_DIR, f"{clean_name}.{guid}.xml")
+    return lua_path, xml_path
 
 
-def sync_file(name, content, guid, silent=True):
-    """Writes the script to disk and returns the path."""
-    file_path = get_script_path(name, guid)
-    with open(file_path, "w", encoding="utf-8", newline="") as f:
-        f.write(content)
+def sync_files(name, lua_content, xml_content, guid, silent=True):
+    """Writes the script and XML to disk and returns the paths."""
+    lua_path, xml_path = get_script_paths(name, guid)
+
+    with open(lua_path, "w", encoding="utf-8", newline="") as f:
+        f.write(lua_content)
+    with open(xml_path, "w", encoding="utf-8", newline="") as f:
+        f.write(xml_content)
 
     if not silent:
-        state["temp_file"] = file_path
+        state["temp_lua"] = lua_path
+        state["temp_xml"] = xml_path
         state["temp_guid"] = guid
-        open_file(file_path)
-        print(f"[SYS] Script for {name} ({guid}) loaded.")
+        state["temp_name"] = name
 
-    return file_path
+        # Open Lua file last so it is selected
+        if os.path.exists(xml_path):
+            open_file(xml_path)
+        if os.path.exists(lua_path):
+            open_file(lua_path)
+        print(f"[SYS] Files for {name}.{guid} loaded.")
+
+    return lua_path, xml_path
 
 
 def open_file(file_path):
@@ -136,15 +152,19 @@ def open_file(file_path):
         print(f"[ERR] Could not open file: {e}")
 
 
-def send_reload(global_script=None):
+def send_reload(lua_script="", xml_ui=""):
     """Sends Message ID 1 to TTS to trigger a full 'Save & Play' (reloads all scripts)."""
-    payload = {"messageID": 1, "scriptStates": []}
-
-    if global_script:
-        payload = {
-            "messageID": 1,
-            "scriptStates": [{"name": "Global", "guid": "-1", "script": global_script}],
-        }
+    payload = {
+        "messageID": 1,
+        "scriptStates": [
+            {
+                "name": "Global",
+                "guid": "-1",
+                "script": lua_script,
+                "ui": xml_ui,
+            }
+        ],
+    }
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((HOST, TTS_LISTEN_PORT))
@@ -195,7 +215,10 @@ def send_help():
         + ("(Global)" if state["target_guid"] == "-1" else "")
     )
     print(
-        f" ACTIVE TEMP    : {os.path.basename(state['temp_file']) if state['temp_file'] else 'None'}"
+        f" ACTIVE LUA     : {os.path.basename(state['temp_lua']) if state['temp_lua'] else 'None'}"
+    )
+    print(
+        f" ACTIVE XML     : {os.path.basename(state['temp_xml']) if state['temp_xml'] else 'None'}"
     )
 
     print("\n INFO:")
@@ -204,14 +227,14 @@ def send_help():
 
     print("\n INTERNAL COMMANDS:")
     print("  target [guid] - Change who receives the Lua code.")
-    print("  pull          - Open the Lua code as temp file.")
-    print("  push          - Send the temp file back to the game.")
+    print("  pull          - Open the Lua and XML as temp files.")
+    print("  push          - Send the temp files back to the game.")
     print("  reload        - Reloads the currently loaded TTS game.")
     print("  exit          - Clean up temp files and close.")
 
     print("\n WORKFLOW:")
     print("  1. In TTS:  Right-click object -> Scripting Editor.")
-    print("  2. In Code: Edit the file that just opened.")
+    print("  2. In Code: Edit the files that just opened.")
     print("  3. In Tool: Type 'push' to live-reload the object.")
 
     print("\n LUA EXECUTION:")
@@ -221,32 +244,50 @@ def send_help():
 
 
 def send_push():
-    if state["temp_file"] and os.path.exists(state["temp_file"]):
-        with open(state["temp_file"], "r", encoding="utf-8") as f:
-            updated_script = f.read()
+    # Initialize as empty strings so the variables always exist
+    updated_lua = ""
+    updated_xml = ""
+
+    # Check if temp files exist
+    lua_exist = state["temp_lua"] and os.path.exists(state["temp_lua"])
+    xml_exist = state["temp_xml"] and os.path.exists(state["temp_xml"])
+
+    if lua_exist or xml_exist:
+        if lua_exist:
+            with open(state["temp_lua"], "r", encoding="utf-8") as f:
+                updated_lua = f.read()
+
+        if xml_exist:
+            with open(state["temp_xml"], "r", encoding="utf-8") as f:
+                updated_xml = f.read()
 
         if state["temp_guid"] == "-1":
-            send_reload(updated_script)
+            send_reload(updated_lua, updated_xml)
         else:
             # Use [====[ to avoid collisions with scripts containing [[ or ]]
+            # Update both Lua and XML via Lua injection
             reload_cmd = (
                 f"local obj = getObjectFromGUID('{state['temp_guid']}') "
                 f"if obj then "
-                f"  obj.setLuaScript([====[{updated_script}]====]) "
+                f"  obj.setLuaScript([====[{updated_lua}]====]) "
+                f"  obj.UI.setXml([====[{updated_xml}]====]) "
                 f"  obj.reload() "
                 f"else "
-                f"  print('Push failed: Object {state['temp_guid']} no longer exists') "
+                f"  print('Push failed: Object {state['temp_name']}.{state['temp_guid']} no longer exists') "
                 f"end"
             )
             send_command(reload_cmd, target_override="-1")
-            print(f"[SYS] Pushed updates to {state['temp_guid']}.")
+            print(
+                f"[SYS] Pushed Lua and XML updates to {state['temp_name']}.{state['temp_guid']}."
+            )
     else:
-        print("[ERR] No temp file found. Pull a script first.")
+        print("[ERR] No temp files found. Pull a script first.")
 
 
-def remove_temp_file():
-    if state["temp_file"] and os.path.exists(state["temp_file"]):
-        os.remove(state["temp_file"])
+def remove_temp_files():
+    for key in ["temp_lua", "temp_xml"]:
+        if state[key] and os.path.exists(state[key]):
+            os.remove(state[key])
 
 
 if __name__ == "__main__":
@@ -269,7 +310,7 @@ if __name__ == "__main__":
             parts = user_input.lower().split()
 
             if user_input == "exit":
-                remove_temp_file()
+                remove_temp_files()
                 sys.exit(0)
             elif user_input == "reload":
                 send_reload()
