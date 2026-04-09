@@ -133,7 +133,7 @@ def process_file(file_path):
         modified_data = sortJSONKeys(data)
 
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(modified_data, f, indent=2)
+            json.dump(modified_data, f, indent=2, ensure_ascii=False)
             f.write("\n")  # Add an empty line at the end of the file
     except IOError as e:
         print(f"Error: Could not write to file '{file_path}'. {e}")
