@@ -68,8 +68,23 @@ DEFAULT_VALUES = {
 }
 
 NON_UNIQUE_BACKS = {
-    "encounter": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/",
-    "player": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/",
+    # Encounter/Player are the "regular" backs
+    "Encounter": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/",
+    "Player": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940352139/A2D42E7E5C43D045D72CE5CFC907E4F886C8C690/",
+    # Arkham Woods are used in multiple campaigns
+    "ArkhamWoods": "https://steamusercontent-a.akamaihd.net/ugc/10039895077102366513/A4B27CFD64422A1055CA9DBE662A366D9FCA200F/",
+    # Artifacts are from TDC
+    "Artifact": "https://steamusercontent-a.akamaihd.net/ugc/62595146532712476/4F1C745A4BD1E7F5EA6DA68E2D81F59AC2817D22/",
+    # Concealed Mini-Cards are from TSK
+    "Concealed": "https://steamusercontent-a.akamaihd.net/ugc/1941643328387229452/B0883940A23A9E63B99FF9CA6A344C3C57EC3257/",
+    # Cthulhu-Deck is from TDC
+    "Cthulhu-Deck": "https://steamusercontent-a.akamaihd.net/ugc/62595146532775345/8D860CB7316FDC55C2506F6E5A3A56810AB440E9/",
+    # Enemy-Deck is from FHV
+    "Enemy-Deck": "https://steamusercontent-a.akamaihd.net/ugc/2453969771999768294/54768C2E562D30E34B79EB7A94FCDC792E49FC28/",
+    # Tarot cards are from RtTCU
+    "Tarot": "https://steamusercontent-a.akamaihd.net/ugc/1697276706767619573/BC43BD2A94446B804BE325C7255D8179DEB2ABE8/",
+    # Upgradesheets (Customizable) are from TSK
+    "Upgradesheet": "https://steamusercontent-a.akamaihd.net/ugc/1814412497119682452/BD224FCE1980DBA38E5A687FABFD146AA1A30D0E/",
 }
 
 
@@ -98,7 +113,7 @@ def remove_default_values(data, defaults, is_nested=False):
             deck_data = custom_deck[deck_id]
 
             if isinstance(deck_data, dict):
-                if deck_data.get("BackURL") in NON_UNIQUE_BACKS:
+                if deck_data.get("BackURL") in NON_UNIQUE_BACKS.values():
                     # This has a regular back (= non unique)
                     del deck_data["UniqueBack"]
                 elif deck_data.get("NumWidth") == 1 and deck_data.get("NumHeight") == 1:
