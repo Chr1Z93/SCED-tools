@@ -115,13 +115,13 @@ def remove_default_values(data, defaults, is_nested=False):
             if isinstance(deck_data, dict):
                 if deck_data.get("BackURL") in NON_UNIQUE_BACKS.values():
                     # This has a regular back (= non unique)
-                    del deck_data["UniqueBack"]
+                    deck_data.pop("UniqueBack", None)
                 elif deck_data.get("NumWidth") == 1 and deck_data.get("NumHeight") == 1:
                     # This is a single card
                     deck_data["UniqueBack"] = True
                 elif deck_data.get("UniqueBack") is False:
                     # UniqueBack is False and can be removed (this is the default behaviour)
-                    del deck_data["UniqueBack"]
+                    deck_data.pop("UniqueBack", None)
 
     # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
     if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
@@ -339,8 +339,7 @@ def process_files_in_directory(directory, defaults):
                     print(f"-> Processing: {file_path}")
                 try:
                     # Read the original file to load JSON data
-                    # Using utf-8-sig to handle potential BOM (Byte Order Mark)
-                    with open(file_path, "r", encoding="utf-8-sig") as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
                         # TTS JSON can sometimes have leading/trailing characters; we find the main object
                         json_start = content.find("{")
