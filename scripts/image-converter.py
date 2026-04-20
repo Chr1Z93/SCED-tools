@@ -12,22 +12,24 @@ import re
 import sys
 from PIL import Image, ImageCms, ImageEnhance, ImageOps
 
+# --------------------------------
 # Configuration
+# --------------------------------
+
+# General
 ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # used for JPEG and WEBP
 OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG or WEBP
 OVERRIDE_EXISTING_FILES = False
-CARD_NUMBER_START = 0  # set to 0 to skip number extracting
 OUTPUT_FOLDER = r""  # Use "" (empty string) to save in the same folder as the source
 
 # Image cropping
-REMOVE_WHITE_BORDERS = True
+REMOVE_WHITE_BORDERS = False
 WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
-MAX_CROP_LIMIT = 25
-
-# (left, top, right, bottom) pixels to remove from each side (after rotation)
-FIXED_CROP_OFFSETS = None  # Example: (8, 8, 8, 8)
+MAX_CROP_LIMIT = 25 #  How many pixels can be removed automatically at maximum
+FIXED_CROP_OFFSETS = None  # (left, top, right, bottom) pixels to remove from each side (after rotation)
+CROP_TO_OUTPUT_SIZE = False # Images will be cropped instead of scaled to fit output
 
 # Image enhancing
 COLOR_BOOST = 1.0  # Default 1.0
@@ -35,14 +37,18 @@ CONTRAST_BOOST = 1.0  # Default 1.0
 BRIGHTNESS_BOOST = 1.0  # Default 1.0
 AUTO_CONTRAST = False
 
-# TESSERACT PATH (Windows Only)
+# Card Number Extracting (via Tesseract - Windows Only)
+EXTRACT_CARD_NUMBER = False
+CARD_NUMBER_START = 12001
+CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# --------------------------------
 # Data
+# --------------------------------
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg", "WEBP": "webp"}
-CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
 PLATFORM = platform.system()
 
 
@@ -257,9 +263,23 @@ def resize_and_compress(image_path):
                 # Calculate the crop box: (left, top, width-right, height-bottom)
                 width, height = img.size
                 img = img.crop((left, top, width - right, height - bottom))
-
-            # Resize image to exact dimensions (without keeping aspect ratio)
-            img = img.resize(output_size, Image.Resampling.LANCZOS)
+            
+            if CROP_TO_OUTPUT_SIZE:
+                # Crop image to output size
+                width, height = img.size
+                target_w, target_h = output_size
+                
+                # Calculate the cropping box to center the cut
+                left = (width - target_w) / 2
+                top = (height - target_h) / 2
+                right = (width + target_w) / 2
+                bottom = (height + target_h) / 2
+                
+                # Remove the outer area and keep the center
+                img = img.crop((left, top, right, bottom))
+            else:
+                # Resize image to exact dimensions (without keeping aspect ratio)
+                img = img.resize(output_size, Image.Resampling.LANCZOS)
 
             # Maybe boost colors
             if COLOR_BOOST != 1.0:
@@ -301,7 +321,7 @@ def resize_and_compress(image_path):
             if (
                 PLATFORM == "Windows"
                 and not OVERRIDE_EXISTING_FILES
-                and CARD_NUMBER_START != 0
+                and EXTRACT_CARD_NUMBER
             ):
                 card_number = extract_card_number(img, image_path, target_dir)
                 if card_number:
