@@ -21,8 +21,8 @@ function onLoad()
     local funcName = "setState" .. i
     self.setVar(funcName, function() getTracker().call("updateStats", state[i]) end)
     buttonParameters.click_function = funcName
-    buttonParameters.position.z = buttonParameters.position.z + zOffset
-    buttonParameters.label = concatTable(data)
+    buttonParameters.position.z     = buttonParameters.position.z + zOffset
+    buttonParameters.label          = concatTable(data)
     self.createButton(buttonParameters)
   end
 end
