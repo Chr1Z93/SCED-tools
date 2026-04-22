@@ -1,9 +1,6 @@
 import json
 import re
 
-# Regex to catch " (1)", " (2)", etc. at the end of a string
-tts_name_cleanup = re.compile(r"\s\(\d+\)$")
-
 # This regex matches any Unicode whitespace character (\s) 
 # at the start (^) or end ($) of the string.
 unicode_strip = re.compile(r"^[\s\u200b\u200e\u00a0]+|[\s\u200b\u200e\u00a0]+$")
@@ -11,11 +8,9 @@ unicode_strip = re.compile(r"^[\s\u200b\u200e\u00a0]+|[\s\u200b\u200e\u00a0]+$")
 def get_tts_data_recursive(objects_list, tts_map):
     """Recursively crawls TTS objects to build the name-to-data map."""
     for obj in objects_list:
-        # Process the current object if it's a card
         raw_name = obj.get("Nickname")
         if raw_name and raw_name != "":
-            # Clean name for matching (Strip suffixes and whitespace)
-            clean_name = tts_name_cleanup.sub("", raw_name).strip().lower()
+            clean_name = raw_name.strip().lower()
 
             gm_notes_raw = obj.get("GMNotes", "{}")
             try:
@@ -53,11 +48,16 @@ def sync_deck_data(file_a_path, file_b_path, output_path):
 
     for card in cards_list:
         name = unicode_strip.sub("", card.get("name")).lower()
+        if "xp" in card and card["xp"] > 0:
+            name_with_level = f"{name} ({card["xp"]})"
+        else:
+            name_with_level = f"{name}"
+
         old_code = card.get("code")
 
         # We only map the "base" ID (ignoring -back for the map creation)
-        if name in tts_map:
-            source = tts_map[name]
+        if name_with_level in tts_map:
+            source = tts_map[name_with_level]
             new_code = source["card_id"]
 
             if old_code and new_code and old_code != new_code:
@@ -74,7 +74,7 @@ def sync_deck_data(file_a_path, file_b_path, output_path):
             if source["back_url"] and "back_image_url" in card:
                 card["back_image_url"] = source["back_url"]
         else:
-            print(f"DEBUG: No match for '{name}'")
+            print(f"DEBUG: No match for '{name_with_level}'")
 
     # --- PASS 2: Update References (Requirements, Back Links, Suffixed Codes) ---
     ref_fields = ["deck_requirements", "back_link", "restrictions"]
