@@ -1,4 +1,4 @@
-# Converts images to specified resolution, file format and file size (if JPG)
+# Converts images to specified resolution, file format and file size (if JPG/WEBP)
 # Handles CMYK and removes borders if white
 # Attempts to extract card number for file name
 
@@ -46,6 +46,7 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 # --------------------------------
 # Data
 # --------------------------------
+
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
 OUTPUT_PORTRAIT = OUTPUT
 FILE_ENDING = {"PNG": "png", "JPEG": "jpg", "WEBP": "webp"}
