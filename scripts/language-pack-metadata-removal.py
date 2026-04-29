@@ -2,9 +2,9 @@
 # the object, all other attributes are taken from the original object.
 # Tags are also removed.
 
-import os
-import json
 import copy
+import json
+from pathlib import Path
 
 # Set the root directory where your JSON files are located.
 # Examples:
@@ -12,12 +12,12 @@ import copy
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Player Cards\LanguagePackGerman-PlayerCards.GermanI"
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = (
-    r"C:\git\SCED-downloads\decomposed\language-pack\Korean - Fan Campaigns"
+TARGET_DIRECTORY = Path(
+    r"C:\git\SCED-downloads\decomposed\language-pack\German - Campaigns\German-Campaigns.GermanC\PDFs.pdfpdf"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
-KEYS_TO_KEEP = {"id"} # Move the Zoop GUID to the ID field
+KEYS_TO_KEEP = {"id"}  # Move the Zoop GUID to the ID field
 
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
@@ -29,36 +29,28 @@ ID_TO_FINGERPRINT = {}
 
 def process_files_in_directory(directory, keys_to_keep):
     """Walks through a directory and processes all .json and .gmnotes files."""
-    abs_directory = os.path.abspath(directory)
-    if not os.path.isdir(abs_directory):
-        print(f"Error: The specified directory '{abs_directory}' does not exist.")
+    base_path = Path(directory).resolve()
+    if not base_path.is_dir():
+        print(f"Error: The specified directory '{base_path}' does not exist.")
         return
 
-    print(f"Starting cleanup in directory: '{abs_directory}'")
+    print(f"Starting cleanup in directory: '{base_path}'")
     total_files = 0
     modified_files = 0
-    last_root = None
 
-    for root, _, files in os.walk(directory):
+    for root, dirs, files in base_path.walk():
         # Print a header for the subfolder if within depth limit
-        if root != last_root:
-            relative_path = os.path.relpath(root, abs_directory)
+        relative_path = root.relative_to(base_path)
+        depth = len(relative_path.parts)
 
-            # Calculate depth: root is 0, direct subfolder is 1, etc.
-            if relative_path == ".":
-                depth = 0
-            else:
-                depth = len(relative_path.split(os.sep))
-
-            # depth > 0 ensures we don't re-print the starting directory.
-            if 0 < depth <= PRINTING_DEPTH:
-                print(f"Processing subfolder: {root}")
-            last_root = root
+        if 0 < depth <= PRINTING_DEPTH:
+            print(f"Processing subfolder: {root}")
 
         for filename in files:
+            file_path = root / filename
+
             # Handles standard JSON and GMNotes files
-            if filename.endswith(".json") or filename.endswith(".gmnotes"):
-                file_path = os.path.join(root, filename)
+            if file_path.suffix in (".json", ".gmnotes"):
                 total_files += 1
 
                 if DETAILED_PRINTING:
@@ -82,9 +74,9 @@ def process_files_in_directory(directory, keys_to_keep):
                     original_data = copy.deepcopy(data)
 
                     # Get GMNotes object from JSON (if it exists) and modify it in-place
-                    if filename.endswith(".json"):
+                    if file_path.suffix == ".json":
                         if "Tags" in data:
-                            data["Tags"] = []
+                            del data["Tags"]
 
                         if "GMNotes" in data:
                             gmnotes = json.loads(data["GMNotes"])
@@ -96,8 +88,15 @@ def process_files_in_directory(directory, keys_to_keep):
                             data["GMNotes"] = json.dumps(gmnotes, indent=2)
 
                         if "Transform" in data:
-                            for key in ["posX", "posY", "posZ", "rotX", "rotY", "rotZ"]:
-                                data["Transform"].pop(key, None)
+                            # Replace the old Transform with ordered one
+                            old_t = data["Transform"]
+                            new_t = {
+                                "rotY": 270,
+                                "scaleX": old_t.get("scaleX", 1),
+                                "scaleY": old_t.get("scaleY", 1),
+                                "scaleZ": old_t.get("scaleZ", 1)
+                            }
+                            data["Transform"] = new_t
 
                         # Fix CustomDeck Conflicts
                         custom_deck = data.get("CustomDeck")
@@ -130,7 +129,7 @@ def process_files_in_directory(directory, keys_to_keep):
                                     suffix = str(data["CardID"]).zfill(2)[-2:]
                                     data["CardID"] = int(f"{target_id}{suffix}")
 
-                    if filename.endswith(".gmnotes"):
+                    if file_path.suffix == ".gmnotes":
                         if "TtsZoopGuid" in data and "id" not in data:
                             data["id"] = data["TtsZoopGuid"]
                         for key in list(data.keys()):
