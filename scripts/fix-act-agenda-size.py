@@ -65,12 +65,12 @@ for root, dirs, files in os.walk(FOLDER_PATH):
                 meta_type = str(meta.get("type", ""))
 
                 if meta_type in ["Act", "Agenda"] and "TtsZoopGuid" in meta:
-                    # 1. Update the Card
+                    # Update the Card
                     if update_transform(file_path):
                         cards_updated += 1
                         print(f"Updated Card: {filename}")
 
-                    # 2. Check the Container
+                    # Check the Container
                     parent_dir_path = root
                     parent_dir_name = os.path.basename(parent_dir_path)
                     grandparent_dir = os.path.dirname(parent_dir_path)

@@ -1,6 +1,8 @@
-# Removes all files with " copy" in the name
+# Removes all files with SEARCH_NAME in the name
 import os
 
+SEARCH_NAME = " copy"
+SEARCH_FOLDER = r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
 
 def cleanup_copies(folder_path):
     # Check if the directory exists
@@ -11,8 +13,8 @@ def cleanup_copies(folder_path):
     print(f"Scanning folder: {folder_path}\n")
 
     for filename in os.listdir(folder_path):
-        # Check if "copy" is in the filename (case-insensitive)
-        if " copy" in filename.lower():
+        # Check if SEARCH_NAME is in the filename (case-insensitive)
+        if SEARCH_NAME in filename.lower():
             file_path = os.path.join(folder_path, filename)
 
             # Ensure we are deleting a file and not a subfolder
@@ -24,4 +26,4 @@ def cleanup_copies(folder_path):
                     print(f"Error deleting {filename}: {e}")
 
 
-cleanup_copies(r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b")
+cleanup_copies(SEARCH_FOLDER)

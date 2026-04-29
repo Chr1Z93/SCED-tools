@@ -4,8 +4,8 @@ import json
 KEYS_TO_REMOVE = {"LuaScript", "LuaScriptState", "XmlUI", "CustomUIAssets"}
 
 # File paths
-INPUT_FILE = r"Investigators.json"
-OUTPUT_FILE = r"Investigators_clean.json"
+INPUT_FILE = "Investigators.json"
+OUTPUT_FILE = "Investigators_clean.json"
 
 def remove_keys_recursive(data, keys_to_remove):
     """Recursively removes specified keys from a nested dictionary or list."""
