@@ -263,7 +263,7 @@ def delete_discarded_files(discarded_files: Set[str], associated_folder_path: Pa
             f = associated_folder_path / f"{stem}{ext}"
             if f.exists():
                 f.unlink()
-            print(f"  -> Deleted: {f.name}")
+                print(f"  -> Deleted: {f.name}")
 
 
 def process_folder_for_cleanup(root_folder_path: Path):
