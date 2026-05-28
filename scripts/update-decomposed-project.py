@@ -81,6 +81,9 @@ def main():
 
     print(f"Found {len(update_map)} unique IDs in Saved Object.")
 
+    # Track IDs that haven't been matched yet
+    unused_ids = set(update_map.keys())
+
     # Update Decomposed Files
     update_count = 0
     for json_file in PROJECT_PATH.rglob("*.json"):
@@ -101,9 +104,23 @@ def main():
                 with open(json_file, "w", encoding="utf-8") as f:
                     json.dump(file_data, f, indent=2, ensure_ascii=False)
                     f.write("\n")
+
                 update_count += 1
 
+                # Remove from our tracked unused set
+                unused_ids.discard(file_id)
+
     print(f"Successfully updated {update_count} files in project.")
+
+    # Report on unused objects
+    print("--------------------------------------------------")
+    if unused_ids:
+        print(f"⚠️  {len(unused_ids)} IDs from Saved Object were NOT used:")
+        for unused in sorted(unused_ids):
+            print(f"  - {unused}")
+    else:
+        print("✨  All IDs from Saved Object were successfully matched and processed!")
+    print("--------------------------------------------------")
 
 
 if __name__ == "__main__":
