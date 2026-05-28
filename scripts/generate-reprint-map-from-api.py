@@ -3,7 +3,56 @@ import requests
 ARKHAMBUILD_URL = "https://api-v2.arkham.build/v1/cache/cards"
 OUTPUT_FILE = r"C:\git\SCED\src\playercards\ReprintGroups.ttslua"
 
-DUPE_OVERRIDE = {"12031": "05024"}
+DUPE_OVERRIDE = {
+    # Core 2026
+    "12024": "04103", # Scene of the Crime (0)
+    "12025": "01025", # Vicious Blow (0)
+    "12031": "05024", # Fingerprint Kit (0)
+    "12034": "01030", # Magnifying Glass (0)
+    "12038": "01037", # Working a Hunch (0)
+    "12039": "01039", # Deduction (0)
+    "12042": "05276", # Studious (3)
+    "12044": "04107", # Lucky Cigarette Case (0)
+    "12049": "09064", # Thieves Kit (0)
+    "12050": "07114", # Breaking and Entering (0)
+    "12056": "05278", # Another Day, Another Dollar (3)
+    "12064": "04199", # Premonition (0)
+    "12065": "01065", # Ward of Protection (0)
+    "12069": "02268", # Fearless (2)
+    "12073": "08073", # Bandages (0)
+    "12077": "05114", # Meat Cleaver (0)
+    "12078": "01079", # Look What I found! (0)
+    "12089": "01088", # Emergency Cache (0)
+    "12094": "01093", # Unexpected Courage (0)
+    "12095": "01694", # Charisma (3)
+    "12096": "01695", # Relic Hunter (3)
+    "12097": "01096", # Amnesia
+    "12100": "03040", # Overzealous
+    "12101": "01097", # Paranoia
+
+    # Tommy
+    "60169": "01025", # Vicious Blow (0)
+    "60176": "02299", # Vicious Blow (2)
+
+    # Carolyn
+    "60263": "02186", # Preposterous Sketches (0)
+    "60267": "01039", # Deduction (0)
+    "60275": "02150", # Deduction (2)
+    "60270": "01040", # Magnifying Glass (1)
+
+    # André
+    "60361": "60305", # Lockpicks (0)
+    "60372": "01687", # Lockpicks (1)
+    "60379": "08057", # The Black Fan (3)
+    "60381": "54006", # Well Connected (3)
+    "60384": "08058", # The Red Clock (5)
+
+    # Marie
+    "60455": "01063", # Arcane Initiate (0)
+
+    # Miguel
+    "60560": "01075", # Rabbit's Foot (0)
+}
 
 
 def load_api_data():
