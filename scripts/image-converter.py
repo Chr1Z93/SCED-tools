@@ -264,18 +264,18 @@ def resize_and_compress(image_path):
                 # Calculate the crop box: (left, top, width-right, height-bottom)
                 width, height = img.size
                 img = img.crop((left, top, width - right, height - bottom))
-            
+
             if CROP_TO_OUTPUT_SIZE:
                 # Crop image to output size
                 width, height = img.size
                 target_w, target_h = output_size
-                
+
                 # Calculate the cropping box to center the cut
                 left = (width - target_w) / 2
                 top = (height - target_h) / 2
                 right = (width + target_w) / 2
                 bottom = (height + target_h) / 2
-                
+
                 # Remove the outer area and keep the center
                 img = img.crop((left, top, right, bottom))
             else:
@@ -353,11 +353,12 @@ def resize_and_compress(image_path):
                         break
                     quality -= 1
 
-            # Only perform size check for JPEG, as PNG compression is different
-            if OUTPUT_FORMAT == "JPEG" and file_size_kb > MAX_FILE_SIZE_KB:
-                print(f"[WARNING] Unable to compress {image_path}")
-            elif OUTPUT_FORMAT == "PNG":
+            if OUTPUT_FORMAT == "PNG":
                 file_size_kb = os.path.getsize(output_path) / 1024
+            else:
+                # Only perform size check for JPEG/WEBP, as PNG compression is different
+                if file_size_kb > MAX_FILE_SIZE_KB:
+                    print(f"[WARNING] Unable to compress {image_path}")
 
             print(f"[SUCCESS] Saved {output_path} ({file_size_kb:.2f} KB)")
 
