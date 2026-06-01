@@ -13,38 +13,50 @@ import sys
 from PIL import Image, ImageCms, ImageEnhance, ImageOps
 
 # --------------------------------
-# Configuration
+# MARK: Configuration
 # --------------------------------
 
 # General
+# --------------------------------
+
 ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # used for JPEG and WEBP
 OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG or WEBP
 OVERRIDE_EXISTING_FILES = False
 OUTPUT_FOLDER = r""  # Use "" (empty string) to save in the same folder as the source
+INPUT_PATH = None
+DEBUG_IMAGES = False
 
 # Image cropping
+# --------------------------------
+
 REMOVE_WHITE_BORDERS = False
-WHITE_THRESHOLD = 215  # How "white" a row/column must be to be cropped (0-255)
-MAX_CROP_LIMIT = 25 #  How many pixels can be removed automatically at maximum
-FIXED_CROP_OFFSETS = None  # (left, top, right, bottom) pixels to remove from each side (after rotation)
-CROP_TO_OUTPUT_SIZE = False # Images will be cropped instead of scaled to fit output
+WHITE_THRESHOLD = 75  # How "white" a row/column must be to be cropped (0-255)
+MAX_CROP_LIMIT = 25  #  How many pixels can be removed automatically at maximum
+
+# (left, top, right, bottom) pixels to remove from each side (after rotation)
+FIXED_CROP_OFFSETS = None
+CROP_TO_OUTPUT_SIZE = False  # Images will be cropped instead of scaled to fit output
 
 # Image enhancing
+# --------------------------------
+
 COLOR_BOOST = 1.0  # Default 1.0
 CONTRAST_BOOST = 1.0  # Default 1.0
 BRIGHTNESS_BOOST = 1.0  # Default 1.0
 AUTO_CONTRAST = False
 
 # Card Number Extracting (via Tesseract - Windows Only)
+# --------------------------------
+
 EXTRACT_CARD_NUMBER = False
-CARD_NUMBER_START = 12001
-CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.85, "w_end": 0.95}
+CARD_NUMBER_START = 11501
+CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.87, "w_end": 0.96}
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # --------------------------------
-# Data
+# MARK: Data
 # --------------------------------
 
 OUTPUT_LANDSCAPE = (OUTPUT[1], OUTPUT[0])
@@ -199,14 +211,20 @@ def extract_card_number(img, image_path, debug_save_path):
     # If OCR fails, save debug images to the designated output folder
     name_start = os.path.basename(image_path)
 
-    # Save ROI visualization
-    roi_debug_filename = f"{name_start}_debug_roi.jpg"
-    cv2.imwrite(os.path.join(debug_save_path, roi_debug_filename), debug_img)
+    # Remove the extension
+    name_start = os.path.splitext(name_start)[0]
 
-    # Save processed image
-    processed_debug_filename = f"{name_start}_debug_processed.jpg"
-    cv2.imwrite(os.path.join(debug_save_path, processed_debug_filename), img)
-    print(f"[INFO] No number detected for {name_start} (see debug images)")
+    if DEBUG_IMAGES:
+        # Save ROI visualization
+        roi_debug_filename = f"{name_start}_debug_roi.jpg"
+        cv2.imwrite(os.path.join(debug_save_path, roi_debug_filename), debug_img)
+
+        # Save processed image
+        processed_debug_filename = f"{name_start}_debug_processed.jpg"
+        cv2.imwrite(os.path.join(debug_save_path, processed_debug_filename), img)
+        print(f"[INFO] No number detected for {name_start} (see debug images)")
+    else:
+        print(f"[INFO] No number detected for {name_start}")
 
 
 def crop_to_content(img, base_name):
@@ -401,11 +419,14 @@ def main():
         for path in sys.argv[1:]:
             process_input(path)
     else:
-        user_input = input("Enter a file or folder path: ").strip()
-        if user_input:
-            process_input(user_input)
+        if INPUT_PATH and os.path.exists(INPUT_PATH):
+            process_input(INPUT_PATH)
         else:
-            print("[ERROR] No input provided. Exiting.")
+            user_input = input("Enter a file or folder path: ").strip()
+            if user_input:
+                process_input(user_input)
+            else:
+                print("[ERROR] No input provided. Exiting.")
 
 
 if __name__ == "__main__":
