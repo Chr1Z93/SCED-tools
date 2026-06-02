@@ -22,11 +22,10 @@ from PIL import Image, ImageCms, ImageEnhance, ImageOps
 ROTATE_HORIZONTAL_IMAGES = True
 OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # used for JPEG and WEBP
-OUTPUT_FORMAT = "WEBP"  # e.g. PNG or JPEG or WEBP
-OVERRIDE_EXISTING_FILES = False
+OUTPUT_FORMAT = "WEBP"  # e.g. PNG / JPEG / WEBP
+OVERRIDE_EXISTING_FILES = False  # Will append "_1" etc. to the name if false
 OUTPUT_FOLDER = r""  # Use "" (empty string) to save in the same folder as the source
-INPUT_PATH = None
-DEBUG_IMAGES = False
+INPUT_PATH = None  # If undefined, you will be prompted for an input
 
 # Image cropping
 # --------------------------------
@@ -51,6 +50,7 @@ AUTO_CONTRAST = False
 # --------------------------------
 
 EXTRACT_CARD_NUMBER = False
+DEBUG_IMAGES = False
 CARD_NUMBER_START = 11501
 CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.87, "w_end": 0.96}
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
