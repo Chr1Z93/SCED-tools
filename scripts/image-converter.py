@@ -24,7 +24,7 @@ OUTPUT = (750, 1050)  # width x height, use 0 to calculate automatically
 MAX_FILE_SIZE_KB = 450  # used for JPEG and WEBP
 OUTPUT_FORMAT = "WEBP"  # e.g. PNG / JPEG / WEBP
 OVERRIDE_EXISTING_FILES = False  # Will append "_1" etc. to the name if false
-OUTPUT_FOLDER = r""  # Use "" (empty string) to save in the same folder as the source
+OUTPUT_FOLDER = None  # Use "" (empty string) to save in the same folder as the source
 INPUT_PATH = None  # If undefined, you will be prompted for an input
 
 # Image cropping
