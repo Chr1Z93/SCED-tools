@@ -299,6 +299,10 @@ def resize_and_compress(image_path):
                 # Resize image to exact dimensions (without keeping aspect ratio)
                 img = img.resize(output_size, Image.Resampling.LANCZOS)
 
+            # Cuts off 1% of extreme pixels to normalize
+            if AUTO_CONTRAST:
+                img = ImageOps.autocontrast(img, cutoff=1)
+
             # Maybe boost colors
             if COLOR_BOOST != 1.0:
                 converter = ImageEnhance.Color(img)
@@ -314,9 +318,7 @@ def resize_and_compress(image_path):
                 brightener = ImageEnhance.Brightness(img)
                 img = brightener.enhance(BRIGHTNESS_BOOST)
 
-            # Cuts off 1% of extreme pixels to normalize
-            if AUTO_CONTRAST:
-                img = ImageOps.autocontrast(img, cutoff=1)
+
 
             # Determine which folder to use
             if OUTPUT_FOLDER:
