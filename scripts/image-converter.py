@@ -85,7 +85,6 @@ def safe_convert_to_rgb(img):
 
         except Exception as e:
             print(f"[INFO] ICC Profile conversion failed, using basic conversion: {e}")
-            # If it fails (e.g. profile files not found), it falls through to the line below
 
     # Handles non-CMYK images and CMYK images where the profile conversion failed.
     return img.convert("RGB")
