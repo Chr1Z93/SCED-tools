@@ -5,10 +5,10 @@ import os
 import requests
 
 # CONFIGURATION
-INPUT_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns\Polish-Campaigns.PolishC\TheDunwichLegacy.401f9f"
+INPUT_FOLDER = r""
 
 # Globals / Derived data
-arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/"
+arkhambuild_url = f"https://api.arkham.build/v1/cache/cards/en"
 skipped_files = []
 
 
@@ -31,7 +31,7 @@ def load_translation_data():
             translation_data[item["code"]] = True
 
     except requests.exceptions.HTTPError as e:
-        print(f"Couldn't get translation data (HTTP {e.response.status_code})")
+        print(f"Couldn't get translation data (HTTP: {e})")
     except requests.exceptions.ConnectionError as e:
         print(f"Couldn't get translation data (Connection Error: {e})")
     except json.JSONDecodeError:
