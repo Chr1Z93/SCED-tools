@@ -167,14 +167,20 @@ def remove_default_values(data, defaults, is_nested=False):
             if key in data:
                 del data[key]
 
-    # Remove position/rotation from 'Transform' if this object is nested (not top-level).
-    if is_nested and "Transform" in data:
+    if "Transform" in data:
         transform_data = data["Transform"]
         if isinstance(transform_data, dict):
-            # Remove positions
-            for pos_key in ["posX", "posY", "posZ"]:
-                if pos_key in transform_data:
-                    del transform_data[pos_key]
+            # Remove position/rotation from 'Transform' if this object is nested (not top-level).
+            if is_nested:
+                # Remove positions
+                for pos_key in ["posX", "posY", "posZ"]:
+                    if pos_key in transform_data:
+                        del transform_data[pos_key]
+            else:
+                # Remove 0-positions
+                for pos_key in ["posX", "posY", "posZ"]:
+                    if pos_key in transform_data and transform_data[pos_key] == 0:
+                        del transform_data[pos_key]
 
             # Remove non-0 rotations and round remaining data
             for rot_key in ["rotX", "rotY", "rotZ"]:
@@ -188,6 +194,7 @@ def remove_default_values(data, defaults, is_nested=False):
                         del transform_data[rot_key]
                     else:
                         transform_data[rot_key] = angle
+
 
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
