@@ -136,7 +136,7 @@ def process_files_recursively(base_path):
                 # Remove the key entirely if subname is empty/missing
                 data.pop("Description", None)
 
-            data["GMNotes"] = f'{{\n  "id": "{adb_id}"\n}}'
+            data["GMNotes"] = f'{{"id": "{adb_id}"}}'
 
             # Save updated content
             with open(file_path, "w", encoding="utf-8") as f:
