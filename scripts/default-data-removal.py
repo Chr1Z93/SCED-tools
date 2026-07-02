@@ -166,35 +166,17 @@ def remove_default_values(data, defaults, is_nested=False):
         ]:
             if key in data:
                 del data[key]
+    
+    if "OwnerSteamID" in data:
+        del data["OwnerSteamID"]
 
     if "Transform" in data:
-        transform_data = data["Transform"]
-        if isinstance(transform_data, dict):
-            # Remove position/rotation from 'Transform' if this object is nested (not top-level).
-            if is_nested:
-                # Remove positions
-                for pos_key in ["posX", "posY", "posZ"]:
-                    if pos_key in transform_data:
-                        del transform_data[pos_key]
-            else:
-                # Remove 0-positions
-                for pos_key in ["posX", "posY", "posZ"]:
-                    if pos_key in transform_data and transform_data[pos_key] == 0:
-                        del transform_data[pos_key]
+        clean_transform_data(data["Transform"], is_nested)
 
-            # Remove non-0 rotations and round remaining data
-            for rot_key in ["rotX", "rotY", "rotZ"]:
-                if rot_key in transform_data:
-                    angle = round_angle_and_normalize(
-                        transform_data[rot_key], ANGLE_MULTIPLE
-                    )
-
-                    # Also remove values close to the default
-                    if angle <= 10 or angle >= 350:
-                        del transform_data[rot_key]
-                    else:
-                        transform_data[rot_key] = angle
-
+    if "AttachedDecals" in data:
+        for decal in data["AttachedDecals"]:
+            if "Transform" in decal:
+                clean_transform_data(decal["Transform"], False)
 
     # Iterate over a copy of the keys, as we may modify the dictionary
     for key in list(data.keys()):
@@ -274,6 +256,38 @@ def remove_default_values(data, defaults, is_nested=False):
                 if isinstance(item, dict):
                     # Pass True to indicate that items in the list are nested.
                     remove_default_values(item, defaults, is_nested=True)
+
+
+def clean_transform_data(transform_data, is_nested):
+    """Cleans up position and rotation values inside a Transform dictionary."""
+    if not isinstance(transform_data, dict):
+        return
+
+    if is_nested:
+        # Remove position/rotation from 'Transform' if this object is nested (not top-level)
+        for pos_key in ["posX", "posY", "posZ"]:
+            if pos_key in transform_data:
+                del transform_data[pos_key]
+    else:
+        # Remove 0-positions
+        for pos_key in ["posX", "posY", "posZ"]:
+            if pos_key in transform_data:
+                pos = round(transform_data[pos_key], 3)
+
+                if abs(pos) < 1e-3:
+                    del transform_data[pos_key]
+                else:
+                    transform_data[pos_key] = pos
+
+    # Remove 0 rotations and round remaining data
+    for rot_key in ["rotX", "rotY", "rotZ"]:
+        if rot_key in transform_data:
+            angle = round_angle_and_normalize(transform_data[rot_key], ANGLE_MULTIPLE)
+
+            if angle <= 10 or angle >= 350:
+                del transform_data[rot_key]
+            else:
+                transform_data[rot_key] = angle
 
 
 def is_tts_object_folder(folder_name):
