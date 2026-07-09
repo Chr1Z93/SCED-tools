@@ -5,10 +5,10 @@ from metadata_sorter import sortJSONKeys
 
 # Paths config
 CONTENT_PATH = Path(
-    r"C:\git\SCED-downloads\decomposed\playercards\The Ghosts of Onigawa\TheGhostsofOnigawaInvestigatorExpansion.83a010"
+    r"C:\git\SCED-downloads\decomposed\campaign\The Ghosts of Onigawa\TheGhostsofOnigawaCampaignExpansion.c6cf48"
 )
 SAVED_OBJECT_PATH = Path(
-    r"C:\Users\Christian.Puls\Downloads\Ghosts of Onigawa Investigator Expansion-2026-07-09_07_27_23.json"
+    r"C:\Users\pulsc\Downloads\Ghosts of Onigawa Campaign Expansion-2026-07-09_07_39_06.json"
 )
 SET_CYCLE = "The Ghosts of Onigawa"
 
@@ -23,6 +23,14 @@ def extract_appendix(name_str):
     """Extracts trailing numbers in parentheses like 'Destiny Bond (3)' -> ' (3)' or '' if missing."""
     match = re.search(r"\s*\(\d+\)\s*$", name_str)
     return match.group(0) if match else ""
+
+
+def clean_scenario_prefixes(name_str):
+    """Removes 'Act 1a: ', 'Agenda 2b: ', etc., from the beginning of the string."""
+    # Matches "Act " or "Agenda " followed by a number and a letter, plus a colon and space
+    return re.sub(
+        r"^(act|agenda)\s+\d[a-z]:\s*", "", name_str, flags=re.IGNORECASE
+    ).strip()
 
 
 def should_skip_by_tag(obj):
@@ -68,10 +76,12 @@ def build_metadata_map(obj, metadata_map):
                     if description != "":
                         base_nickname = clean_appendix(nickname)
                         suffix = extract_appendix(nickname)
-                        
+
                         # Format: "name: description" or "name: description (3)"
-                        combined_name = f"{base_nickname}: {description}{suffix}".strip()
-                        
+                        combined_name = (
+                            f"{base_nickname}: {description}{suffix}".strip()
+                        )
+
                         if combined_name not in metadata_map:
                             metadata_map[combined_name] = sorted_metadata
                 else:
@@ -152,10 +162,13 @@ def main():
         if not card_name:
             continue
 
-        card_name_lower = card_name.lower()
+        if card_name == "Scenario":
+            card_name_cleaned = file_data.get("Description", "").lower()
+        else:
+            card_name_cleaned = clean_scenario_prefixes(card_name.lower())
 
-        if card_name_lower in metadata_map:
-            new_metadata = metadata_map[card_name_lower]
+        if card_name_cleaned in metadata_map:
+            new_metadata = metadata_map[card_name_cleaned]
 
             # Perform the injection/overwrite logic
             needs_rewrite = update_metadata_target(json_file, file_data, new_metadata)
