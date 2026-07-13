@@ -56,5 +56,5 @@ def stitch_images(folder_path, cols, rows):
     canvas.save(output_path, method=6)
     print(f"Success! Sheet saved at: {output_path}")
 
-
-stitch_images(PATH, COLUMNS, ROWS)
+if __name__ == "__main__":
+    stitch_images(PATH, COLUMNS, ROWS)
