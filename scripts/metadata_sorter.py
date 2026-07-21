@@ -41,6 +41,7 @@ KEY_ORDER = [
     "victory",
     "doomThreshold",
     "customizations",
+    "handModifier",
     "cycle",
     "extraToken",
     "starterDeck",
