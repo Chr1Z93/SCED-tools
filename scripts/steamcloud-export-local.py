@@ -1,11 +1,10 @@
-import csv
 import json
 import sys
 from pathlib import Path
 import bson
 
 # Default local path for Tabletop Simulator's CloudInfo.bson
-DEFAULT_BSON_PATH = "CloudInfo.bson"
+DEFAULT_BSON_PATH = r"D:\Steam\userdata\86524646\286160\remote\CloudInfo.bson"
 
 
 def read_local_cloud_info_bson(file_path):

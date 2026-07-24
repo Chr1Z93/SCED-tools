@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 import bson
 
+BSON_PATH = Path(r"C:\Users\pulsc\Downloads\CloudInfo.bson")
 
 def bson_to_json(input_file: Path, output_file: Path):
     print(f"Reading BSON: {input_file}")
@@ -77,14 +78,17 @@ def pause():
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) < 2:
+        if len(sys.argv) > 1:
+            input_file = Path(sys.argv[1])
+        elif BSON_PATH.exists():
+            input_file = BSON_PATH
+        else:
             print("Drag a .json or .bson file onto this script")
             print("or use the command line:")
             print("python bson_converter.py <input> [output]")
             pause()
             sys.exit(1)
 
-        input_file = sys.argv[1]
         output_file = sys.argv[2] if len(sys.argv) > 2 else None
 
         convert(input_file, output_file)
