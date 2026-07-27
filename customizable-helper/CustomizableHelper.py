@@ -11,7 +11,7 @@ IMAGE_PATH = r""
 PRINT_DETAILS = True
 PRINT_DISCARDED = True
 
-# Box identification parameters
+# Box identification parameters (might need to "play" with these to get the perfect result)
 MIN_BOX_RATIO = 0.9
 MAX_BOX_RATIO = 1.1
 MIN_BOX_SIZE = 20 / 1050
