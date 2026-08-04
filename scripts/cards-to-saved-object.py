@@ -75,7 +75,7 @@ def build_card_data(image: Path, card_type: str, card_id: int):
     card["GMNotes"] = (
         json.dumps(
             {
-                "id": card_id,
+                "id": str(card_id),
                 "type": card_type,
                 "boot": 1,
                 "boat": 1,
