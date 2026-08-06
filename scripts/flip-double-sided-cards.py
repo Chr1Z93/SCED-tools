@@ -1,21 +1,8 @@
-# This swaps the FaceURL and BackURL of specified card types
-
 import json
 import os
 from pathlib import Path
 import requests
-
-# CONFIGURATION
-# ----------------------------------------------
-# Folder to process
-INPUT_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\language-pack\Spanish - Campaigns\Spanish-Campaigns.SpanishC")
-
-# Card types to flip (lowercase)
-# Example: treachery, scenario, location, enemy, act, agenda
-TYPE_FILTER = {"act", "agenda"}
-
-# Encounter codes to flip (lowercase)
-ENCOUNTER_CODE_FILTER = {"the_unspeakable_oath", "black_stars_rise", "a_phantom_of_truth", "the_pallid_mask"}
+from tool_gui import ToolGUI
 
 # Globals / Derived data
 DATA_API_URL = "https://api.arkham.build/v1/cache/cards/en"
@@ -23,31 +10,36 @@ DATA_API_URL = "https://api.arkham.build/v1/cache/cards/en"
 # Folders that should never be processed
 EXCLUDED_DIRS = {".git", ".github", ".vscode"}
 
+# Setup for the GUI
+OPTIONS = {
+    "input_folder": {
+        "type": "folder",
+        "label": "Input folder",
+        "default": r"C:\git\SCED-downloads\decomposed\language-pack\Spanish - Campaigns",
+    },
+    "types": {
+        "type": "multiselect",
+        "label": "Card Types",
+        "values": ["act", "agenda", "location", "scenario", "enemy", "treachery"],
+        "default": ["act", "agenda", "scenario"],
+    },
+    "encounters": {
+        "type": "multiselect",
+        "label": "Encounter Sets",
+        "values": [
+            "the_unspeakable_oath",
+            "black_stars_rise",
+            "a_phantom_of_truth",
+            "the_pallid_mask",
+        ],
+    },
+}
 
-def load_api_data():
-    api_data = {}
-    try:
-        response = requests.get(DATA_API_URL, timeout=15)
-        response.raise_for_status()
 
-        # Create a lookup map
-        for item in response.json()["data"]["all_card"]:
-            if "type_code" not in item or not item.get("double_sided"):
-                continue
-
-            api_data[item["code"]] = item
-
-    except requests.RequestException as e:
-        print(f"Couldn't get card data: {e}")
-    except json.JSONDecodeError:
-        print(f"Couldn't parse API response")
-
-    return api_data
-
-
-def update_json_files_in_folder():
-    if not INPUT_FOLDER.exists():
-        print(f"Error: The directory {INPUT_FOLDER} was not found.")
+# This swaps the FaceURL and BackURL of specific cards
+def update_json_files_in_folder(log, input_folder, types, encounters):
+    if not input_folder.exists():
+        log(f"Error: The directory {input_folder} was not found.")
         return
 
     api_data = load_api_data()
@@ -55,7 +47,7 @@ def update_json_files_in_folder():
     missing_api_ids = set()
     flipped_count = 0
 
-    for root, dirs, files in os.walk(INPUT_FOLDER):
+    for root, dirs, files in os.walk(input_folder):
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
 
         root = Path(root)
@@ -90,11 +82,11 @@ def update_json_files_in_folder():
 
                 # Skip unwanted cards
                 type_code = api_data[adb_id]["type_code"].lower()
-                if type_code not in TYPE_FILTER:
+                if type_code not in types:
                     continue
 
                 encounter_code = api_data[adb_id]["encounter_code"].lower()
-                if encounter_code not in ENCOUNTER_CODE_FILTER:
+                if encounter_code not in encounters:
                     continue
 
                 # Swap URLs
@@ -105,16 +97,36 @@ def update_json_files_in_folder():
                     json.dump(data, f, indent=2, ensure_ascii=False)
                     f.write("\n")
 
-                print(f"Flipped file: {file_path} ({adb_id})")
+                log(f"Flipped file: {file_path} ({adb_id})")
 
             except json.JSONDecodeError:
-                print(f"Invalid JSON: {file_path}")
+                log(f"Invalid JSON: {file_path}")
                 continue
 
     for id in sorted(missing_api_ids):
-        print(f"Skipped {id} (missing data)")
+        log(f"Skipped {id} (missing data)")
 
-    print(f"Finished. Flipped {flipped_count} cards.")
+    log(f"Finished. Flipped {flipped_count} cards.")
+
+
+def load_api_data():
+    api_data = {}
+    try:
+        response = requests.get(DATA_API_URL, timeout=15)
+        response.raise_for_status()
+
+        for item in response.json()["data"]["all_card"]:
+            if "type_code" not in item or not item.get("double_sided"):
+                continue
+
+            api_data[item["code"]] = item
+
+    except requests.RequestException as e:
+        print(f"Couldn't get card data: {e}")
+    except json.JSONDecodeError:
+        print(f"Couldn't parse API response")
+
+    return api_data
 
 
 def flip_card(data):
@@ -127,5 +139,20 @@ def flip_card(data):
     )
 
 
+def run_tool(config, log):
+    folder = Path(config["input_folder"])
+    types = set(config["types"])
+    encounters = set(config["encounters"])
+
+    log(f"Processing {folder}")
+    log(f"Types: {types}")
+    log(f"Encounters: {encounters}")
+
+    # actual script
+    update_json_files_in_folder(log, folder, types, encounters)
+
+    log("Finished update_json_files_in_folder()")
+
+
 if __name__ == "__main__":
-    update_json_files_in_folder()
+    ToolGUI("Flip Arkham Cards", OPTIONS, run_tool).show()
