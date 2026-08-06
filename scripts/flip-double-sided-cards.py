@@ -8,10 +8,14 @@ import requests
 # CONFIGURATION
 # ----------------------------------------------
 # Folder to process
-INPUT_FOLDER = Path(r"")
+INPUT_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\language-pack\Spanish - Campaigns\Spanish-Campaigns.SpanishC")
 
 # Card types to flip (lowercase)
-TYPES_TO_FLIP = {"location"}
+# Example: treachery, scenario, location, enemy, act, agenda
+TYPE_FILTER = {"act", "agenda"}
+
+# Encounter codes to flip (lowercase)
+ENCOUNTER_CODE_FILTER = {"the_unspeakable_oath", "black_stars_rise", "a_phantom_of_truth", "the_pallid_mask"}
 
 # Globals / Derived data
 DATA_API_URL = "https://api.arkham.build/v1/cache/cards/en"
@@ -31,7 +35,7 @@ def load_api_data():
             if "type_code" not in item or not item.get("double_sided"):
                 continue
 
-            api_data[item["code"]] = item["type_code"].lower()
+            api_data[item["code"]] = item
 
     except requests.RequestException as e:
         print(f"Couldn't get card data: {e}")
@@ -85,8 +89,12 @@ def update_json_files_in_folder():
                     continue
 
                 # Skip unwanted cards
-                card_type = api_data[adb_id]
-                if card_type not in TYPES_TO_FLIP:
+                type_code = api_data[adb_id]["type_code"].lower()
+                if type_code not in TYPE_FILTER:
+                    continue
+
+                encounter_code = api_data[adb_id]["encounter_code"].lower()
+                if encounter_code not in ENCOUNTER_CODE_FILTER:
                     continue
 
                 # Swap URLs
