@@ -323,14 +323,7 @@ def process_files_in_directory(directory, defaults):
     last_root = None
 
     for root, dirs, files in os.walk(directory):
-        if ".git" in dirs:
-            dirs.remove(".git")
-
-        if ".github" in dirs:
-            dirs.remove(".github")
-
-        if ".vscode" in dirs:
-            dirs.remove(".vscode")
+        dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
 
         # Determine if the *current file* should be treated as nested based on its containing folder.
         is_folder_nested = is_tts_object_folder(os.path.basename(root))

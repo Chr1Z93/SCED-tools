@@ -13,11 +13,7 @@ EXCLUDED_FOLDER = os.path.normpath(EXCLUDED_FOLDER)
 # Loop through files
 count = 0
 for root, dirs, files in os.walk(SEARCH_FOLDER):
-    if ".git" in dirs:
-        dirs.remove(".git")
-
-    if ".vscode" in dirs:
-        dirs.remove(".vscode")
+    dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
 
     # Skip excluded folder
     if os.path.commonpath([os.path.normpath(root), EXCLUDED_FOLDER]) == EXCLUDED_FOLDER:

@@ -61,14 +61,7 @@ def update_json_files_in_folder(folder_path):
         return
 
     for root, dirs, files in os.walk(folder_path):
-        if ".git" in dirs:
-            dirs.remove(".git")
-
-        if ".github" in dirs:
-            dirs.remove(".github")
-
-        if ".vscode" in dirs:
-            dirs.remove(".vscode")
+        dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
 
         for filename in files:
             if not filename.endswith(".json"):

@@ -11,11 +11,7 @@ FILTER_STRING = '"Nickname": "Dr. Mala Sinha",'  # must be part of file
 # Loop through files
 count = 0
 for root, dirs, files in os.walk(SEARCH_FOLDER):
-    if ".git" in dirs:
-        dirs.remove(".git")
-
-    if ".vscode" in dirs:
-        dirs.remove(".vscode")
+    dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
 
     for file in files:
         file_path = os.path.join(root, file)

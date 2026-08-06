@@ -20,11 +20,7 @@ def main():
     print(f"Maximum allowed GMNotes character count: {MAX_CHARACTERS} characters")
 
     for root, dirs, files in os.walk(SEARCH_FOLDER):
-        if ".git" in dirs:
-            dirs.remove(".git")
-
-        if ".vscode" in dirs:
-            dirs.remove(".vscode")
+        dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
 
         for file_name in files:
             if not file_name.endswith(".json"):
