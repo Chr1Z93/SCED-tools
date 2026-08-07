@@ -43,7 +43,6 @@ def update_json_files_in_folder(log, input_folder, types, encounters):
         return
 
     api_data = load_api_data()
-
     missing_api_ids = set()
     flipped_count = 0
 
@@ -80,12 +79,17 @@ def update_json_files_in_folder(log, input_folder, types, encounters):
                     missing_api_ids.add(adb_id)
                     continue
 
+                # Skip cards that don't have type / are single-sided
+                item = api_data[adb_id]
+                if "type_code" not in item or not item.get("double_sided"):
+                    continue
+
                 # Skip unwanted cards
-                type_code = api_data[adb_id]["type_code"].lower()
+                type_code = item["type_code"].lower()
                 if type_code not in types:
                     continue
 
-                encounter_code = api_data[adb_id]["encounter_code"].lower()
+                encounter_code = item["encounter_code"].lower()
                 if encounter_code not in encounters:
                     continue
 
@@ -97,16 +101,16 @@ def update_json_files_in_folder(log, input_folder, types, encounters):
                     json.dump(data, f, indent=2, ensure_ascii=False)
                     f.write("\n")
 
-                log(f"Flipped file: {file_path} ({adb_id})")
+                log(f"Flipped file: {file} ({adb_id})")
 
             except json.JSONDecodeError:
                 log(f"Invalid JSON: {file_path}")
                 continue
 
     for id in sorted(missing_api_ids):
-        log(f"Skipped {id} (missing data)")
+        log(f"Missing API:  {id}")
 
-    log(f"Finished. Flipped {flipped_count} cards.")
+    log(f"Summary: Flipped {flipped_count} cards.")
 
 
 def load_api_data():
@@ -116,9 +120,6 @@ def load_api_data():
         response.raise_for_status()
 
         for item in response.json()["data"]["all_card"]:
-            if "type_code" not in item or not item.get("double_sided"):
-                continue
-
             api_data[item["code"]] = item
 
     except requests.RequestException as e:
@@ -143,15 +144,7 @@ def run_tool(config, log):
     folder = Path(config["input_folder"])
     types = set(config["types"])
     encounters = set(config["encounters"])
-
-    log(f"Processing {folder}")
-    log(f"Types: {types}")
-    log(f"Encounters: {encounters}")
-
-    # actual script
     update_json_files_in_folder(log, folder, types, encounters)
-
-    log("Finished update_json_files_in_folder()")
 
 
 if __name__ == "__main__":

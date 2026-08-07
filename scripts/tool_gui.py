@@ -5,124 +5,236 @@ import traceback
 
 
 class ToolGUI:
-    def __init__(self, title, options, run_callback):
+    def __init__(self, title, options, run_callback, size="700x600"):
         self.options = options
         self.run_callback = run_callback
+        self.running = False
 
         self.root = tk.Tk()
         self.root.title(title)
-        self.root.geometry("700x600")
+        self.root.geometry(size)
+        self.root.minsize(650, 450)
 
         self.widgets = {}
+        self._log_buffer = []
+        self._log_lock = threading.Lock()
+        self._log_after_id = None
+        self._log_flush_interval = 200
 
-        self.build_ui()
+        self._build_ui()
 
-    def build_ui(self):
+    def _build_ui(self):
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+
         frame = ttk.Frame(self.root, padding=10)
-        frame.pack(fill="both", expand=True)
+        frame.grid(sticky="nsew")
+        frame.columnconfigure(1, weight=1)
 
         row = 0
 
         for name, config in self.options.items():
-            ttk.Label(frame, text=config.get("label", name)).grid(
+            widget_type = config["type"]
+            label_text = config.get("label", name)
+
+            if widget_type == "separator":
+                separator = ttk.Separator(frame, orient="horizontal")
+                separator.grid(row=row, column=0, columnspan=3, sticky="ew", pady=8)
+                row += 1
+                continue
+
+            ttk.Label(frame, text=label_text).grid(
                 row=row, column=0, sticky="w", pady=5
             )
-
-            widget_type = config["type"]
+            default = config.get("default", "")
 
             if widget_type == "folder":
-                var = tk.StringVar(value=config.get("default", ""))
-
-                entry = ttk.Entry(frame, textvariable=var, width=60)
-                entry.grid(row=row, column=1)
-
+                var = tk.StringVar(value=default)
+                entry = ttk.Entry(frame, textvariable=var)
+                entry.grid(row=row, column=1, sticky="ew", padx=(0, 5))
                 ttk.Button(
-                    frame, text="Browse", command=lambda v=var: self.select_folder(v)
+                    frame,
+                    text="Browse...",
+                    command=lambda v=var: self._select_folder(v),
                 ).grid(row=row, column=2)
+                self.widgets[name] = var
 
+            elif widget_type == "file":
+                var = tk.StringVar(value=default)
+                entry = ttk.Entry(frame, textvariable=var)
+                entry.grid(row=row, column=1, sticky="ew", padx=(0, 5))
+                ttk.Button(
+                    frame,
+                    text="Browse...",
+                    command=lambda v=var: self._select_file(v, config.get("filetypes")),
+                ).grid(row=row, column=2)
                 self.widgets[name] = var
 
             elif widget_type == "text":
-                var = tk.StringVar(value=config.get("default", ""))
-
-                ttk.Entry(frame, textvariable=var, width=60).grid(row=row, column=1)
-
+                var = tk.StringVar(value=default)
+                ttk.Entry(frame, textvariable=var).grid(
+                    row=row, column=1, columnspan=2, sticky="ew"
+                )
                 self.widgets[name] = var
 
             elif widget_type == "choice":
-                var = tk.StringVar(value=config["values"][0])
-
+                values = config.get("values", [])
+                initial = config.get("default", values[0] if values else "")
+                var = tk.StringVar(value=initial)
                 ttk.Combobox(
-                    frame, textvariable=var, values=config["values"], state="readonly"
-                ).grid(row=row, column=1)
-
+                    frame,
+                    textvariable=var,
+                    values=values,
+                    state="readonly",
+                ).grid(row=row, column=1, columnspan=2, sticky="ew")
                 self.widgets[name] = var
 
             elif widget_type == "multiselect":
+                values = config.get("values", [])
                 listbox = tk.Listbox(
-                    frame, selectmode="multiple", height=6, exportselection=False
+                    frame,
+                    selectmode="multiple",
+                    height=6,
+                    exportselection=False,
                 )
+                scrollbar = ttk.Scrollbar(
+                    frame, orient="vertical", command=listbox.yview
+                )
+                listbox.configure(yscrollcommand=scrollbar.set)
+                listbox.grid(row=row, column=1, sticky="nsew", padx=(0, 5))
+                scrollbar.grid(row=row, column=2, sticky="ns")
 
-                for item in config["values"]:
+                for item in values:
                     listbox.insert("end", item)
 
-                listbox.grid(row=row, column=1, sticky="ew")
-
                 defaults = config.get("default", [])
-
-                for i, item in enumerate(config["values"]):
+                for i, item in enumerate(values):
                     if item in defaults:
                         listbox.selection_set(i)
 
                 self.widgets[name] = listbox
 
             elif widget_type == "bool":
-                var = tk.BooleanVar(value=config.get("default", False))
-
-                ttk.Checkbutton(frame, variable=var).grid(row=row, column=1)
-
+                var = tk.BooleanVar(value=bool(default))
+                ttk.Checkbutton(frame, variable=var).grid(
+                    row=row, column=1, columnspan=2, sticky="w"
+                )
                 self.widgets[name] = var
+
+            else:
+                raise ValueError(f"Unsupported option type: {widget_type}")
 
             row += 1
 
-        self.output = tk.Text(frame, height=15)
-        self.output.grid(row=row, column=0, columnspan=3, sticky="nsew", pady=10)
+        self.output = tk.Text(frame, wrap="none", height=15)
+        self.output.grid(row=row, column=0, columnspan=2, sticky="nsew", pady=(10, 0))
+        output_scroll = ttk.Scrollbar(
+            frame, orient="vertical", command=self.output.yview
+        )
+        output_scroll.grid(row=row, column=2, sticky="ns", pady=(10, 0))
+        self.output.configure(yscrollcommand=output_scroll.set)
+        frame.rowconfigure(row, weight=1)
 
         row += 1
+        button_frame = ttk.Frame(frame)
+        button_frame.grid(row=row, column=0, columnspan=3, sticky="ew", pady=10)
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(2, weight=1)
 
-        ttk.Button(frame, text="Run", command=self.run).grid(row=row, column=1)
+        self.status = ttk.Label(button_frame, text="Ready")
+        self.status.grid(row=0, column=0, sticky="w")
 
-    def select_folder(self, variable):
+        self.run_button = ttk.Button(button_frame, text="Run", command=self.run)
+        self.run_button.grid(row=0, column=1)
+
+        self.clear_button = ttk.Button(
+            button_frame, text="Clear log", command=self.clear_log
+        )
+        self.clear_button.grid(row=0, column=2, sticky="e")
+
+        self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _select_folder(self, variable):
         folder = filedialog.askdirectory()
-
         if folder:
             variable.set(folder)
 
+    def _select_file(self, variable, filetypes=None):
+        filetypes = filetypes or [("All files", "*")]
+        file_path = filedialog.askopenfilename(filetypes=filetypes)
+        if file_path:
+            variable.set(file_path)
+
     def get_values(self):
         result = {}
-
         for name, widget in self.widgets.items():
-
             if isinstance(widget, tk.Listbox):
                 selected = widget.curselection()
                 result[name] = [widget.get(i) for i in selected]
-
             else:
                 result[name] = widget.get()
-
         return result
 
     def log(self, text):
-        self.output.insert("end", text + "\n")
+        with self._log_lock:
+            self._log_buffer.append(str(text))
+            if self._log_after_id is None:
+                self._log_after_id = self.root.after(
+                    self._log_flush_interval, self._flush_log_buffer
+                )
+
+    def _flush_log_buffer(self):
+        with self._log_lock:
+            lines = self._log_buffer
+            self._log_buffer = []
+            self._log_after_id = None
+
+        if not lines:
+            return
+
+        self.output.insert("end", "\n".join(lines) + "\n")
         self.output.see("end")
 
-    def run(self):
-        values = self.get_values()
+    def _set_status(self, text):
+        if threading.current_thread() is threading.main_thread():
+            self.status.config(text=text)
+        else:
+            self.root.after(0, self.status.config, {"text": text})
 
+    def clear_log(self):
+        self.output.delete("1.0", "end")
+
+    def _run_complete(self):
+        self.running = False
+        self.run_button.config(state="normal")
+        self._set_status("Ready")
+        self.log("Finished.")
+
+    def _run_in_thread(self):
         try:
-            self.run_callback(values, self.log)
+            self.run_callback(self.get_values(), self.log)
         except Exception:
             self.log(traceback.format_exc())
+        finally:
+            self.root.after(0, self._run_complete)
+
+    def run(self):
+        if self.running:
+            return
+
+        self.running = True
+        self.run_button.config(state="disabled")
+        self._set_status("Running...")
+        self.log("Starting...")
+
+        thread = threading.Thread(target=self._run_in_thread, daemon=True)
+        thread.start()
+
+    def _on_close(self):
+        if self._log_after_id is not None:
+            self.root.after_cancel(self._log_after_id)
+            self._log_after_id = None
+        self.root.quit()
 
     def show(self):
         self.root.mainloop()
