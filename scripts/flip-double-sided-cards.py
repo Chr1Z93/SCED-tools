@@ -23,16 +23,7 @@ OPTIONS = {
         "values": ["act", "agenda", "location", "scenario", "enemy", "treachery"],
         "default": ["act", "agenda", "scenario"],
     },
-    "encounters": {
-        "type": "multiselect",
-        "label": "Encounter Sets",
-        "values": [
-            "the_unspeakable_oath",
-            "black_stars_rise",
-            "a_phantom_of_truth",
-            "the_pallid_mask",
-        ],
-    },
+    "encounters": {"type": "text", "label": "Encounter Set Filter (split by |)"},
 }
 
 
@@ -90,7 +81,7 @@ def update_json_files_in_folder(log, input_folder, types, encounters):
                     continue
 
                 encounter_code = item["encounter_code"].lower()
-                if encounter_code not in encounters:
+                if encounters and encounter_code not in encounters:
                     continue
 
                 # Swap URLs
@@ -143,7 +134,7 @@ def flip_card(data):
 def run_tool(config, log):
     folder = Path(config["input_folder"])
     types = set(config["types"])
-    encounters = set(config["encounters"])
+    encounters = {s.strip() for s in config["encounters"].split("|") if s.strip()}
     update_json_files_in_folder(log, folder, types, encounters)
 
 
