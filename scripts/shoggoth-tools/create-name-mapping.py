@@ -20,6 +20,8 @@ def create_mapping():
 
     german_by_project_number = {
         str(card["project_number"]): card["name"]
+        .replace("<dbl>", "")
+        .replace("</dbl>", "")
         for card in german_project["cards"]
         if "project_number" in card
     }
@@ -28,7 +30,8 @@ def create_mapping():
         project_number = str(en_card.get("project_number"))
 
         if project_number in german_by_project_number:
-            mapping[en_card["name"]] = german_by_project_number[project_number]
+            en_name = en_card["name"].replace("<dbl>", "").replace("</dbl>", "")
+            mapping[en_name] = german_by_project_number[project_number]
 
     output_file = script_path / "mapping.json"
     output_file.write_text(
