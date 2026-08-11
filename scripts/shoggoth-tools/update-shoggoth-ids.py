@@ -1,11 +1,16 @@
 import json
 import os
 from pathlib import Path
+import re
 
 tts_folder = Path(
     r"C:\git\SCED-downloads\decomposed\language-pack\German - Fan Campaigns\German-FanCampaigns.GermanFC\AliceinWonderland.209aaa"
 )
 shoggoth_path = Path(r"C:\git\alice\project.json")
+
+
+def remove_formatting_tags(text: str) -> str:
+    return re.sub(r"</?[^>]+>", "", text)
 
 
 def update_shoggoth_ids():
@@ -30,7 +35,7 @@ def update_shoggoth_ids():
             try:
                 metadata = json.loads(data.get("GMNotes", ""))
             except (json.JSONDecodeError, TypeError):
-                print(f"Erorr in metadata for {filename}")
+                print(f"Error in metadata for {filename}")
                 continue
 
             name = data["Nickname"].strip()
@@ -54,13 +59,40 @@ def update_shoggoth_ids():
             german_name_to_id[german_name] = "CONFLICT"
             print(f"CONFLICT for '{german_name}': " f"{', '.join(sorted(ids))}")
 
-    # Loop through shoggoth cards and update their IDs
+    # Load the Shoggoth project
+    with open(shoggoth_path, "r", encoding="utf-8") as f:
+        project = json.load(f)
+
+    # Loop through Shoggoth cards and update their IDs
     updated = 0
     not_found = 0
     conflicts = 0
 
-    # ???
-    
+    for card in project["cards"]:
+        name = remove_formatting_tags(card["name"].strip())
+
+        if name not in german_name_to_id:
+            print(f"NOT-FOUND: {name}")
+            not_found += 1
+            continue
+
+        new_id = german_name_to_id[name]
+
+        if new_id == "CONFLICT":
+            print(f"CONFLICT: {name}")
+            conflicts += 1
+            continue
+
+        # Only update if the ID actually changed
+        if card.get("id") != new_id:
+            card["id"] = new_id
+            updated += 1
+
+    # Write the updated project back
+    with open(shoggoth_path, "w", encoding="utf-8") as f:
+        json.dump(project, f, ensure_ascii=True, indent=4)
+        f.write("\n")
+
     print()
     print("Finished.")
     print(f"Updated:   {updated}")
