@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import re
 
 english_folder = Path(
     r"C:\git\SCED-downloads\decomposed\campaign\Alice in Wonderland\AliceinWonderland.39916d"
@@ -62,7 +63,7 @@ def update_tts_ids():
                 continue
 
             metadata = get_metadata_obj(file_path, data)
-            name = data["Nickname"]
+            name = data["Nickname"].strip()
 
             # Clean up name
             for prefix in prefixes:
@@ -70,9 +71,18 @@ def update_tts_ids():
                     name = name[len(prefix) :]
                     break
 
+            name = name.strip()
+
             if name not in english_to_german_name:
-                print(f"No translation found for {name}")
-                continue
+                if "(" in name:
+                    name_without_appendix = re.sub(r"\s*\([^)]*\)$", "", name)
+
+                    if name_without_appendix in english_to_german_name:
+                        name = name_without_appendix
+
+                if name not in english_to_german_name:
+                    print(f"No translation found for {name}")
+                    continue
 
             german_name = english_to_german_name[name]
             card_id = metadata.get("id", metadata.get("TtsZoopGuid"))
@@ -125,7 +135,7 @@ def update_tts_ids():
 
                 if new_id == "CONFLICT":
                     conflicts += 1
-                    print(f"CONFLICT: {german_name}")
+                    print(f"CONFLICT:  {german_name}")
 
             # Read the existing GMNotes
             try:
