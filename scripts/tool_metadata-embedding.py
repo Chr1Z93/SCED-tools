@@ -1,39 +1,53 @@
-# Embeds GMNotes if they are short enough
-
 import os
 import json
 from pathlib import Path
 from collections import OrderedDict
+from tool_gui import ToolGUI
 
-# --- Configuration ---
-SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Player Cards")
-MAX_CHARACTERS = 80  # The maximum character count for the GMNotes content
+# Folders that should never be processed
+EXCLUDED_DIRS = {".git", ".github", ".vscode"}
+
+# Setup for the GUI
+OPTIONS = {
+    "input_folder": {
+        "type": "folder",
+        "label": "Input folder",
+        "default": r"C:\git\SCED-downloads\decomposed\language-pack",
+    },
+    "types": {
+        "type": "multiselect",
+        "label": "Card Types",
+        "values": ["act", "agenda", "location", "scenario", "enemy", "treachery"],
+        "default": ["act", "agenda", "scenario"],
+    },
+    "max_chars": {"type": "text", "label": "Maximum Character Length"},
+}
 
 
-# --- Main Logic ---
-def main():
+def embed_metadata(log, input_folder, max_chars):
     """
     Loops through all .json files and embeds GMNotes content if it's short enough.
-    Assumes the .gmnotes file is in the same folder with the same base name.
     """
-    print(f"Scanning folder: {SEARCH_FOLDER}")
-    print(f"Maximum allowed GMNotes character count: {MAX_CHARACTERS} characters")
+    log(f"Scanning folder: {input_folder}")
+    log(f"Maximum allowed GMNotes character count: {max_chars} characters")
 
-    for root, dirs, files in os.walk(SEARCH_FOLDER):
-        dirs[:] = [d for d in dirs if d not in {".git", ".github", ".vscode"}]
+    if not input_folder.exists():
+        log(f"Error: The directory {input_folder} was not found.")
+        return
+
+    for root, dirs, files in os.walk(input_folder):
+        dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
+
+        root = Path(root)
 
         for file_name in files:
             if not file_name.endswith(".json"):
                 continue
 
-            file_path = Path(root) / file_name
+            file_path = root / file_name
 
-            try:
-                with open(file_path, "r", encoding="utf-8") as f:
-                    json_data = json.load(f)
-            except (json.JSONDecodeError, UnicodeDecodeError) as e:
-                print(f"Warning: Could not decode JSON file {file_path}. Error: {e}")
-                continue
+            with open(file_path, "r", encoding="utf-8") as f:
+                json_data = json.load(f)
 
             # Check for the "GMNotes_path" field
             gmnotes_path_str = json_data.get("GMNotes_path")
@@ -44,7 +58,7 @@ def main():
             gmnotes_path = file_path.with_suffix(".gmnotes")
 
             if not gmnotes_path.exists():
-                print(f"Warning: .gmnotes file not found for {file_path}.")
+                log(f"Warning: .gmnotes file not found for {file_path}.")
                 continue
 
             # Read the content of the .gmnotes file
@@ -53,7 +67,7 @@ def main():
 
             # Check the character count of the content
             note_length = len(gmnotes_content)
-            if note_length <= MAX_CHARACTERS:
+            if note_length <= max_chars:
                 # Delete the .gmnotes file
                 os.remove(gmnotes_path)
 
@@ -71,13 +85,16 @@ def main():
                     json.dump(sorted_json_data, f, indent=2, ensure_ascii=False)
                     f.write("\n")  # Add an empty line at the end
 
-                print(f"{json_data["Nickname"]}: Embedded GMNotes")
+                log(f"{json_data["Nickname"]}: Embedded GMNotes")
 
-            else:
-                print(f"{json_data["Nickname"]}: GMNotes too long ({note_length})")
+    log("\nScript finished.")
 
-    print("\nScript finished.")
+
+def run_tool(config, log):
+    input_folder = Path(config["input_folder"])
+    max_chars = int(config["max_chars"])
+    embed_metadata(log, input_folder, max_chars)
 
 
 if __name__ == "__main__":
-    main()
+    ToolGUI("Embed Metadata", OPTIONS, run_tool).show()
