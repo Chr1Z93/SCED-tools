@@ -1,14 +1,13 @@
 # Updates objects with metadata (requires the name to be the ID)
-# Note: BoA required a 500 ID offset
 
 import json
 import pandas as pd
 import re
 
 # Set the path to the TTS savegame JSON file
-SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Brethren of Ash.json"
-METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-boa.xlsx"
-CYCLE_NAME = "Core 2026"
+SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Children of Blood.json"
+METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-cob.xlsx"
+CYCLE_NAME = "Children of Blood"
 
 
 # Function to clean up trailing commas in JSON strings
@@ -16,9 +15,6 @@ def clean_json(json_str):
     json_str = re.sub(r",\s*([\]}])", r"\1", json_str)
     return json_str
 
-
-def offset_id(id):
-    return str(int(id)-500)
 
 # Load metadata from Excel and validate JSON
 def load_metadata(file):
@@ -28,12 +24,8 @@ def load_metadata(file):
     for index, row in df.iterrows():
         card_name = row["Card Name"].strip()
         card_type = row["Type"].strip()
-        card_description = (
-            str(row["Card Description"]).strip()
-            if pd.notna(row["Card Description"])
-            else ""
-        )
-        id = offset_id(row["ID"].strip())
+        card_description = row["Card Description"].strip()
+        card_id = row["ID"].strip()
         metadata = clean_json(row["Metadata"].strip())
 
         try:
@@ -42,7 +34,7 @@ def load_metadata(file):
             print(f"Invalid JSON at row {index + 2}: {e}")  # type: ignore
             continue
 
-        metadata_dict[id] = {
+        metadata_dict[card_id] = {
             "Nickname": card_name,
             "Description": card_description,
             "GMNotes": metadata,
@@ -89,22 +81,23 @@ def set_metadata(obj, md_value):
     # Force correct type data
     metadata_dict["type"] = md_value["Type"]
 
-    # Correct ID by offset
-    metadata_dict["id"] = offset_id(metadata_dict["id"])
-
     obj["GMNotes"] = json.dumps(metadata_dict)
 
     # Add tags based on metadata conditions
-    if metadata_dict.get("type") == "Asset":
+    card_type = metadata_dict.get("type")
+    card_class = metadata_dict.get("class")
+    if card_type == "Asset":
         obj["Tags"].append("Asset")
-    if metadata_dict.get("type") == "Location":
+    if card_type == "Location":
         obj["Tags"].append("Location")
     if (
-        metadata_dict.get("type") == "Location"
-        or metadata_dict.get("class") == "Mythos"
+        card_type == "Location"
+        or card_type == "Enemy"
+        or card_type == "Treachery"
+        or card_class == "Mythos"
     ):
         obj["Tags"].append("ScenarioCard")
-    if metadata_dict.get("type") == "Asset" or metadata_dict.get("class") == "Neutral":
+    if card_type == "Asset" or card_class == "Neutral":
         obj["Tags"].append("PlayerCard")
 
 
