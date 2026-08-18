@@ -172,8 +172,8 @@ def remove_default_values(data, defaults, is_nested=False):
 
     if "AttachedDecals" in data:
         for decal in data["AttachedDecals"]:
-            if "OwnerSteamID" in data:
-                del data["OwnerSteamID"]
+            if "OwnerSteamID" in decal:
+                del decal["OwnerSteamID"]
 
             if "Transform" in decal:
                 clean_transform_data(decal["Transform"], False)

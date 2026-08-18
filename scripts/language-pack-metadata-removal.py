@@ -13,7 +13,7 @@ from pathlib import Path
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = Path(
-    r"C:\git\SCED-downloads\decomposed\language-pack\German - Campaigns\German-Campaigns.GermanC\PDFs.pdfpdf"
+    r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
@@ -85,13 +85,12 @@ def process_files_in_directory(directory, keys_to_keep):
                             for key in list(gmnotes.keys()):
                                 if key not in keys_to_keep:
                                     del gmnotes[key]
-                            data["GMNotes"] = json.dumps(gmnotes, indent=2)
+                            data["GMNotes"] = json.dumps(gmnotes, separators=(",", ":"))
 
                         if "Transform" in data:
                             # Replace the old Transform with ordered one
                             old_t = data["Transform"]
                             new_t = {
-                                "rotY": 270,
                                 "scaleX": old_t.get("scaleX", 1),
                                 "scaleY": old_t.get("scaleY", 1),
                                 "scaleZ": old_t.get("scaleZ", 1)
