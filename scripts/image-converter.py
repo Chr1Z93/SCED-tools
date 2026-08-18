@@ -32,7 +32,7 @@ INPUT_PATH = None  # If undefined, you will be prompted for an input
 
 REMOVE_WHITE_BORDERS = False
 WHITE_THRESHOLD = 75  # How "white" a row/column must be to be cropped (0-255)
-MAX_CROP_LIMIT = 25  #  How many pixels can be removed automatically at maximum
+MAX_CROP_LIMIT = 25  # How many pixels can be removed automatically at maximum
 
 # (left, top, right, bottom) pixels to remove from each side (after rotation)
 FIXED_CROP_OFFSETS = None
