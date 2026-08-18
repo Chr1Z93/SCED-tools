@@ -12,11 +12,11 @@ from datetime import datetime
 from modules import tts_templates
 
 BACK_URL = "https://steamusercontent-a.akamaihd.net/ugc/1862806463732171728/E2EBDA19EAF2265F39F3F36C197C7104CA4802E3/"
-SOURCE_FOLDER = Path(r"C:\Users\pulsc\Downloads\cards")
-START_ID = {"Artifact": 3201, "Item": 3101}
-CARD_SCALE = 2.3
-EXPANSION = "Surprise Shipment"
-GAME_SHORTHAND = "Arnak"
+SOURCE_FOLDER = Path(
+    r"C:\Users\pulsc\OneDrive\Dateien\Brettspiele\Arkham Horror\Karten\Children of Blood\Special"
+)
+CARD_SCALE = 1
+GAME_SHORTHAND = "CoB"
 PLATFORM = platform.system()
 
 
@@ -77,13 +77,6 @@ def build_card_data(image: Path, card_type: str, card_id: int):
             {
                 "id": str(card_id),
                 "type": card_type,
-                "boot": 1,
-                "boat": 1,
-                "car": 1,
-                "plane": 1,
-                "cost": 1,
-                "points": 1,
-                "expansion": EXPANSION,
             },
             ensure_ascii=False,
             indent=2,
@@ -116,14 +109,13 @@ def build_card_data(image: Path, card_type: str, card_id: int):
     return card
 
 
-def build_bag(card_type: str, images: list[Path], next_id: int):
+def build_bag(card_type: str, images: list[Path]):
     """Build a bag containing all cards of one type."""
 
     contained_objects = []
 
     for image in sorted(images):
-        card_id = next_id
-        next_id += 1
+        card_id = int(image.stem)
         print(f"Processing {image.name} -> {card_id}")
 
         card = build_card_data(image, card_type, card_id)
@@ -162,12 +154,7 @@ def build_tts_json():
     contained_bags = []
 
     for card_type, images in sorted(cards_by_type.items()):
-        bag = build_bag(
-            card_type,
-            images,
-            START_ID.get(card_type, 1),
-        )
-
+        bag = build_bag(card_type, images)
         contained_bags.append(bag)
 
     # Build master bag

@@ -18,7 +18,7 @@ def clean_json(json_str):
 
 # Load metadata from Excel and validate JSON
 def load_metadata(file):
-    df = pd.read_excel(file, dtype=str)
+    df = pd.read_excel(file, dtype=str).fillna("")
     metadata_dict = {}
 
     for index, row in df.iterrows():

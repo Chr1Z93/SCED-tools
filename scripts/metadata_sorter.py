@@ -42,6 +42,8 @@ KEY_ORDER = [
     "doomThreshold",
     "customizations",
     "handModifier",
+    "quantity",
+    "encounterSet",
     "cycle",
     "extraToken",
     "starterDeck",
