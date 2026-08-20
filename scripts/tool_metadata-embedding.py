@@ -92,7 +92,7 @@ def embed_metadata(log, input_folder, max_chars):
 
 def run_tool(config, log):
     input_folder = Path(config["input_folder"])
-    max_chars = int(config["max_chars"])
+    max_chars = int(config["max_chars"] or 1000)
     embed_metadata(log, input_folder, max_chars)
 
 
