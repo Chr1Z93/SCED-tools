@@ -69,10 +69,7 @@ def fade_edges(image, fade_percent=5, ruggedness=0.3, roughness_percent=50, seed
     fade_x = width * fade_percent / 100
     fade_y = height * fade_percent / 100
 
-    # ------------------------------------------------------------
     # Create coordinate grids
-    # ------------------------------------------------------------
-
     y, x = np.mgrid[0:height, 0:width]
 
     # ------------------------------------------------------------
@@ -105,8 +102,6 @@ def fade_edges(image, fade_percent=5, ruggedness=0.3, roughness_percent=50, seed
     # Calculate alpha for each edge
     # ------------------------------------------------------------
 
-    # Broadcasting makes these 1D contours apply across the image.
-
     top_alpha = np.clip(y / top_boundary[np.newaxis, :], 0, 1)
     bottom_alpha = np.clip((height - 1 - y) / bottom_boundary[np.newaxis, :], 0, 1)
     left_alpha = np.clip(x / left_boundary[:, np.newaxis], 0, 1)
@@ -117,7 +112,6 @@ def fade_edges(image, fade_percent=5, ruggedness=0.3, roughness_percent=50, seed
     # ------------------------------------------------------------
 
     alpha = np.minimum.reduce([top_alpha, bottom_alpha, left_alpha, right_alpha])
-
     alpha = (alpha * 255).astype(np.uint8)
 
     # ------------------------------------------------------------
