@@ -98,7 +98,9 @@ class ToolGUI:
                     exportselection=False,
                 )
                 scrollbar = ttk.Scrollbar(
-                    frame, orient="vertical", command=listbox.yview
+                    frame,
+                    orient="vertical",
+                    command=listbox.yview,
                 )
                 listbox.configure(yscrollcommand=scrollbar.set)
                 listbox.grid(row=row, column=1, sticky="nsew", padx=(0, 5))
@@ -117,7 +119,10 @@ class ToolGUI:
             elif widget_type == "bool":
                 var = tk.BooleanVar(value=bool(default))
                 ttk.Checkbutton(frame, variable=var).grid(
-                    row=row, column=1, columnspan=2, sticky="w"
+                    row=row,
+                    column=1,
+                    columnspan=2,
+                    sticky="w",
                 )
                 self.widgets[name] = var
 
@@ -126,10 +131,17 @@ class ToolGUI:
 
             row += 1
 
-        self.output = tk.Text(frame, wrap="none", height=15)
+        self.output = tk.Text(
+            frame,
+            wrap="none",
+            height=15,
+            state="disabled",
+        )
         self.output.grid(row=row, column=0, columnspan=2, sticky="nsew", pady=(10, 0))
         output_scroll = ttk.Scrollbar(
-            frame, orient="vertical", command=self.output.yview
+            frame,
+            orient="vertical",
+            command=self.output.yview,
         )
         output_scroll.grid(row=row, column=2, sticky="ns", pady=(10, 0))
         self.output.configure(yscrollcommand=output_scroll.set)
@@ -175,12 +187,52 @@ class ToolGUI:
                 result[name] = widget.get()
         return result
 
+    def _call_on_main_thread(self, callback):
+        """
+        Execute a callback on the Tkinter main thread and
+        return its result to the calling thread.
+        """
+        result = []
+        exception = []
+        event = threading.Event()
+
+        def wrapper():
+            try:
+                result.append(callback())
+            except Exception as e:
+                exception.append(e)
+            finally:
+                event.set()
+
+        self.root.after(0, wrapper)
+        event.wait()
+
+        if exception:
+            raise exception[0]
+
+        return result[0] if result else None
+
+    def get_clipboard(self):
+        """Get the current clipboard contents."""
+        return self._call_on_main_thread(self.root.clipboard_get)
+
+    def set_clipboard(self, text):
+        """Replace the clipboard contents."""
+
+        def update_clipboard():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+            self.root.update()
+
+        self._call_on_main_thread(update_clipboard)
+
     def log(self, text):
         with self._log_lock:
             self._log_buffer.append(str(text))
             if self._log_after_id is None:
                 self._log_after_id = self.root.after(
-                    self._log_flush_interval, self._flush_log_buffer
+                    self._log_flush_interval,
+                    self._flush_log_buffer,
                 )
 
     def _flush_log_buffer(self):
@@ -192,7 +244,9 @@ class ToolGUI:
         if not lines:
             return
 
+        self.output.config(state="normal")
         self.output.insert("end", "\n".join(lines) + "\n")
+        self.output.config(state="disabled")
         self.output.see("end")
 
     def _set_status(self, text):
@@ -202,7 +256,9 @@ class ToolGUI:
             self.root.after(0, self.status.config, {"text": text})
 
     def clear_log(self):
+        self.output.config(state="normal")
         self.output.delete("1.0", "end")
+        self.output.config(state="disabled")
 
     def _run_complete(self):
         self.running = False
@@ -210,9 +266,9 @@ class ToolGUI:
         self._set_status("Ready")
         self.log("Finished.")
 
-    def _run_in_thread(self):
+    def _run_in_thread(self, values):
         try:
-            self.run_callback(self.get_values(), self.log)
+            self.run_callback(values, self.log, self)
         except Exception:
             self.log(traceback.format_exc())
         finally:
@@ -222,12 +278,22 @@ class ToolGUI:
         if self.running:
             return
 
+        # Read all Tkinter widget values while still on the
+        # main thread. Tkinter widgets must not be accessed
+        # from the worker thread.
+        values = self.get_values()
+
         self.running = True
         self.run_button.config(state="disabled")
         self._set_status("Running...")
         self.log("Starting...")
 
-        thread = threading.Thread(target=self._run_in_thread, daemon=True)
+        thread = threading.Thread(
+            target=self._run_in_thread,
+            args=(values,),
+            daemon=True,
+        )
+
         thread.start()
 
     def _on_close(self):
