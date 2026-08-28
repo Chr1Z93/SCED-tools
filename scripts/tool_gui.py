@@ -268,7 +268,7 @@ class ToolGUI:
 
     def _run_in_thread(self, values):
         try:
-            self.run_callback(values, self.log, self)
+            self.run_callback(values, self.log)
         except Exception:
             self.log(traceback.format_exc())
         finally:
