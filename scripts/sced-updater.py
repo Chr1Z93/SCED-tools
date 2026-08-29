@@ -103,7 +103,7 @@ def get_local_filename(asset_name: str) -> str:
         Arkham.SCE.1.2.3.json
         -> Arkham SCE 1.2.3.json
     """
-    return asset_name.replace("Arkham.SCE.", "Arkham SCE ")
+    return asset_name.replace("Arkham.SCE.v", "Arkham SCE ")
 
 
 # ============================================================================
