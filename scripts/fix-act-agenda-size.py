@@ -40,8 +40,8 @@ def update_transform(file_path):
             data = json.load(f)
 
         if "Transform" in data:
-            data["Transform"]["scaleX"] = 0.8214
-            data["Transform"]["scaleZ"] = 0.8214
+            data["Transform"]["scaleX"] = 0.8214 / 1.15
+            data["Transform"]["scaleZ"] = 0.8214 / 1.15
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
                 f.write("\n")
