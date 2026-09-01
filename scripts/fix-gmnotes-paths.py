@@ -21,10 +21,10 @@ def fix_gmnotes_path(base_folder):
             if "GMNotes_path" not in data:
                 continue
         
-            # name without file extension
+            # Name without file extension
             name_with_guid = os.path.splitext(file_name)[0]
 
-            # repair the GMNNotes_path
+            # Repair the GMNNotes_path
             rel_dir = os.path.relpath(root, base_folder)
             new_path_parts = [BASE_FOLDER_NAME]
 
@@ -44,7 +44,7 @@ def fix_gmnotes_path(base_folder):
 
             data["GMNotes_path"] = new_path
 
-            # save the repaired .json file
+            # Save the repaired .json file
             with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
                 f.write("\n")

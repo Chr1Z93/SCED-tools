@@ -28,22 +28,15 @@ def remove_keys_recursive(data, keys_to_remove):
 
 
 try:
-    # 1. Read the JSON file
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         json_data = json.load(f)
-
     print(f"Successfully loaded data from {INPUT_FILE}")
 
-    # 2. Clean the data recursively
     cleaned_data = remove_keys_recursive(json_data, KEYS_TO_REMOVE)
-
     print("Data cleaned.")
 
-    # 3. Write the cleaned data to a new JSON file
     with open(OUTPUT_FILE, "w") as f:
-        # Use an indent for a nicely formatted output
-        json.dump(cleaned_data, f, indent=4)
-
+        json.dump(cleaned_data, f, indent=2)
     print(f"Cleaned data saved to {OUTPUT_FILE}")
 
 except FileNotFoundError:
