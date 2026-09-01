@@ -1,0 +1,55 @@
+local BUTTON_LABELS = {
+  "Fight",
+  "Investigate",
+  "Evade",
+  "Draw",
+  "Resource",
+  "Move",
+  "Play",
+  "Activate",
+  "Resign"
+}
+
+function onLoad()
+  local buttonWidth  = 5000
+  local buttonHeight = 2000
+  local scale        = 0.25
+  local spacingX     = 3
+  local spacingZ     = 1.5
+  local columns      = 3
+
+  for i, label in ipairs(BUTTON_LABELS) do
+    local functionName = "actionButton_" .. i
+
+    _G[functionName]   = function(_, playerColor)
+      if Player[playerColor] then
+        broadcastToAll(getColoredName(playerColor) .. ": " .. label)
+      end
+    end
+
+    -- Convert button index to 3x3 grid coordinates
+    local column       = (i - 1) % columns
+    local row          = math.floor((i - 1) / columns)
+
+    self.createButton({
+      label          = label,
+      click_function = functionName,
+      function_owner = self,
+      position       = Vector(
+        (column - 1) * spacingX,
+        1,
+        (row - 1) * spacingZ
+      ),
+      width          = buttonWidth,
+      height         = buttonHeight,
+      scale          = Vector(scale, scale, scale),
+      font_size      = 1200
+    })
+  end
+end
+
+function getColoredName(playerColor)
+  if not playerColor then return "" end
+  local displayName = Player[playerColor].steam_name
+  return "[" .. Color.fromString(playerColor):toHex() .. "]" .. displayName .. "[-]"
+end
