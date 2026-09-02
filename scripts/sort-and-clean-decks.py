@@ -102,8 +102,8 @@ def rebuild_deck_data(
     data: Dict[str, Any], associated_folder_path: Path, skip_sort: bool = False
 ) -> Dict[str, Any]:
     """Generates a fresh table for 'CustomDeck' and 'DeckIDs' fields."""
-    url_to_canon_id = {} # Maps (FaceURL, BackURL) -> canonical_id_str
-    id_redirection_map = {} # Maps filename_stem -> canonical_id_str
+    url_to_canon_id = {}  # Maps (FaceURL, BackURL) -> canonical_id_str
+    id_redirection_map = {}  # Maps filename_stem -> canonical_id_str
     temp_card_list = []  # List of (filename, card_id)
     final_custom_deck_registry = {}
 
@@ -286,7 +286,7 @@ def process_folder_for_cleanup(root_folder_path: Path):
             continue
 
         # Skip sorting for Act / Agenda decks
-        skip_sorting_for_this_file = is_act_or_agenda(data, main_json_path)
+        skip_sort = is_act_or_agenda(data, main_json_path)
 
         # Capture the original key order before any modification to data
         original_keys = list(data.keys())
@@ -295,7 +295,7 @@ def process_folder_for_cleanup(root_folder_path: Path):
         updated_data = rebuild_deck_data(
             data,
             associated_folder_path,
-            skip_sorting_for_this_file,
+            skip_sort,
         )
 
         # Perform the deduplication
@@ -330,7 +330,7 @@ def process_folder_for_cleanup(root_folder_path: Path):
             f.write(json_output)
 
         feedbackStr = f"  Updated {main_json_path.name}: "
-        if PRESERVE_CARD_ORDER or skip_sorting_for_this_file:
+        if PRESERVE_CARD_ORDER or skip_sort:
             print(f"{feedbackStr}Kept card order.")
         else:
             if SORT_BY_ID:
