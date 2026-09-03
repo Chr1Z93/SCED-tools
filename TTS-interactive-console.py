@@ -229,6 +229,7 @@ def send_help():
     print("  target [guid] - Change who receives the Lua code.")
     print("  pull          - Open the Lua and XML as temp files.")
     print("  push          - Send the temp files back to the game.")
+    print("  pushclear     - Send the temp files back to the game and clear the script state.")
     print("  reload        - Reloads the currently loaded TTS game.")
     print("  exit          - Clean up temp files and close.")
 
@@ -243,7 +244,7 @@ def send_help():
     print("=" * 50 + "\n")
 
 
-def send_push():
+def send_push(clear_state=False):
     # Initialize as empty strings so the variables always exist
     updated_lua = ""
     updated_xml = ""
@@ -271,14 +272,23 @@ def send_push():
                 f"if obj then "
                 f"  obj.setLuaScript([====[{updated_lua}]====]) "
                 f"  obj.UI.setXml([====[{updated_xml}]====]) "
+            )
+
+            if clear_state:
+                reload_cmd += "  obj.script_state = '' "
+
+            reload_cmd += (
                 f"  obj.reload() "
                 f"else "
                 f"  print('Push failed: Object {state['temp_name']}.{state['temp_guid']} no longer exists') "
                 f"end"
             )
             send_command(reload_cmd, target_override="-1")
+
+            state_msg = " and cleared script state" if clear_state else ""
             print(
-                f"[SYS] Pushed Lua and XML updates to {state['temp_name']}.{state['temp_guid']}."
+                f"[SYS] Pushed Lua and XML updates to "
+                f"{state['temp_name']}.{state['temp_guid']}{state_msg}."
             )
     else:
         print("[ERR] No temp files found. Pull a script first.")
@@ -320,6 +330,8 @@ if __name__ == "__main__":
                 send_pull()
             elif user_input == "push":
                 send_push()
+            elif user_input == "pushclear":
+                send_push(True)
             elif parts[0] == "target":
                 state["target_guid"] = (
                     "-1" if len(parts) < 2 or parts[1] == "global" else parts[1]
