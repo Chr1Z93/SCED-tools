@@ -3,9 +3,13 @@
 import os
 
 # Config
-SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Korean - Campaigns\LanguagePackKorean-Campaigns.KoreanC"
+SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\French - Fan Campaigns"
 EXCLUDED_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577\Grundspiel.3c77b5"
-FILTER_STRING = "https://steamusercontent-a.akamaihd.net/ugc/2260310642906139495/3EB5D0C93B2343DC206FF062EE00894EBA269B57/"
+FILTER_STRINGS =[
+    '"Name": "3DText",',
+    '"Name": "Custom_Tile",',
+    '"Name": "Custom_Token",',
+]
 
 # Normalize excluded path for comparison
 EXCLUDED_FOLDER = os.path.normpath(EXCLUDED_FOLDER)
@@ -26,10 +30,12 @@ for root, dirs, files in os.walk(SEARCH_FOLDER):
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            if FILTER_STRING in content:
-                print(f"Deleting: {file_path}")
-                os.remove(file_path)
-                count += 1
+            for filter_string in FILTER_STRINGS:
+                if filter_string in content:
+                    print(f"Deleting: {file_path}")
+                    os.remove(file_path)
+                    count += 1
+                    break
 
         except Exception as e:
             print(f"Error at {file_path}: {e}")

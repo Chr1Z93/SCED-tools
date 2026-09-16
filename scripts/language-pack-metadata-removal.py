@@ -13,7 +13,7 @@ from pathlib import Path
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
 # Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = Path(
-    r"C:\git\SCED-downloads\decomposed\language-pack\Polish - Campaigns"
+    r"C:\git\SCED-downloads\decomposed\language-pack\French - Fan Campaigns\French-FanCampaigns.FrenchFC"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
@@ -79,13 +79,18 @@ def process_files_in_directory(directory, keys_to_keep):
                             del data["Tags"]
 
                         if "GMNotes" in data:
-                            gmnotes = json.loads(data["GMNotes"])
-                            if "TtsZoopGuid" in gmnotes and "id" not in gmnotes:
-                                gmnotes["id"] = gmnotes["TtsZoopGuid"]
-                            for key in list(gmnotes.keys()):
-                                if key not in keys_to_keep:
-                                    del gmnotes[key]
-                            data["GMNotes"] = json.dumps(gmnotes, separators=(",", ":"))
+                            raw_notes = data["GMNotes"]
+
+                            if raw_notes == "" or raw_notes[0] != "{":
+                                del data["GMNotes"]
+                            else:
+                                gmnotes = json.loads(raw_notes)
+                                if "TtsZoopGuid" in gmnotes and "id" not in gmnotes:
+                                    gmnotes["id"] = gmnotes["TtsZoopGuid"]
+                                for key in list(gmnotes.keys()):
+                                    if key not in keys_to_keep:
+                                        del gmnotes[key]
+                                data["GMNotes"] = json.dumps(gmnotes, separators=(",", ":"))
 
                         if "Transform" in data:
                             # Replace the old Transform with ordered one
