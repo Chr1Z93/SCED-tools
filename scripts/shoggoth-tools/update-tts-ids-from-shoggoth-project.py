@@ -20,7 +20,7 @@ def load_json(path: Path) -> dict:
 
 def normalize_name(name: str) -> str:
     """Make Shoggoth markup and TTS display names comparable."""
-    return re.sub(r"</?[^>]+>", "", name).strip()
+    return re.sub(r"</?[^>]+>", "", name).strip().lower()
 
 
 def build_name_to_id(project: dict) -> dict[str, object]:
