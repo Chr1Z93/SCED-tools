@@ -14,12 +14,6 @@ OPTIONS = {
         "label": "Input folder",
         "default": r"C:\git\SCED-downloads\decomposed\language-pack",
     },
-    "types": {
-        "type": "multiselect",
-        "label": "Card Types",
-        "values": ["act", "agenda", "location", "scenario", "enemy", "treachery"],
-        "default": ["act", "agenda", "scenario"],
-    },
     "max_chars": {"type": "text", "label": "Maximum Character Length"},
 }
 
@@ -92,7 +86,7 @@ def embed_metadata(log, input_folder, max_chars):
 
 def run_tool(config, log):
     input_folder = Path(config["input_folder"])
-    max_chars = int(config["max_chars"] or 1000)
+    max_chars = int(config["max_chars"] or 10000)
     embed_metadata(log, input_folder, max_chars)
 
 
