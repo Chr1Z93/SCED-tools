@@ -378,7 +378,7 @@ def process_files_in_directory(directory, defaults):
                     )
 
                     if file_needs_rewrite:
-                        with open(file_path, "w", encoding="utf-8") as f:
+                        with open(file_path, "w", encoding="utf-8", newline="\n") as f:
                             # Use an indent of 2 and no trailing whitespace for clean files
                             json.dump(
                                 data,
