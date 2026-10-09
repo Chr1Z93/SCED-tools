@@ -1,0 +1,127 @@
+local DEFAULT_BAG_COUNT    = 3
+local DEFAULT_OBJECT_COUNT = 5
+local BAG_SPACING          = 3.5
+local NEW_BAG_TINT         = { r = 0.35, g = 0.75, b = 1.0 }
+local MAX_BAGS             = 50
+local MAX_OBJECTS_PER_BAG  = 500
+
+local splitting            = false
+
+function onLoad()
+  self.createButton({
+    label          = "Split!",
+    click_function = "onSplitButton",
+    function_owner = self,
+    position       = { 0, 0.5, 2 },
+    rotation       = { 0, 0, 0 },
+    width          = 1200,
+    height         = 400,
+    font_size      = 250,
+    color          = { 0.2, 0.2, 0.2, 1 },
+    font_color     = { 1, 1, 1, 1 },
+    tooltip        = "Split this bag into smaller bags."
+  })
+end
+
+function onSplitButton(_, playerColor)
+  if splitting then
+    Player[playerColor].showInfoDialog("This bag is already being split.")
+    return
+  end
+
+  -- Ask for the number of bags first.
+  Player[playerColor].showInputDialog(
+    "How many bags should be created?",
+    DEFAULT_BAG_COUNT,
+    function(bagText)
+      local bagCount = parsePositiveInteger(bagText, MAX_BAGS)
+
+      if not bagCount then
+        Player[playerColor].showInfoDialog(
+          "Please enter a whole number between 1 and "
+          .. MAX_BAGS .. "."
+        )
+        return
+      end
+
+      -- Ask for the number of objects in each bag.
+      Player[playerColor].showInputDialog(
+        "How many objects should each new bag contain?",
+        DEFAULT_OBJECT_COUNT,
+        function(objectText)
+          local objectCount = parsePositiveInteger(objectText, MAX_OBJECTS_PER_BAG)
+
+          if not objectCount then
+            Player[playerColor].showInfoDialog(
+              "Please enter a whole number between 1 and "
+              .. MAX_OBJECTS_PER_BAG .. "."
+            )
+            return
+          end
+
+          splitBag(bagCount, objectCount, playerColor)
+        end
+      )
+    end
+  )
+end
+
+function parsePositiveInteger(text, maximum)
+  local value = tonumber(text)
+
+  if not value
+      or value ~= math.floor(value)
+      or value < 1
+      or value > maximum
+  then
+    return nil
+  end
+
+  return value
+end
+
+function splitBag(bagCount, objectCount, playerColor)
+  if splitting then return end
+
+  local bagData  = self.getData()
+  local cObjs    = bagData.ContainedObjects
+  local required = bagCount * objectCount
+
+  if #cObjs < required then
+    Player[playerColor].showInfoDialog(
+      "Not enough objects in this bag.\n\n"
+      .. "Available: " .. #cObjs .. "\n"
+      .. "Required: " .. required
+    )
+    return
+  end
+
+  splitting = true
+
+  -- Create a shuffled pool of the original bag's contents
+  for i = #cObjs, 2, -1 do
+    local j = math.random(i)
+    cObjs[i], cObjs[j] = cObjs[j], cObjs[i]
+  end
+
+  bagData.ColorDiffuse = NEW_BAG_TINT
+  bagData.Nickname     = "Result Bag"
+  bagData.LuaScript    = ""
+
+  local count          = 1
+  for i = 1, bagCount do
+    local bagObjs = {}
+    for j = 1, objectCount do
+      table.insert(bagObjs, cObjs[count])
+      count = count + 1
+    end
+    bagData.ContainedObjects = bagObjs
+    spawnObjectData({
+      data     = bagData,
+      position = self.positionToWorld({ -BAG_SPACING * i, 1, 0 })
+    })
+  end
+
+  splitting = false
+  Player[playerColor].showInfoDialog("Done! Created " .. bagCount .. " bags.")
+end
