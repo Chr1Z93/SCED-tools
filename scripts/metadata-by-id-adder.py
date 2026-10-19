@@ -5,9 +5,9 @@ import pandas as pd
 import re
 
 # Set the path to the TTS savegame JSON file
-SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Children of Blood.json"
-METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-cob.xlsx"
-CYCLE_NAME = "Children of Blood"
+SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Traces to Nowhere.json"
+METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-TtN.xlsx"
+CYCLE_NAME = "Traces to Nowhere"
 
 
 # Function to clean up trailing commas in JSON strings
