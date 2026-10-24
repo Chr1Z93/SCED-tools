@@ -1,0 +1,72 @@
+local sealedTokens = {}
+
+function onSave()
+  local guids = {}
+  for _, obj in ipairs(sealedTokens) do
+    table.insert(guids, obj.getGUID())
+  end
+  return JSON.encode(guids)
+end
+
+function onLoad(savedData)
+  if savedData and savedData ~= "" then
+    for _, guid in ipairs(JSON.decode(savedData)) do
+      table.insert(sealedTokens, getObjectFromGUID(guid))
+    end
+  end
+  updateMenu()
+end
+
+function updateMenu()
+  self.clearContextMenu()
+  if #sealedTokens ~= 0 then
+    self.addContextMenuItem("Release tokens", releaseTokens)
+  else
+    self.addContextMenuItem("Seal tokens", sealTokens)
+  end
+end
+
+function sealTokens(playerColor)
+  local chaosBag  = Global.call("findChaosBag")
+  local positions = {
+    Vector(0, 0.2, -0.4),
+    Vector(0, 0.2, 0.4)
+  }
+
+  sealedTokens    = {}
+
+  local tokenMap  = {}
+  for i, obj in ipairs(chaosBag.getObjects()) do
+    local value = obj.name == "+1" and 1 or tonumber(obj.name)
+    if value then
+      tokenMap[#tokenMap + 1] = { index = i - 1, value = value }
+    end
+  end
+
+  table.sort(tokenMap, function(a, b) return a.value > b.value end)
+
+  -- Take the two highest-valued tokens
+  for i = 1, math.min(2, #tokenMap) do
+    sealedTokens[i] = chaosBag.takeObject({
+      position = self.getPosition() + positions[i],
+      rotation = self.getRotation(),
+      index    = tokenMap[i].index
+    })
+  end
+
+  Wait.time(updateMenu, 0.1)
+  if #sealedTokens ~= 2 then
+    printToColor("Not enough number tokens found in bag", playerColor)
+  end
+end
+
+function releaseTokens()
+  if #sealedTokens == 0 then return end
+
+  local chaosbag = Global.call("findChaosBag")
+  chaosbag.putObject(sealedTokens[1])
+  chaosbag.putObject(sealedTokens[2])
+
+  sealedTokens = {}
+  updateMenu()
+end
