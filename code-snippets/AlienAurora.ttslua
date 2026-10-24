@@ -30,7 +30,7 @@ function sealTokens(playerColor)
   local chaosBag  = Global.call("findChaosBag")
   local positions = {
     Vector(0, 0.2, -0.4),
-    Vector(0, 0.2, 0.4)
+    Vector(0, 0.4, 0.4)
   }
 
   sealedTokens    = {}
@@ -45,12 +45,21 @@ function sealTokens(playerColor)
 
   table.sort(tokenMap, function(a, b) return a.value > b.value end)
 
-  -- Take the two highest-valued tokens
+  -- Select the two highest-valued tokens
+  local selected = {}
   for i = 1, math.min(2, #tokenMap) do
-    sealedTokens[i] = chaosBag.takeObject({
-      position = self.getPosition() + positions[i],
+    selected[i] = tokenMap[i]
+    selected[i].slot = i
+  end
+
+  -- Take the token with the highest bag index first
+  table.sort(selected, function(a, b) return a.index > b.index end)
+
+  for _, token in ipairs(selected) do
+    sealedTokens[token.slot] = chaosBag.takeObject({
+      position = self.getPosition() + positions[token.slot],
       rotation = self.getRotation(),
-      index    = tokenMap[i].index
+      index    = token.index
     })
   end
 
