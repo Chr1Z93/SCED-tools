@@ -448,7 +448,9 @@ def update_ids():
     # -----------------------------------------------------------------------
 
     canonical_id_map = build_canonical_id_map(ARKHAM_BUILD_PATH)
-    add_tts_cards_to_canonical_id_map(TTS_FOLDER, canonical_id_map)
+
+    if TTS_FOLDER.exists():
+        add_tts_cards_to_canonical_id_map(TTS_FOLDER, canonical_id_map)
 
     # -----------------------------------------------------------------------
     # Step 2
