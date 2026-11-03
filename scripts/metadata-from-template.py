@@ -6,9 +6,9 @@ from pathlib import Path
 from collections import OrderedDict
 
 # --- Configuration ---
-SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed")
+SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\campaign\Brethren of Ash")
 TEMPLATE_FILE_OR_FOLDER = Path(
-    r"C:\git\SCED-downloads\decomposed\campaign\Night of the Zealot"
+    r"C:\git\SCED-downloads\decomposed\campaign\Children of Blood"
 )
 
 
@@ -24,18 +24,6 @@ def get_template_data(template_gmnotes_path: Path) -> dict | None:
 
         # Attempt to load the .gmnotes content as JSON
         gmnotes_json_data = json.loads(gmnotes_content)
-
-        # Check 'type' for Assets, Treacheries and Enemies
-        template_type = gmnotes_json_data.get("type")
-        if not template_type or (
-            template_type != "Asset"
-            and template_type != "Treachery"
-            and template_type != "Enemy"
-        ):
-            print(
-                f"Warning: {template_gmnotes_path} has type '{template_type}'. Skipping."
-            )
-            return None
 
         # Extract the 'id' field to form the filter string
         template_id = gmnotes_json_data.get("id")
@@ -101,13 +89,17 @@ def process_target_file(file_path: Path, template_data: dict):
         with open(file_path, "r", encoding="utf-8") as f_json:
             json_data = json.load(f_json)
 
-        # Check if GMNotes or GMNotes_path fields exist
+        # Skip if metadata already exists
         if "GMNotes" in json_data or "GMNotes_path" in json_data:
-            return  # Skip if metadata already exists
+            return
 
-        # Check for exact match of the 'Nickname' field
+        # Skip if Nickname doesn't match
         if json_data.get("Nickname") != target_card_name:
-            return  # Skip if Nickname doesn't match
+            return
+
+        # Skip decks
+        if json_data.get("Name") == "Deck":
+            return
 
         # Get the relative path for the new .gmnotes file
         relative_gmnotes_path = get_relative_gmnotes_path(file_path)
