@@ -1,6 +1,7 @@
 import os
 
-# Config
+# --- CONFIGURATION ---
+
 SEARCH_FOLDER = r"C:\git\SCED"
 
 # All of these must be present in the file

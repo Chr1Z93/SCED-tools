@@ -1,3 +1,8 @@
+# Utility for cropping and previewing card images in a fixed output size.
+# It loads images from a selected folder, lets the user rotate/adjust the
+# view, and exports the final crop to a "cropped" folder in the target
+# dimensions used by the project.
+
 from pathlib import Path
 from PIL import Image
 

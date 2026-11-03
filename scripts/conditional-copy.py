@@ -2,11 +2,17 @@ import shutil
 from pathlib import Path
 
 # --- CONFIGURATION ---
-SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\campaign")  # Folder to scan
-SEARCH_TEXT = '"CampaignGuide"'  # Text to look for
+
+# Folder to scan
+SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed\campaign")
+
+# Text to look for
+SEARCH_TEXT = '"CampaignGuide"'
+
+# Where to copy results
 TARGET_FOLDER = Path(
     r"C:\git\SCED-downloads\decomposed\language-pack\German - Campaigns\German-Campaigns.GermanC\PDFs.pdfpdf"
-)  # Where to copy results
+)
 
 
 def copy_matching_files():

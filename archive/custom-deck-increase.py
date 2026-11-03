@@ -1,3 +1,15 @@
+# This script updates card definitions inside exported JSON files by increasing
+# their numeric "CardID" values and their custom deck indexing values.
+#
+# It is designed for a specific SCED data layout where each card entry looks like:
+#   "CardID": 123,
+#   "CustomDeck": {
+#       "1": {
+#
+# The script scans every JSON file under a configured folder, finds matching
+# blocks, and rewrites them so that each block's CardID is multiplied by 100 and
+# the custom deck number is incremented in sequence.
+
 import re
 import sys
 from pathlib import Path
@@ -8,7 +20,10 @@ PATTERN = re.compile(
     r'(?P<quote>")\d+(?P<suffix>"\s*:\s*\{)'
 )
 
-folder = Path(r"C:\git\SCED-downloads\decomposed\scenario\Traces to Nowhere\TracestoNowhere.63b532\CardSource.238gh2")
+folder = Path(
+    r"C:\git\SCED-downloads\decomposed\scenario\Traces to Nowhere\TracestoNowhere.63b532\CardSource.238gh2"
+)
+
 
 def update_file(file_path: Path, counter) -> int:
     text = file_path.read_text(encoding="utf-8")

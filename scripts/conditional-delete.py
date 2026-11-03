@@ -2,7 +2,7 @@
 
 import os
 
-# Config
+# --- CONFIGURATION ---
 SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\language-pack\French - Fan Campaigns"
 EXCLUDED_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German\LanguagePackGerman.3ac577\Grundspiel.3c77b5"
 FILTER_STRINGS =[

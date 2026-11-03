@@ -2,7 +2,7 @@
 
 import os
 
-# Config
+# --- CONFIGURATION ---
 SEARCH_FOLDER = r"C:\git\SCED-downloads\decomposed\campaign\Edge of the Earth\EdgeoftheEarth.895eaa"
 ORIGINAL_STRING = ',\n    "PlayerCard"'
 REPLACEMENT_STRING = ',\n    "CleanUpHelper_ignore",\n    "PlayerCard"'
