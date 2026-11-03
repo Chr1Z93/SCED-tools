@@ -10,6 +10,7 @@ KEY_ORDER = [
     "id",
     "alternate_ids",
     "TtsZoopGuid",
+    "shoggoth",
     "type",
     "slot",
     "class",
@@ -39,17 +40,21 @@ KEY_ORDER = [
     "bonded",
     "uses",
     "victory",
+    "vengeance",
     "doomThreshold",
+    "doomThresholdPerInvestigator",
+    "clueThreshold",
+    "clueThresholdPerInvestigator",
     "customizations",
     "handModifier",
-    "quantity",
-    "encounterSet",
-    "cycle",
     "extraToken",
     "starterDeck",
     "signatures",
     "locationFront",
     "locationBack",
+    "quantity",
+    "encounterSet",
+    "cycle",
 ]
 
 # Define the order of keys specifically for subtables (nested dictionaries)
@@ -120,8 +125,9 @@ def sortJSONKeys(data, is_top_level=True):
 
 def process_file(file_path):
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        with open(file_path, "r", encoding="utf-8", newline="") as f:
+            original_content = f.read()
+        data = json.loads(original_content)
     except json.JSONDecodeError:
         print(f"Error: File '{file_path}' contains invalid JSON.")
         return
@@ -134,10 +140,11 @@ def process_file(file_path):
 
     try:
         modified_data = sortJSONKeys(data)
+        modified_content = json.dumps(modified_data, indent=2, ensure_ascii=False) + "\n"
 
-        with open(file_path, "w", encoding="utf-8", newline="\n") as f:
-            json.dump(modified_data, f, indent=2, ensure_ascii=False)
-            f.write("\n")  # Add an empty line at the end of the file
+        if modified_content != original_content:
+            with open(file_path, "w", encoding="utf-8", newline="\n") as f:
+                f.write(modified_content)
     except IOError as e:
         print(f"Error: Could not write to file '{file_path}'. {e}")
     except Exception as e:
