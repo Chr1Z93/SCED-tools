@@ -1,10 +1,12 @@
 import json
 import sys
 from pathlib import Path
-import bson
+import bson  # pip install pymongo
 
-# Default local path for Tabletop Simulator's CloudInfo.bson
-DEFAULT_BSON_PATH = r"D:\Steam\userdata\86524646\286160\remote\CloudInfo.bson"
+script_dir = Path(__file__).resolve().parent
+
+# Default path for Tabletop Simulator's CloudInfo.bson
+BSON_PATH = r"D:\Steam\userdata\86524646\286160\remote\CloudInfo.bson"
 
 
 def read_local_cloud_info_bson(file_path):
@@ -71,8 +73,8 @@ def export_to_json(data, output_file):
 
 
 def main():
-    # If passed as an argument, use custom path; otherwise use local DEFAULT_BSON_PATH
-    bson_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_BSON_PATH
+    # If passed as an argument, use custom path; otherwise use BSON_PATH
+    bson_file = sys.argv[1] if len(sys.argv) > 1 else BSON_PATH
 
     print(f"Reading local file: {bson_file}...")
     raw_bson = read_local_cloud_info_bson(bson_file)
@@ -82,7 +84,7 @@ def main():
     print(f"Found {len(rows)} indexed files in BSON payload.")
 
     # Export JSON
-    export_to_json(rows, "tts_cloud_info.json")
+    export_to_json(rows, script_dir / "tts_cloud_info.json")
 
 
 if __name__ == "__main__":

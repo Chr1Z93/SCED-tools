@@ -1,9 +1,10 @@
 import json
 import sys
 from pathlib import Path
-import bson # pip install pymongo
+import bson  # pip install pymongo
 
 BSON_PATH = Path(r"C:\Users\pulsc\Downloads\CloudInfo.bson")
+
 
 def bson_to_json(input_file: Path, output_file: Path):
     print(f"Reading BSON: {input_file}")

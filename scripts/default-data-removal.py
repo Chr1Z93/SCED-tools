@@ -7,14 +7,9 @@ import json
 import copy
 import math
 
-# Set the root directory where your JSON files are located.
-# Examples:
-# r"C:\git\SCED\objects"
-# r"C:\git\SCED\objects\AdditionalPlayerCards.2cba6b"
-# r"C:\git\SCED-downloads\decomposed"
-# Use "." to process the directory where this script is located.
-TARGET_DIRECTORY = r"C:\git\SCED\objects"
+# --- CONFIGURATION ---
 
+TARGET_DIRECTORY = r"C:\git\SCED\objects"
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
 ANGLE_MULTIPLE = 5

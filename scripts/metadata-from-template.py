@@ -1,4 +1,4 @@
-# Copies metadata from a template file or an entire folder of files to all matching files
+# Copies metadata from a template file / folder to all matching files
 
 import os
 import json

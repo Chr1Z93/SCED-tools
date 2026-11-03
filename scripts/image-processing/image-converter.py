@@ -68,8 +68,8 @@ PLATFORM = platform.system()
 def safe_convert_to_rgb(img):
     if img.mode == "CMYK":
         try:
-            cmyk_profile = "CGATS21_CRPC7.icc"
-            srgb_profile = "sRGB_ICC_v4_Appearance.icc"
+            cmyk_profile = "color-profile-CGATS21_CRPC7.icc"
+            srgb_profile = "color-profile-sRGB_ICC_v4_Appearance.icc"
 
             # Attempt the high-quality conversion
             converted = ImageCms.profileToProfile(

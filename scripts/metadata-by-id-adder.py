@@ -3,10 +3,14 @@
 import json
 import pandas as pd
 import re
+from pathlib import Path
 
-# Set the path to the TTS savegame JSON file
+script_dir = Path(__file__).resolve().parent
+
+# --- CONFIGURATION ---
+
 SAVE_FILE = r"C:\Users\pulsc\Documents\My Games\Tabletop Simulator\Saves\Saved Objects\Traces to Nowhere.json"
-METADATA_FILE = r"C:\git\SCED-tools\scripts\metadata-by-id-adder-TtN.xlsx"
+METADATA_FILE = script_dir / "metadata-by-id-adder-TtN.xlsx"
 CYCLE_NAME = "Traces to Nowhere"
 
 
@@ -123,9 +127,10 @@ if __name__ == "__main__":
     else:
         savegame = load_savegame(SAVE_FILE)
 
-        # Change this to "ContainedObjects" for loadable objects
         if "ObjectStates" in savegame:
             update_metadata(savegame["ObjectStates"], metadata, unused_metadata)
+        elif "ContainedObjects" in savegame:
+            update_metadata(savegame["ContainedObjects"], metadata, unused_metadata)
 
         save_savegame(SAVE_FILE, savegame)
         print("\nSavegame updated successfully!")

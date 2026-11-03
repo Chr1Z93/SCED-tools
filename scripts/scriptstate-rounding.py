@@ -5,6 +5,7 @@ import os
 
 BASE_FOLDER = r"C:\git\SCED-downloads\decomposed"
 
+
 def format_number(num, decimal_places):
     rounded = round(num, decimal_places)
     if rounded.is_integer():
@@ -12,8 +13,8 @@ def format_number(num, decimal_places):
     return rounded
 
 
-def round_to_multiple_of_15(num):
-    return round(num / 15) * 15
+def format_angle(num):
+    return round(num / 15) * 15 % 360
 
 
 def round_json(obj, parent_key=None):
@@ -25,11 +26,7 @@ def round_json(obj, parent_key=None):
             }
         elif parent_key == "rot":
             return {
-                k: (
-                    round_to_multiple_of_15(v) % 360
-                    if isinstance(v, (int, float))
-                    else v
-                )
+                k: (format_angle(v) if isinstance(v, (int, float)) else v)
                 for k, v in obj.items()
             }
         else:
@@ -41,18 +38,28 @@ def round_json(obj, parent_key=None):
     else:
         return obj
 
+
 def process_file(file_path):
     with open(file_path, "r") as f:
         data = json.load(f)
 
     rounded_data = round_json(data)
 
+    if rounded_data == data:
+        return
+
     with open(file_path, "w") as f:
         json.dump(rounded_data, f, indent=2)
 
-for path, subdirs, files in os.walk(BASE_FOLDER):
-    for file in files:
-        file_path = os.path.join(path, file)
-        file_root, file_ext = os.path.splitext(file)
-        if file_ext == ".luascriptstate":
-            process_file(file_path)
+
+def round_scriptstates():
+    for path, _, files in os.walk(BASE_FOLDER):
+        for file in files:
+            file_path = os.path.join(path, file)
+            _, file_ext = os.path.splitext(file)
+            if file_ext == ".luascriptstate":
+                process_file(file_path)
+
+
+if __name__ == "__main__":
+    round_scriptstates()

@@ -6,24 +6,18 @@ import copy
 import json
 from pathlib import Path
 
-# Set the root directory where your JSON files are located.
-# Examples:
+# Set the root directory where your JSON files are located
 # r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Player Cards\LanguagePackRussian-PlayerCards.RussianI"
-# r"C:\git\SCED-downloads\decomposed\campaign\Language Pack German - Player Cards\LanguagePackGerman-PlayerCards.GermanI"
-# r"C:\git\SCED-downloads\decomposed\campaign\Language Pack Russian - Campaigns\LanguagePackRussian-Campaigns.RussianC"
-# Use "." to process the directory where this script is located.
 TARGET_DIRECTORY = Path(
     r"C:\git\SCED-downloads\decomposed\language-pack\French - Fan Campaigns\French-FanCampaigns.FrenchFC"
 )
 
 # Defines keys that should remain in the GMNotes - all keys not listed here will be deleted
 KEYS_TO_KEEP = {"id"}  # Move the Zoop GUID to the ID field
-
 DETAILED_PRINTING = False
 PRINTING_DEPTH = 2
 
-# Global registry to track CustomDeck ID conflicts
-# Format: { "ID_STR": (FaceURL, BackURL) }
+# Global registry to track CustomDeck ID conflicts - Format: { "ID_STR": (FaceURL, BackURL) }
 ID_TO_FINGERPRINT = {}
 
 
@@ -50,127 +44,128 @@ def process_files_in_directory(directory, keys_to_keep):
             file_path = root / filename
 
             # Handles standard JSON and GMNotes files
-            if file_path.suffix in (".json", ".gmnotes"):
-                total_files += 1
+            if file_path.suffix not in (".json", ".gmnotes"):
+                continue
 
-                if DETAILED_PRINTING:
-                    print(f"-> Processing: {file_path}")
-                try:
-                    # Read the original file to load JSON data
-                    # Using utf-8-sig to handle potential BOM (Byte Order Mark)
-                    with open(file_path, "r", encoding="utf-8-sig") as f:
-                        content = f.read()
-                        # TTS JSON can sometimes have leading/trailing characters; we find the main object
-                        json_start = content.find("{")
-                        json_end = content.rfind("}") + 1
-                        if json_start == -1:
-                            print("   - No JSON object found. Skipping.")
-                            continue
+            total_files += 1
 
-                        json_content = content[json_start:json_end]
-                        data = json.loads(json_content)
+            if DETAILED_PRINTING:
+                print(f"-> Processing: {file_path}")
+            try:
+                # Read the original file to load JSON data
+                # Using utf-8-sig to handle potential BOM (Byte Order Mark)
+                with open(file_path, "r", encoding="utf-8-sig") as f:
+                    content = f.read()
 
-                    # Keep a deep copy of the original data for comparison later
-                    original_data = copy.deepcopy(data)
+                    # TTS JSON can sometimes have leading/trailing characters; we find the main object
+                    json_start = content.find("{")
+                    json_end = content.rfind("}") + 1
+                    if json_start == -1:
+                        print("   - No JSON object found. Skipping.")
+                        continue
 
-                    # Get GMNotes object from JSON (if it exists) and modify it in-place
-                    if file_path.suffix == ".json":
-                        if "Tags" in data:
-                            del data["Tags"]
+                    json_content = content[json_start:json_end]
+                    data = json.loads(json_content)
 
-                        if "GMNotes" in data:
-                            raw_notes = data["GMNotes"]
+                # Keep a deep copy of the original data for comparison later
+                original_data = copy.deepcopy(data)
 
-                            if raw_notes == "" or raw_notes[0] != "{":
-                                del data["GMNotes"]
-                            else:
-                                gmnotes = json.loads(raw_notes)
-                                if "TtsZoopGuid" in gmnotes and "id" not in gmnotes:
-                                    gmnotes["id"] = gmnotes["TtsZoopGuid"]
-                                for key in list(gmnotes.keys()):
-                                    if key not in keys_to_keep:
-                                        del gmnotes[key]
-                                data["GMNotes"] = json.dumps(gmnotes, separators=(",", ":"))
+                # Get GMNotes object from JSON (if it exists) and modify it in-place
+                if file_path.suffix == ".json":
+                    if "Tags" in data:
+                        del data["Tags"]
 
-                        if "Transform" in data:
-                            # Replace the old Transform with ordered one
-                            old_t = data["Transform"]
-                            new_t = {
-                                "scaleX": old_t.get("scaleX", 1),
-                                "scaleY": old_t.get("scaleY", 1),
-                                "scaleZ": old_t.get("scaleZ", 1)
-                            }
-                            data["Transform"] = new_t
+                    if "GMNotes" in data:
+                        raw_notes = data["GMNotes"]
 
-                        # Fix CustomDeck Conflicts
-                        custom_deck = data.get("CustomDeck")
-                        if (
-                            custom_deck
-                            and isinstance(custom_deck, dict)
-                            and len(custom_deck) > 0
+                        if raw_notes == "" or raw_notes[0] != "{":
+                            del data["GMNotes"]
+                        else:
+                            gmnotes = json.loads(raw_notes)
+                            if "TtsZoopGuid" in gmnotes and "id" not in gmnotes:
+                                gmnotes["id"] = gmnotes["TtsZoopGuid"]
+                            for key in list(gmnotes.keys()):
+                                if key not in keys_to_keep:
+                                    del gmnotes[key]
+                            data["GMNotes"] = json.dumps(gmnotes, separators=(",", ":"))
+
+                    if "Transform" in data:
+                        # Replace the old Transform with ordered one
+                        old_t = data["Transform"]
+                        new_t = {
+                            "scaleX": old_t.get("scaleX", 1),
+                            "scaleY": old_t.get("scaleY", 1),
+                            "scaleZ": old_t.get("scaleZ", 1),
+                        }
+                        data["Transform"] = new_t
+
+                    # Fix CustomDeck Conflicts
+                    custom_deck = data.get("CustomDeck")
+                    if (
+                        custom_deck
+                        and isinstance(custom_deck, dict)
+                        and len(custom_deck) > 0
+                    ):
+                        orig_id = list(custom_deck.keys())[0]
+                        info = custom_deck[orig_id]
+                        fingerprint = (info.get("FaceURL"), info.get("BackURL"))
+
+                        # Find a valid ID for this fingerprint
+                        target_id = orig_id
+                        while (
+                            target_id in ID_TO_FINGERPRINT
+                            and ID_TO_FINGERPRINT[target_id] != fingerprint
                         ):
-                            orig_id = list(custom_deck.keys())[0]
-                            info = custom_deck[orig_id]
-                            fingerprint = (info.get("FaceURL"), info.get("BackURL"))
+                            # Conflict detected: increment ID
+                            target_id = str(int(target_id) + 1)
 
-                            # Find a valid ID for this fingerprint
-                            target_id = orig_id
-                            while (
-                                target_id in ID_TO_FINGERPRINT
-                                and ID_TO_FINGERPRINT[target_id] != fingerprint
-                            ):
-                                # Conflict detected: increment ID
-                                target_id = str(int(target_id) + 1)
+                        ID_TO_FINGERPRINT[target_id] = fingerprint
 
-                            ID_TO_FINGERPRINT[target_id] = fingerprint
+                        # If the ID changed, update CustomDeck key and CardID
+                        if target_id != orig_id:
+                            # Rename CustomDeck Key
+                            data["CustomDeck"] = {target_id: custom_deck[orig_id]}
+                            # Update CardID suffix (preserving the last 2 digits)
+                            if "CardID" in data:
+                                suffix = str(data["CardID"]).zfill(2)[-2:]
+                                data["CardID"] = int(f"{target_id}{suffix}")
 
-                            # If the ID changed, update CustomDeck key and CardID
-                            if target_id != orig_id:
-                                # Rename CustomDeck Key
-                                data["CustomDeck"] = {target_id: custom_deck[orig_id]}
-                                # Update CardID suffix (preserving the last 2 digits)
-                                if "CardID" in data:
-                                    suffix = str(data["CardID"]).zfill(2)[-2:]
-                                    data["CardID"] = int(f"{target_id}{suffix}")
+                elif file_path.suffix == ".gmnotes":
+                    if "TtsZoopGuid" in data and "id" not in data:
+                        data["id"] = data["TtsZoopGuid"]
+                    for key in list(data.keys()):
+                        if key not in keys_to_keep:
+                            del data[key]
 
-                    if file_path.suffix == ".gmnotes":
-                        if "TtsZoopGuid" in data and "id" not in data:
-                            data["id"] = data["TtsZoopGuid"]
-                        for key in list(data.keys()):
-                            if key not in keys_to_keep:
-                                del data[key]
+                # We rewrite the file if data was changed OR if the original file
+                # contained Unicode escape sequences that need to be fixed.
+                file_needs_rewrite = (data != original_data) or ("\\u" in json_content)
 
-                    # We rewrite the file if data was changed OR if the original file
-                    # contained Unicode escape sequences that need to be fixed.
-                    file_needs_rewrite = (data != original_data) or (
-                        "\\u" in json_content
-                    )
+                if file_needs_rewrite:
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        # Use an indent of 2 and no trailing whitespace for clean files
+                        json.dump(
+                            data,
+                            f,
+                            indent=2,
+                            separators=(",", ": "),
+                            ensure_ascii=False,
+                        )
+                        # Add a newline at the end of the file for POSIX compliance
+                        f.write("\n")
 
-                    if file_needs_rewrite:
-                        with open(file_path, "w", encoding="utf-8") as f:
-                            # Use an indent of 2 and no trailing whitespace for clean files
-                            json.dump(
-                                data,
-                                f,
-                                indent=2,
-                                separators=(",", ": "),
-                                ensure_ascii=False,
-                            )
-                            # Add a newline at the end of the file for POSIX compliance
-                            f.write("\n")
+                    modified_files += 1
 
-                        modified_files += 1
+                    if DETAILED_PRINTING:
+                        print("   - ✅ Modified and saved.")
+                else:
+                    if DETAILED_PRINTING:
+                        print("   - 💤 No changes needed.")
 
-                        if DETAILED_PRINTING:
-                            print("   - ✅ Modified and saved.")
-                    else:
-                        if DETAILED_PRINTING:
-                            print("   - 💤 No changes needed.")
-
-                except json.JSONDecodeError:
-                    print(f"   - ⚠️ Error: Could not decode JSON. ({file_path})")
-                except Exception as e:
-                    print(f"   - ❌ An unexpected error occurred: {e}. ({file_path})")
+            except json.JSONDecodeError:
+                print(f"   - ⚠️ Error: Could not decode JSON. ({file_path})")
+            except Exception as e:
+                print(f"   - ❌ An unexpected error occurred: {e}. ({file_path})")
 
     print("\n--- ✨ Cleanup Complete! ---")
     print(f"Scanned {total_files} files.")
