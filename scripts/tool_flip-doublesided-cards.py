@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 import requests
-from tool_gui import ToolGUI
+from modules.tool_gui import ToolGUI
 
 # Globals / Derived data
 DATA_API_URL = "https://api.arkham.build/v1/cache/cards/en"

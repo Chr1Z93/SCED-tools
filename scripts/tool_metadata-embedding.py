@@ -2,7 +2,7 @@ import os
 import json
 from pathlib import Path
 from collections import OrderedDict
-from tool_gui import ToolGUI
+from modules.tool_gui import ToolGUI
 
 # Folders that should never be processed
 EXCLUDED_DIRS = {".git", ".github", ".vscode"}

@@ -1,0 +1,54 @@
+-- Example for spoiler sections on an element (note: does not handle multiple players)
+
+-- spoiler data definition
+local SPOILER_DATA  = {
+  -- page 1
+  {
+    -- first spoiler
+    { position = { 0.627, -1.26 },  width = 119, height = 24 },
+    -- second spoiler
+    { position = { 0.627, -0.535 }, width = 119, height = 76 }
+  },
+  -- further pages (not necessary yet)
+}
+
+local HIDDEN_COLOR  = "#888888"
+local VISIBLE_COLOR = "#88888825"
+local Z_POS         = -22
+
+function onLoad()
+  buildXML()
+end
+
+function buildXML()
+  local page = 1
+  local bookXml = {}
+
+  for i, spoilerBarData in ipairs(SPOILER_DATA[page]) do
+    local spoilerBarXML = {
+      tag = "Panel",
+      attributes = {
+        onMouseEnter = "onMouseEnter",
+        onMouseExit  = "onMouseExit",
+        id           = "spoilerBar" .. i,
+        width        = spoilerBarData.width,
+        height       = spoilerBarData.height,
+        color        = HIDDEN_COLOR,
+        position     = spoilerBarData.position[1] * 100 .. " " .. spoilerBarData.position[2] * 100 .. " " .. Z_POS
+      }
+    }
+    table.insert(bookXml, spoilerBarXML)
+  end
+
+  self.UI.setXmlTable(bookXml)
+end
+
+-- make the respective spoiler bar transparent
+function onMouseEnter(_, _, elementId)
+  self.UI.setAttribute(elementId, "color", VISIBLE_COLOR)
+end
+
+-- make the respective spoiler bar opact again
+function onMouseExit(_, _, elementId)
+  self.UI.setAttribute(elementId, "color", HIDDEN_COLOR)
+end

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 from typing import List, Any
-from tool_gui import ToolGUI
+from modules.tool_gui import ToolGUI
 
 # Setup for the GUI
 OPTIONS = {

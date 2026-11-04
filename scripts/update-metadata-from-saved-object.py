@@ -1,7 +1,6 @@
 import json
 import re
 from pathlib import Path
-from metadata_sorter import sortJSONKeys
 
 # Paths config
 CONTENT_PATH = Path(
@@ -64,12 +63,11 @@ def build_metadata_map(obj, metadata_map):
                 notes_json = json.loads(raw_notes)
                 if isinstance(notes_json, dict):
                     notes_json["cycle"] = SET_CYCLE
-                    sorted_metadata = sortJSONKeys(notes_json)
 
                     if nickname in metadata_map:
                         print(f"Warning: Multiple sets of metadata for {nickname}")
                     else:
-                        metadata_map[nickname] = sorted_metadata
+                        metadata_map[nickname] = notes_json
 
                     # Handle colon matching edge case: "Nickname: Description (Suffix)"
                     description = obj.get("Description", "").strip().lower()
@@ -83,7 +81,7 @@ def build_metadata_map(obj, metadata_map):
                         )
 
                         if combined_name not in metadata_map:
-                            metadata_map[combined_name] = sorted_metadata
+                            metadata_map[combined_name] = notes_json
                 else:
                     print(f"Issue with layout structure for: {nickname}")
             except json.JSONDecodeError:
