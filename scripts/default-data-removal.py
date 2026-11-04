@@ -118,11 +118,8 @@ def remove_default_values(data, defaults, is_nested=False):
                     # UniqueBack is False and can be removed (this is the default behaviour)
                     deck_data.pop("UniqueBack", None)
 
-    # Special case: If the object's Name is "Deck", remove "HideWhenFaceDown" field
-    if data.get("Name") == "Deck" and "HideWhenFaceDown" in data:
-        del data["HideWhenFaceDown"]
-
     # Special case: Conditional HideWhenFaceDown for Cards
+    # Note: Cards without HWFD property inside decks may inherit this data from their deck
     if data.get("Name") in ["Card", "CardCustom"] and "HideWhenFaceDown" in data:
         # Get the Card's DeckID (TTS DeckIDs have the last two digits for card index)
         card_id_str = str(data.get("CardID", ""))
