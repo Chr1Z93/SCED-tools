@@ -6,7 +6,7 @@ from pathlib import Path
 from collections import OrderedDict
 
 # --- Configuration ---
-SEARCH_FOLDER = Path(r"C:\git\SCED-downloads\decomposed")
+SEARCH_FOLDER = Path(r"")
 
 # Mapping of BackURLs to Tag values
 BACK_URL_MAPPING = {

@@ -1,9 +1,7 @@
 import json
 import os
 
-TARGET_FOLDER = (
-    r"C:\git\SCED-downloads\decomposed\campaign\Bloodborne - City of the Unseen"
-)
+TARGET_FOLDER = r""
 
 # This is needed for TARGET_FOLDERs with incomplete metadata (e.g. Language Packs)
 SOURCE_FOLDER = None

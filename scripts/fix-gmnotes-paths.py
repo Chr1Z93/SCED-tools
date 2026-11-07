@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 # --- Configuration ---
-TARGET_DIRECTORY = r"C:\git\SCED\objects\AllPlayerCards.15bb07"
+TARGET_DIRECTORY = r""
 BASE_FOLDER_NAME = Path(TARGET_DIRECTORY).name
 
 def fix_gmnotes_path(base_folder):
