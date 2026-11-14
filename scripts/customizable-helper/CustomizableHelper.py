@@ -6,16 +6,20 @@ import tempfile
 import urllib.request
 from urllib.parse import urlparse, unquote
 
-# Configuration parameters
+# --- Start of Configuration ---
 IMAGE_PATH = r""
 PRINT_DETAILS = True
 PRINT_DISCARDED = True
+# --- End of Configuration ---
+
+# Detection is tuned against this image height so all inputs use the same pixel scale
+REFERENCE_IMAGE_HEIGHT = 1050
 
 # Box identification parameters (might need to "play" with these to get the perfect result)
-MIN_BOX_RATIO = 0.9
-MAX_BOX_RATIO = 1.1
-MIN_BOX_SIZE = 20 / 1050
-MAX_BOX_SIZE = 45 / 1050
+MIN_BOX_RATIO = 0.85
+MAX_BOX_RATIO = 1.15
+MIN_BOX_SIZE = 15 / REFERENCE_IMAGE_HEIGHT
+MAX_BOX_SIZE = 45 / REFERENCE_IMAGE_HEIGHT
 MIN_BOX_SOLIDITY = 0.7
 MIN_BOX_CORNERS = 3
 MAX_BOX_CORNERS = 10
@@ -25,10 +29,10 @@ LEFT_SIDE_THRESHOLD_MIN = -0.5
 LEFT_SIDE_THRESHOLD_MAX = -0.9
 
 # Used for grouping boxes into rows
-Z_ROW_THRESHOLD = 0.03 / 1050
+Z_ROW_THRESHOLD = 0.03 / REFERENCE_IMAGE_HEIGHT
 
 # Used to ignore outliers in row's initial x-position
-X_INITIAL_DEVIATION_THRESHOLD = 0.07 / 1050
+X_INITIAL_DEVIATION_THRESHOLD = 0.07 / REFERENCE_IMAGE_HEIGHT
 
 # Used to ignore outliers in x-offset
 X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
@@ -36,7 +40,7 @@ X_OFFSET_DEVIATION_THRESHOLD_FACTOR = 1.1
 # Weird standard size for custom cards in TTS, but it is what it is
 TTS_CARD_HEIGHT = 3.062473
 
-# Don't ask me why this is necessary, it just works (emprically derived, should have been 1)
+# Don't ask me why this is necessary, it just works (empirically derived, should have been 1)
 TTS_FIRST_X_OFFSET_FACTOR = 0.775
 
 
@@ -148,7 +152,7 @@ def generate_lua_script(valid_rows_data, global_mean_x_initial, global_mean_x_of
 
         lua_script_lines.append(f"  [{idx + 1}] = {{")  # Lua tables are 1-indexed
         lua_script_lines.append("    checkboxes = {")
-        lua_script_lines.append(f"      posZ = {pos_z:.3f},")
+        lua_script_lines.append(f"      posZ  = {pos_z:.3f},")
         lua_script_lines.append(f"      count = {len(row_content)}")
         lua_script_lines.append("    }")
         lua_script_lines.append("  },")
@@ -435,11 +439,25 @@ if __name__ == "__main__":
     get_image_path()
 
     # Load and preprocess the image
-    image = cv2.imread(IMAGE_PATH)
-    if image is None:
+    source_image = cv2.imread(IMAGE_PATH)
+    if source_image is None:
         input(f"Error: Could not load image at {IMAGE_PATH}. Press Enter to exit...")
         exit()
 
+    source_height, source_width = source_image.shape[:2]
+    resize_scale = REFERENCE_IMAGE_HEIGHT / source_height
+    processing_width = max(1, round(source_width * resize_scale))
+    if source_height == REFERENCE_IMAGE_HEIGHT:
+        image = source_image
+    else:
+        interpolation = cv2.INTER_AREA if resize_scale < 1 else cv2.INTER_CUBIC
+        image = cv2.resize(
+            source_image,
+            (processing_width, REFERENCE_IMAGE_HEIGHT),
+            interpolation=interpolation,
+        )
+
+    height, width = image.shape[:2]
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     adaptive_thresh = cv2.adaptiveThreshold(
@@ -450,9 +468,6 @@ if __name__ == "__main__":
     contours, _ = cv2.findContours(
         adaptive_thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
-
-    # Get image dimensions for normalization
-    height, width = image.shape[:2]
 
     # Initialize sets for tracking final inclusion/discard status (normalized coordinates)
     overall_included_norm_coords = set()
@@ -580,10 +595,21 @@ if __name__ == "__main__":
         else:
             color = (0, 0, 255)  # Red
 
-        final_debug_checkbox_statuses.append((bbox_pixel_coords, color))
+        x, z, box_width, box_height = bbox_pixel_coords
+        final_debug_checkbox_statuses.append(
+            (
+                (
+                    round(x * source_width / width),
+                    round(z * source_height / height),
+                    max(1, round(box_width * source_width / width)),
+                    max(1, round(box_height * source_height / height)),
+                ),
+                color,
+            )
+        )
 
     # Draw and save the debug image
-    file_name = draw_debug_image(image, final_debug_checkbox_statuses)
+    file_name = draw_debug_image(source_image, final_debug_checkbox_statuses)
     print(f"Debug image saved as '{file_name}'")
     print("  - Green boxes =    included checkboxes (passed all filters)")
     print("  - Red boxes   = disregarded checkboxes (failed any filter)")
