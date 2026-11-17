@@ -36,11 +36,13 @@ def normalize_cloud_path(path_str):
     return "/".join(parts)
 
 
-def process_cloud_rows(raw_data):
+def process_cloud_data(raw_data):
     """Extract standard row fields."""
-    rows = []
     if not isinstance(raw_data, dict):
         raise ValueError("CloudInfo.bson root must be a key-value structure.")
+
+    rows = []
+    total_size = 0
 
     for key, value in raw_data.items():
         if not isinstance(value, dict):
@@ -51,6 +53,7 @@ def process_cloud_rows(raw_data):
         url = value.get("URL") or value.get("Url") or value.get("url") or ""
         folder = value.get("Folder") or value.get("folder") or ""
         size = value.get("Size") or value.get("size") or 0
+        size = int(size) if str(size).isdigit() else 0
 
         rows.append(
             {
@@ -58,11 +61,12 @@ def process_cloud_rows(raw_data):
                 "Name": str(name),
                 "URL": str(url),
                 "Folder": normalize_cloud_path(folder),
-                "Size": int(size) if str(size).isdigit() else 0,
+                "Size": size,
             }
         )
+        total_size += size
 
-    return rows
+    return rows, total_size
 
 
 def export_to_json(data, output_file):
@@ -80,11 +84,11 @@ def main():
     raw_bson = read_local_cloud_info_bson(bson_file)
 
     # Format and standardize rows
-    rows = process_cloud_rows(raw_bson)
-    print(f"Found {len(rows)} indexed files in BSON payload.")
-
+    data, total_size = process_cloud_data(raw_bson)
+    print(f"Found {len(data):,} indexed files in BSON payload ({total_size / 1024 / 1024:,.2f} MB).")
+    
     # Export JSON
-    export_to_json(rows, script_dir / "tts_cloud_info.json")
+    export_to_json(data, script_dir / "tts_cloud_info.json")
 
 
 if __name__ == "__main__":
