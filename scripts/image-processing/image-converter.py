@@ -51,7 +51,7 @@ AUTO_CONTRAST = False
 
 EXTRACT_CARD_NUMBER = False
 DEBUG_IMAGES = False
-CARD_NUMBER_START = 11501
+CARD_NUMBER_START = 14001
 CARD_NUMBER_AREA = {"h_start": 0.967, "h_end": 0.995, "w_start": 0.87, "w_end": 0.96}
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
